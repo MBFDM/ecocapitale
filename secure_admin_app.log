@@ -1,0 +1,91 @@
+2025-07-03 06:08:32,625 - ERROR - Erreur critique: MySQL Connection not available.
+Traceback (most recent call last):
+  File "C:\Users\MavHacking\Documents\bank_dashboard\auth.py", line 1248, in main
+    check_authentication()
+  File "C:\Users\MavHacking\Documents\bank_dashboard\auth.py", line 1165, in check_authentication
+    initial_admin_setup()
+  File "C:\Users\MavHacking\Documents\bank_dashboard\auth.py", line 1105, in initial_admin_setup
+    user_manager = EnhancedUserManager(conn)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\MavHacking\Documents\bank_dashboard\auth.py", line 139, in __init__
+    self._create_tables()
+  File "C:\Users\MavHacking\Documents\bank_dashboard\auth.py", line 144, in _create_tables
+    with self.conn.cursor() as cursor:
+         ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\MavHacking\AppData\Local\Programs\Python\Python312\Lib\site-packages\mysql\connector\connection_cext.py", line 841, in cursor
+    raise OperationalError("MySQL Connection not available.")
+mysql.connector.errors.OperationalError: MySQL Connection not available.
+2025-07-03 06:09:04,547 - ERROR - Erreur critique: MySQL Connection not available.
+Traceback (most recent call last):
+  File "C:\Users\MavHacking\Documents\bank_dashboard\auth.py", line 1248, in main
+    check_authentication()
+  File "C:\Users\MavHacking\Documents\bank_dashboard\auth.py", line 1165, in check_authentication
+    initial_admin_setup()
+  File "C:\Users\MavHacking\Documents\bank_dashboard\auth.py", line 1105, in initial_admin_setup
+    user_manager = EnhancedUserManager(conn)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\MavHacking\Documents\bank_dashboard\auth.py", line 139, in __init__
+    self._create_tables()
+  File "C:\Users\MavHacking\Documents\bank_dashboard\auth.py", line 144, in _create_tables
+    with self.conn.cursor() as cursor:
+         ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\MavHacking\AppData\Local\Programs\Python\Python312\Lib\site-packages\mysql\connector\connection_cext.py", line 841, in cursor
+    raise OperationalError("MySQL Connection not available.")
+mysql.connector.errors.OperationalError: MySQL Connection not available.
+2025-07-03 06:10:39,645 - ERROR - Erreur critique: MySQL Connection not available.
+Traceback (most recent call last):
+  File "C:\Users\MavHacking\Documents\bank_dashboard\auth.py", line 1248, in main
+    check_authentication()
+  File "C:\Users\MavHacking\Documents\bank_dashboard\auth.py", line 1165, in check_authentication
+    initial_admin_setup()
+  File "C:\Users\MavHacking\Documents\bank_dashboard\auth.py", line 1105, in initial_admin_setup
+    user_manager = EnhancedUserManager(conn)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\MavHacking\Documents\bank_dashboard\auth.py", line 139, in __init__
+    self._create_tables()
+  File "C:\Users\MavHacking\Documents\bank_dashboard\auth.py", line 144, in _create_tables
+    with self.conn.cursor() as cursor:
+         ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\MavHacking\AppData\Local\Programs\Python\Python312\Lib\site-packages\mysql\connector\connection_cext.py", line 841, in cursor
+    raise OperationalError("MySQL Connection not available.")
+mysql.connector.errors.OperationalError: MySQL Connection not available.
+2025-07-03 06:16:38,133 - ERROR - Erreur critique: MySQL Connection not available.
+Traceback (most recent call last):
+  File "C:\Users\MavHacking\Documents\bank_dashboard\auth.py", line 1254, in main
+    check_authentication()
+  File "C:\Users\MavHacking\Documents\bank_dashboard\auth.py", line 1171, in check_authentication
+    initial_admin_setup()
+  File "C:\Users\MavHacking\Documents\bank_dashboard\auth.py", line 1111, in initial_admin_setup
+    user_manager = EnhancedUserManager(conn)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\MavHacking\Documents\bank_dashboard\auth.py", line 140, in __init__
+    self._create_tables()
+  File "C:\Users\MavHacking\Documents\bank_dashboard\auth.py", line 152, in _create_tables
+    with self.conn.cursor() as cursor:
+         ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\MavHacking\AppData\Local\Programs\Python\Python312\Lib\site-packages\mysql\connector\connection_cext.py", line 841, in cursor
+    raise OperationalError("MySQL Connection not available.")
+mysql.connector.errors.OperationalError: MySQL Connection not available.
+2025-07-03 06:19:08,391 - INFO - Connexion à la base de données établie avec succès
+2025-07-03 06:19:39,933 - INFO - Connexion à la base de données établie avec succès
+2025-07-03 06:19:46,322 - INFO - Connexion à la base de données établie avec succès
+2025-07-03 06:19:50,190 - ERROR - Erreur MySQL lors de l'authentification: 1054 (42S22): Unknown column 'failed_login_attempts' in 'field list'
+2025-07-03 06:20:05,023 - INFO - Connexion à la base de données établie avec succès
+2025-07-03 06:20:10,703 - INFO - Connexion à la base de données établie avec succès
+2025-07-03 06:20:12,952 - ERROR - Erreur MySQL lors de l'authentification: 1054 (42S22): Unknown column 'failed_login_attempts' in 'field list'
+2025-07-03 06:20:39,903 - INFO - Connexion à la base de données établie avec succès
+2025-07-03 06:20:49,225 - INFO - Connexion à la base de données établie avec succès
+2025-07-03 06:20:54,052 - ERROR - Erreur MySQL lors de l'authentification: 1054 (42S22): Unknown column 'failed_login_attempts' in 'field list'
+2025-07-03 06:21:11,177 - INFO - Connexion à la base de données établie avec succès
+2025-07-03 06:21:22,155 - INFO - Connexion à la base de données établie avec succès
+2025-07-03 06:21:56,512 - INFO - Connexion à la base de données établie avec succès
+2025-07-03 06:22:14,282 - INFO - Connexion à la base de données établie avec succès
+2025-07-03 06:22:21,874 - ERROR - Erreur MySQL lors de l'authentification: 1054 (42S22): Unknown column 'failed_login_attempts' in 'field list'
+2025-07-03 06:22:27,587 - INFO - Connexion à la base de données établie avec succès
+2025-07-03 06:22:32,602 - INFO - Connexion à la base de données établie avec succès
+2025-07-03 06:22:35,042 - ERROR - Erreur MySQL lors de l'authentification: 1054 (42S22): Unknown column 'failed_login_attempts' in 'field list'
+2025-07-03 06:22:47,380 - INFO - Connexion à la base de données établie avec succès
+2025-07-03 06:24:08,033 - INFO - Connexion à la base de données établie avec succès
+2025-07-03 06:24:32,053 - INFO - Connexion à la base de données établie avec succès
+2025-07-03 06:24:37,143 - INFO - Connexion à la base de données établie avec succès
+2025-07-03 06:24:39,926 - ERROR - Erreur MySQL lors de l'authentification: 1054 (42S22): Unknown column 'failed_login_attempts' in 'field list'
