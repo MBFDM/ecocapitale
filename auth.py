@@ -2914,9 +2914,17 @@ def show_admin_dashboard():
                             except (ValueError, TypeError) as e:
                                 st.error(f"Erreur de format du montant: {str(e)}")
                                 new_montant = 0.0
-                            new_date_creation = st.date_input("Date de création", value=datetime.strptime(avi_data['date_creation'], "%Y-%m-%d"))
-                            new_date_expiration = st.date_input("Date d'expiration", 
-                                                            value=datetime.strptime(avi_data['date_expiration'], "%Y-%m-%d") if avi_data['date_expiration'] else None)
+                            # Si la date est déjà un objet date, pas besoin de strptime()
+                            new_date_creation = st.date_input(
+                                "Date de création",
+                                value=avi_data['date_creation']  # Utilise directement l'objet date
+                            )
+                            
+                            # Gestion de la date d'expiration (peut être None)
+                            new_date_expiration = st.date_input(
+                                "Date d'expiration",
+                                value=avi_data['date_expiration'] if avi_data['date_expiration'] else None
+                            )
                             new_statut = st.selectbox(
                                 "Statut",
                                 options=["Etudiant", "Fonctionnaire"],
