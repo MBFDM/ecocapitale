@@ -495,7 +495,7 @@ class BankDatabase:
                 account_number VARCHAR(50) NOT NULL,
                 branch_code VARCHAR(50) NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                first_name VARCHAR(100),
+                frist_name VARCHAR(100),
                 last_name VARCHAR(100),
                 FOREIGN KEY (client_id) REFERENCES clients (id) ON DELETE CASCADE
             )

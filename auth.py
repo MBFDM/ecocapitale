@@ -1864,7 +1864,7 @@ def show_admin_dashboard():
         elif selected == "Gestion des Comptes":
             st.title("💳 Gestion des Comptes Bancaires")
             
-            tab1, tab2, tab3  = st.tabs(["📋 Liste des Comptes", "➕ Associer un Compte", "📤 Importer des Comptes"])
+            tab1, tab2 = st.tabs(["📋 Liste des Comptes", "➕ Associer un Compte"])
             
             with tab1:
                 st.subheader("Liste Complète des Comptes")
@@ -2071,152 +2071,7 @@ def show_admin_dashboard():
                         def format_iban(iban):
                             """Formate l'IBAN pour l'affichage (espace tous les 4 caractères)"""
                             return ' '.join([iban[i:i+4] for i in range(0, len(iban), 4)])
-                    
-                with tab3:
-                    st.subheader("📤 Importer des Comptes depuis Excel")
-                    
-                    # Création dynamique du modèle Excel
-                    def generate_template():
-                        output = BytesIO()
-                        writer = pd.ExcelWriter(output, engine='xlsxwriter')
-                        
-                        # Création d'un DataFrame exemple
-                        sample_data = {
-                            'client_id': [1, 2],
-                            'bank_name': ['Ma Banque', 'Autre Banque'],
-                            'bank_code': ['12345', '67890'],
-                            'branch_code': ['12345', '67890'],
-                            'account_number': ['12345678901', '98765432109'],
-                            'rib_key': ['12', '34'],
-                            'iban': ['FR7612345123451234567890112', 'FR769876543219876543210934'],
-                            'bic': ['ABCDEFGH', 'IJKLMNOP'],
-                            'type': ['Courant', 'Épargne'],
-                            'currency': ['XAF', 'EUR'],
-                            'balance': [1000.00, 5000.00],
-                            'status': ['ACTIF', 'ACTIF']
-                        }
-                        df = pd.DataFrame(sample_data)
-                        
-                        # Écriture dans le fichier Excel
-                        df.to_excel(writer, index=False, sheet_name='Comptes')
-                        writer.close()
-                        return output.getvalue()
-                    
-                    # Téléchargement du modèle
-                    st.markdown("### Télécharger le modèle")
-                    st.download_button(
-                        label="📥 Télécharger le modèle Excel",
-                        data=generate_template(),
-                        file_name="modele_import_comptes.xlsx",
-                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                    )
-                    
-                    # Upload du fichier
-                    st.markdown("### Importer un fichier Excel")
-                    uploaded_file = st.file_uploader(
-                        "Choisir un fichier Excel", 
-                        type=["xlsx", "xls"],
-                        accept_multiple_files=False
-                    )
-                    
-                    if uploaded_file is not None:
-                        try:
-                            # Lecture du fichier Excel
-                            df = pd.read_excel(uploaded_file)
-                            
-                            # Vérification des colonnes obligatoires
-                            required_columns = ['client_id', 'bank_name', 'bank_code', 'branch_code', 
-                                            'account_number', 'rib_key', 'iban', 'bic', 
-                                            'type', 'currency', 'balance']
-                            
-                            missing_cols = [col for col in required_columns if col not in df.columns]
-                            if missing_cols:
-                                st.error(f"Colonnes manquantes dans le fichier: {', '.join(missing_cols)}")
-                            else:
-                                # Aperçu des données
-                                st.markdown("### Aperçu des données à importer")
-                                st.dataframe(df.head(3))
-                                
-                                # Options d'importation
-                                with st.expander("Options d'importation", expanded=True):
-                                    col1, col2 = st.columns(2)
-                                    with col1:
-                                        update_existing = st.checkbox(
-                                            "Mettre à jour les comptes existants",
-                                            value=False,
-                                            help="Si coché, les comptes existants avec le même IBAN seront mis à jour"
-                                        )
-                                    with col2:
-                                        skip_errors = st.checkbox(
-                                            "Ignorer les erreurs",
-                                            value=True,
-                                            help="Si coché, les lignes avec erreurs seront ignorées"
-                                        )
-                                
-                                # Bouton d'importation
-                                if st.button("⚡ Importer les comptes", type="primary"):
-                                    progress_bar = st.progress(0)
-                                    status_text = st.empty()
-                                    imported_count = 0
-                                    updated_count = 0
-                                    error_count = 0
-                                    
-                                    for i, row in df.iterrows():
-                                        try:
-                                            # Préparation des données
-                                            account_data = {
-                                                "client_id": int(row['client_id']),
-                                                "bank_name": str(row['bank_name']),
-                                                "bank_code": str(row['bank_code']),
-                                                "branch_code": str(row['branch_code']),
-                                                "account_number": str(row['account_number']),
-                                                "rib_key": str(row['rib_key']),
-                                                "iban": str(row['iban']).replace(" ", "").upper(),
-                                                "bic": str(row['bic']).upper(),
-                                                "type": str(row['type']),
-                                                "currency": str(row['currency']),
-                                                "balance": float(row['balance']),
-                                                "status": str(row.get('status', 'ACTIF')),
-                                                "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                                            }
-                                            
-                                            # Vérification de l'existence du compte
-                                            existing_account = db.get_account_by_iban(account_data['iban'])
-                                            
-                                            if existing_account:
-                                                if update_existing:
-                                                    db.update_account(existing_account['id'], account_data)
-                                                    updated_count += 1
-                                                else:
-                                                    st.warning(f"Le compte avec IBAN {account_data['iban']} existe déjà (ignoré)")
-                                                    error_count += 1
-                                                    continue
-                                            else:
-                                                db.add_account(account_data)
-                                                imported_count += 1
-                                            
-                                            progress_bar.progress((i + 1) / len(df))
-                                            status_text.text(f"Import en cours... {i + 1}/{len(df)} lignes traitées")
-                                            
-                                        except Exception as e:
-                                            error_count += 1
-                                            if not skip_errors:
-                                                st.error(f"Erreur ligne {i + 2}: {str(e)}")
-                                                break
-                                            continue
-                                    
-                                    # Résumé de l'import
-                                    st.success(f"""Import terminé!
-                                    - {imported_count} nouveaux comptes
-                                    - {updated_count} comptes mis à jour
-                                    - {error_count} erreurs""")
-                                    
-                                    # Rafraîchir l'affichage
-                                    st.rerun()
-                                    
-                        except Exception as e:
-                            st.error(f"Erreur lors de la lecture du fichier: {str(e)}")
-       
+
 
         # Page Transactions
         elif selected == "Transactions":
@@ -2235,13 +2090,6 @@ def show_admin_dashboard():
                     # Convertir les dates en strings pour le formatage
                     df = pd.DataFrame(transactions)
                     df['date_str'] = df['date'].dt.strftime('%Y-%m-%d %H:%M')  # Conversion datetime -> string
-                    
-                    # Utiliser la colonne convertie pour l'affichage
-                    selected_transaction = st.selectbox(
-                        "Sélectionner une transaction",
-                        options=df.to_dict('records'),
-                        format_func=lambda t: f"#{t['id']} • {t['type']} • {t['amount']:.2f}XAF • {t['date_str']} • {t.get('description', '')[:30]}"
-                    )
                     
                     # Filtrage basé sur la recherche
                     if search_query:
@@ -2914,17 +2762,17 @@ def show_admin_dashboard():
                             except (ValueError, TypeError) as e:
                                 st.error(f"Erreur de format du montant: {str(e)}")
                                 new_montant = 0.0
-                            # Si la date est déjà un objet date, pas besoin de strptime()
+
                             new_date_creation = st.date_input(
                                 "Date de création",
                                 value=avi_data['date_creation']  # Utilise directement l'objet date
                             )
-                            
                             # Gestion de la date d'expiration (peut être None)
                             new_date_expiration = st.date_input(
                                 "Date d'expiration",
                                 value=avi_data['date_expiration'] if avi_data['date_expiration'] else None
                             )
+                            
                             new_statut = st.selectbox(
                                 "Statut",
                                 options=["Etudiant", "Fonctionnaire"],
