@@ -1,5 +1,5 @@
 # Core
-streamlit==1.36.0
+streamlit==1.40.1  # Version mise à jour pour compatibilité
 pandas==2.2.3
 plotly==5.22.0
 sqlalchemy==2.0.25
@@ -12,13 +12,12 @@ fpdf2==2.8.3
 reportlab==4.2.0
 python-pptx==0.6.23
 pdfplumber==0.10.4
-pdf2docx==0.5.8
 PyPDF2==3.0.1
 python-docx==1.1.0
 num2words==0.5.13
 
 # Image & QR Code
-Pillow==10.3.0
+Pillow==10.4.0  # Version plus récente pour Python 3.13
 qrcode==7.4.2
 
 # Authentication & Security
@@ -34,8 +33,5 @@ streamlit-extras==0.3.4
 # Testing/Data
 Faker==25.5.0
 
-# Typing / Compatibility
+# Typing
 typing-extensions==4.9.0
-
-# Build Tools
-cython==3.0.10
