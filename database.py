@@ -1,12 +1,9 @@
 import logging
-import os
 import mysql.connector
 from datetime import datetime, timedelta
 import random
 from typing import Optional, Dict, List, Union
 from venv import logger
-
-from jsonschema import ValidationError
 
 class DatabaseError(Exception):
     """Classe de base pour les erreurs de base de données"""

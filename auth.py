@@ -41,20 +41,12 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.utils import ImageReader
 from streamlit.components.v1 import html
-import extra_streamlit_components as stx
-from streamlit.components.v1 import html
-# from streamlit_extras.notification_box import notification
 from streamlit_extras.let_it_rain import rain
-from streamlit_extras.stylable_container import stylable_container
-from streamlit_extras.switch_page_button import switch_page
-from streamlit_extras.colored_header import colored_header
 from streamlit_extras.add_vertical_space import add_vertical_space
-from streamlit_extras.dataframe_explorer import dataframe_explorer
-from streamlit_extras.metric_cards import style_metric_cards
-from streamlit_extras.toggle_switch import st_toggle_switch
 import bcrypt
 import secrets
 import string
+
 
 # Configuration MySQL
 MYSQL_CONFIG = {
@@ -72,116 +64,215 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# =============================================
-# STYLE ET THÈME PERSONNALISÉ
-# =============================================
+# Dans votre fichier Python (avant le main())
 def set_custom_theme():
+    """Définit les thèmes light et dark avec animations"""
     st.markdown(f"""
     <style>
-        /* Couleurs principales */
-        :root {{
-            --primary: #3498db;
-            --secondary: #2ecc71;
-            --accent: #e74c3c;
-            --dark: #2c3e50;
-            --light: #ecf0f1;
-            --background: #f9f9f9;
+        /* ===== THÈME LIGHT ===== */
+        [data-testid="stAppViewContainer"] > .main {{
+            background-color: #f8f9fa;
+            background-image: linear-gradient(135deg, rgba(174, 176, 202, 0.05) 0%, #f8f9fa 100%);
         }}
         
-        /* Style général */
-        .stApp {{
-            background-color: var(--background);
-            color: var(--dark);
+        /* ===== THÈME DARK ===== */
+        @media (prefers-color-scheme: dark) {{
+            [data-testid="stAppViewContainer"] > .main {{
+                background-color: #0e1117;
+                background-image: linear-gradient(135deg, rgba(19, 23, 34, 0.8) 0%, #0e1117 100%);
+                color: #f0f2f6;
+            }}
         }}
         
-        /* En-têtes */
+        /* ===== ANIMATIONS COMMUNES ===== */
+        @keyframes gradientBG {{
+            0% {{ background-position: 0% 50%; }}
+            50% {{ background-position: 100% 50%; }}
+            100% {{ background-position: 0% 50%; }}
+        }}
+        
+        /* Header animé */
+        [data-testid="stHeader"] {{
+            background-color: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+        }}
+        
+        @media (prefers-color-scheme: dark) {{
+            [data-testid="stHeader"] {{
+                background-color: rgba(14, 17, 23, 0.9);
+                box-shadow: 0 2px 15px rgba(0, 0, 0, 0.3);
+            }}
+        }}
+        
+        /* Titres animés */
         h1, h2, h3, h4, h5, h6 {{
-            color: var(--dark) !important;
-            border-bottom: 2px solid var(--primary);
-            padding-bottom: 0.3em;
+            animation: fadeIn 0.8s ease-out;
         }}
         
-        /* Sidebar */
-        [data-testid="stSidebar"] {{
-            background: linear-gradient(135deg, var(--dark), #34495e) !important;
-            color: white !important;
+        @keyframes fadeIn {{
+            from {{ opacity: 0; transform: translateY(10px); }}
+            to {{ opacity: 1; transform: translateY(0); }}
         }}
         
-        /* Boutons */
+        /* Boutons avec effets */
         .stButton>button {{
-            background-color: var(--primary) !important;
-            color: white !important;
-            border-radius: 8px !important;
-            transition: all 0.3s ease !important;
-            border: none !important;
+            border-radius: 8px;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            transform: translateY(0);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }}
+        
+        /* Light mode buttons */
+        .stButton>button {{
+            background-color: #4a6fa5;
+            color: white;
         }}
         
         .stButton>button:hover {{
-            background-color: #2980b9 !important;
-            transform: translateY(-2px) !important;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1) !important;
+            background-color: #3a5a8f;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
         }}
         
-        /* Cartes */
-        .card {{
-            background: white;
+        /* Dark mode buttons */
+        @media (prefers-color-scheme: dark) {{
+            .stButton>button {{
+                background-color: #166088;
+                color: white;
+            }}
+            
+            .stButton>button:hover {{
+                background-color: #0d4b6e;
+            }}
+        }}
+        
+        /* Cartes métriques */
+        [data-testid="metric-container"] {{
             border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            padding: 1.5em;
-            margin-bottom: 1em;
+            padding: 1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }}
+        
+        /* Light cards */
+        [data-testid="metric-container"] {{
+            background-color: white;
+            border-left: 4px solid #4a6fa5;
+        }}
+        
+        /* Dark cards */
+        @media (prefers-color-scheme: dark) {{
+            [data-testid="metric-container"] {{
+                background-color: #1e2130;
+                border-left: 4px solid #166088;
+            }}
+        }}
+        
+        [data-testid="metric-container"]:hover {{
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }}
+        
+        /* Onglets stylisés */
+        [data-testid="stTabs"] [role="tablist"] {{
+            gap: 5px;
+        }}
+        
+        [data-testid="stTabs"] [role="tab"] {{
+            padding: 10px 20px;
+            border-radius: 8px 8px 0 0;
             transition: all 0.3s ease;
         }}
         
-        .card:hover {{
-            transform: translateY(-5px);
-            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        /* Light tabs */
+        [data-testid="stTabs"] [role="tab"] {{
+            background-color: rgba(74, 111, 165, 0.1);
+        }}
+        
+        [data-testid="stTabs"] [aria-selected="true"] {{
+            background-color: #4a6fa5;
+            color: white;
+            font-weight: bold;
+        }}
+        
+        /* Dark tabs */
+        @media (prefers-color-scheme: dark) {{
+            [data-testid="stTabs"] [role="tab"] {{
+                background-color: rgba(22, 96, 136, 0.2);
+            }}
+            
+            [data-testid="stTabs"] [aria-selected="true"] {{
+                background-color: #166088;
+            }}
         }}
         
         /* Tableaux */
-        .stDataFrame {{
-            border-radius: 10px !important;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important;
+        [data-testid="stDataFrame"] {{
+            border-radius: 10px;
+            animation: fadeInUp 0.6s ease-out;
         }}
         
-        /* Onglets */
-        .stTabs [role="tablist"] {{
-            background: transparent !important;
-        }}
-        
-        .stTabs [role="tab"] {{
-            color: var(--dark) !important;
-            border-radius: 8px 8px 0 0 !important;
-            transition: all 0.3s ease !important;
-        }}
-        
-        .stTabs [role="tab"][aria-selected="true"] {{
-            background: var(--primary) !important;
-            color: white !important;
-        }}
-        
-        /* Animation pour les notifications */
-        @keyframes fadeIn {{
+        @keyframes fadeInUp {{
             from {{ opacity: 0; transform: translateY(20px); }}
             to {{ opacity: 1; transform: translateY(0); }}
         }}
         
-        .notification {{
-            animation: fadeIn 0.5s ease-out;
+        /* Effet de chargement */
+        .stSpinner>div>div {{
+            animation: pulse 1.5s infinite ease-in-out;
         }}
         
-        /* Effet de chargement */
         @keyframes pulse {{
             0% {{ opacity: 0.6; }}
             50% {{ opacity: 1; }}
             100% {{ opacity: 0.6; }}
         }}
         
-        .stSpinner>div>div {{
-            background-color: var(--primary) !important;
-            animation: pulse 1.5s infinite ease-in-out;
+        /* Style personnalisé pour les cartes */
+        .custom-card {{
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            border-left: 4px solid #4a6fa5;
+        }}
+        
+        /* Light cards */
+        .custom-card {{
+            background-color: white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }}
+        
+        /* Dark cards */
+        @media (prefers-color-scheme: dark) {{
+            .custom-card {{
+                background-color: #1e2130;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+                border-left: 4px solid #166088;
+            }}
+        }}
+        
+        .custom-card:hover {{
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+        }}
+        
+        
+        /* Protection contre le clickjacking */
+        body {{
+            display: none;
+        }}
+        
+        @media only screen {{
+            body {{
+                display: block;
+            }}
         }}
     </style>
     """, unsafe_allow_html=True)
+
 
 # =============================================
 # 2. CLASSES DE GESTION DE BASE DE DONNÉES
@@ -469,49 +560,6 @@ def migrate_password_hash(conn, user_id, plain_password):
 # =============================================
 # 3. COMPOSANTS UI AMÉLIORÉS
 # =============================================
-def show_notification(message, notification_type="success", duration=3000):
-    """Affiche une notification stylisée"""
-    colors = {
-        "success": "#2ecc71",
-        "error": "#e74c3c",
-        "warning": "#f39c12",
-        "info": "#3498db"
-    }
-    
-    notification_html = f"""
-    <div class="notification" style="
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        padding: 15px;
-        background: {colors[notification_type]};
-        color: white;
-        border-radius: 8px;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        z-index: 1000;
-        display: flex;
-        align-items: center;
-        animation: fadeIn 0.5s ease-out;
-    ">
-        <span style="margin-right: 10px;">{message}</span>
-    </div>
-    <script>
-        setTimeout(function() {{
-            document.querySelector('.notification').style.animation = 'fadeOut 0.5s ease-out';
-            setTimeout(function() {{
-                document.querySelector('.notification').remove();
-            }}, 500);
-        }}, {duration});
-    </script>
-    <style>
-        @keyframes fadeOut {{
-            from {{ opacity: 1; transform: translateY(0); }}
-            to {{ opacity: 0; transform: translateY(-20px); }}
-        }}
-    </style>
-    """
-    
-    st.components.v1.html(notification_html, height=0)
 
 def animated_rain_effect():
     """Effet de pluie animé pour les succès"""
@@ -527,130 +575,18 @@ def loading_spinner_with_message(message):
     with st.spinner(message):
         time.sleep(1.5)
 
-# =============================================
-# STYLE ET THEME PERSONNALISE
-# =============================================
-def load_css():
-    st.markdown("""
-    <style>
-        :root {
-            --primary: #4a6fa5;
-            --secondary: #166088;
-            --accent: #4fc3f7;
-            --success: #4caf50;
-            --warning: #ff9800;
-            --danger: #f44336;
-            --light: #f8f9fa;
-            --dark: #212529;
-        }
-        
-        /* Animation d'entrée */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .animated {
-            animation: fadeIn 0.5s ease-out forwards;
-        }
-        
-        /* Boutons améliorés */
-        .stButton>button {
-            border-radius: 8px;
-            transition: all 0.3s;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        
-        .stButton>button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-        }
-        
-        /* Cartes */
-        .card {
-            border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 20px;
-            background: white;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            transition: all 0.3s;
-            border-left: 4px solid var(--primary);
-        }
-        
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 16px rgba(0,0,0,0.15);
-        }
-        
-        /* Onglets */
-        .stTabs [role="tablist"] {
-            gap: 5px;
-        }
-        
-        .stTabs [role="tab"] {
-            border-radius: 8px 8px 0 0 !important;
-            padding: 10px 20px !important;
-            transition: all 0.3s;
-        }
-        
-        .stTabs [role="tab"][aria-selected="true"] {
-            background: var(--primary) !important;
-            color: white !important;
-            font-weight: bold;
-        }
-        
-        /* Formulaire */
-        .stTextInput>div>div>input, 
-        .stTextArea>div>div>textarea,
-        .stNumberInput>div>div>input,
-        .stSelectbox>div>div>select {
-            border-radius: 8px !important;
-            padding: 10px !important;
-        }
-        
-        /* Notification */
-        .notification {
-            border-radius: 8px;
-            padding: 15px;
-            margin: 10px 0;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-            display: flex;
-            align-items: center;
-        }
-        
-        .notification-success {
-            background: #e8f5e9;
-            border-left: 4px solid var(--success);
-        }
-        
-        .notification-error {
-            background: #ffebee;
-            border-left: 4px solid var(--danger);
-        }
-        
-        .notification-warning {
-            background: #fff8e1;
-            border-left: 4px solid var(--warning);
-        }
-        
-        /* Effet de chargement */
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        .loader {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid var(--primary);
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto;
-        }
-    </style>
-    """, unsafe_allow_html=True)
+def loading_animation(message: str = "Chargement en cours..."):
+    """Affiche une animation de chargement stylisée"""
+    with st.spinner(message):
+        time.sleep(0.5)  # Simulation de chargement
 
+def success_animation():
+    """Effet visuel pour succès"""
+    st.balloons()
+
+def error_animation():
+    """Effet visuel pour erreur"""
+    st.snow()
 
 # =============================================
 # 4. PAGES DE L'INTERFACE UTILISATEUR
@@ -658,6 +594,12 @@ def load_css():
 def login_page():
     """Page de connexion avec design amélioré"""
     st.title("🔐 Connexion")
+    # Chargement des styles CSS et des assets
+    def load_css(file_name):
+        with open(file_name) as f:
+            st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
+
+    load_css("assets/styles.css")
     
     # Effet de fond animé
     st.markdown("""
@@ -680,6 +622,8 @@ def login_page():
     </style>
     """, unsafe_allow_html=True)
     
+    #set_custom_theme()
+    
     with st.container():
         st.markdown('<div class="login-container">', unsafe_allow_html=True)
         
@@ -689,7 +633,7 @@ def login_page():
             
             cols = st.columns([1, 1, 2])
             with cols[0]:
-                login_btn = st.form_submit_button("Se connecter", type="primary")
+                login_btn = st.form_submit_button("Se connecter", type="secondary")
             
             if login_btn:
                 try:
@@ -705,24 +649,25 @@ def login_page():
                         st.session_state.last_activity = datetime.now()
                         
                         # Journalisation
+                        client_ip = st.query_params.get('client_ip', [''])[0]  # Updated line
                         user_manager.log_activity(
                             user['id'],
                             "Connexion réussie",
-                            f"Connexion depuis {st.experimental_get_query_params().get('client_ip', [''])[0]}",
-                            ip_address=st.query_params.get('client_ip', '')
+                            f"Connexion depuis {client_ip}",
+                            ip_address=client_ip
                         )
                         
                         # Notification et redirection
-                        show_notification("Connexion réussie! Redirection en cours...", "success")
-                        animated_rain_effect()
+                        st.success("Connexion réussie! Redirection en cours...")
+                        #animated_rain_effect()
                         time.sleep(1.5)
                         st.rerun()
                     else:
-                        show_notification("Identifiants incorrects", "error")
+                        st.error("Identifiants incorrects")
                         logger.warning(f"Tentative de connexion échouée pour l'utilisateur: {username}")
                 
                 except Exception as e:
-                    show_notification(f"Erreur de connexion: {str(e)}", "error")
+                    st.error(f"Erreur de connexion: {str(e)}")
                     logger.error(f"Erreur de connexion: {str(e)}")
                 finally:
                     if 'conn' in locals():
@@ -1003,51 +948,204 @@ def admin_dashboard():
         layout="wide",
         initial_sidebar_state="expanded"
     )
+
+    # Chargement des styles CSS et des assets
+    def load_css(file_name):
+        with open(file_name) as f:
+            st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
+
+    load_css("assets/styles.css")
+    set_custom_theme()
     
-    load_css()
-    
-    # Sidebar stylisée
+    # Sidebar avec animations et personnalisation dynamique
     with st.sidebar:
-        st.image("assets/logo.png", width=150)
-        st.markdown(f"<h3 style='text-align: center; color: #4a6fa5;'>{st.session_state.user['username']}</h3>", unsafe_allow_html=True)
-        st.markdown(f"<p style='text-align: center; color: #666;'>{st.session_state.user['role'].capitalize()}</p>", unsafe_allow_html=True)
-        
-        add_vertical_space(2)
-        
-        # Menu de navigation
-        selected = option_menu(
-            menu_title=None,
-            options=["Tableau de bord", "Utilisateurs", "Activités", "Paramètres"],
-            icons=["speedometer2", "people-fill", "activity", "gear"],
-            default_index=0,
-            styles={
-                "container": {"padding": "0!important", "background-color": "#f8f9fa"},
-                "icon": {"color": "#4a6fa5", "font-size": "16px"}, 
-                "nav-link": {
-                    "font-size": "14px",
-                    "text-align": "left",
-                    "margin": "5px 0",
-                    "border-radius": "8px",
-                    "padding": "10px 15px",
-                },
-                "nav-link-selected": {
-                    "background-color": "#4a6fa5",
-                    "color": "white",
-                },
+        # Logo avec animation au hover
+        st.markdown("""
+        <style>
+            .logo-animation:hover {
+                transform: rotate(5deg) scale(1.05);
+                transition: all 0.3s ease;
             }
-        )
+        </style>
+        """, unsafe_allow_html=True)
+        
+        logo_col = st.columns([1, 4, 1])[1]
+        with logo_col:
+            st.image("assets/logo.png", width=400, 
+                    use_container_width=True, clamp=True, 
+                    caption="", channels="RGB", 
+                    output_format="PNG", 
+                )
+        
+        # Informations utilisateur avec animation
+        st.markdown(f"""
+        <div class="element-enter">
+            <h3 style='text-align: center; color: var(--primary-color);'>
+                {st.session_state.user['username']}
+            </h3>
+            <p style='text-align: center; color: #666;'>
+                {st.session_state.user['role'].capitalize()}
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
         
         add_vertical_space(2)
+
+        if st.button(
+            "🔄 Rafraîchir", 
+            use_container_width=True,
+            key="rafraichir",
+            help="Actualiser",
+            type="secondary"
+        ):st.rerun()
         
-        if st.button("🚪 Déconnexion", use_container_width=True):
+        # Bouton de déconnexion avec effet
+        if st.button(
+            "🚪 Déconnexion", 
+            use_container_width=True,
+            key="logout_btn",
+            help="Se déconnecter du tableau de bord",
+            type="secondary"
+        ):
             st.session_state.authenticated = False
             st.session_state.user = None
-            show_notification("Déconnexion réussie", "success", "👋")
+            st.balloons()
+            st.success("Déconnexion réussie")
             time.sleep(1)
             st.rerun()
     
+    st.markdown("""
+    <style>
+        /* Conteneur principal - Version premium */
+        .main-container {
+            background: linear-gradient(135deg, var(--surface) 0%, var(--border) 150%);
+            animation: gradientBG 18s ease infinite, float 6s ease-in-out infinite;
+            background-size: 300% 300%;
+            border-radius: 18px;
+            padding: 2.5rem;
+            box-shadow: 0 12px 24px rgba(0,0,0,0.08);
+            margin-bottom: 2.5rem;
+            transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+            border: none;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(8px);
+        }
+
+        /* Effet de bordure animée */
+        .main-container::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 18px;
+            padding: 2px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            animation: borderRotate 8s linear infinite;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* Thème Light */
+        [data-theme="light"] .main-container {
+            background: linear-gradient(145deg, #f8faff 0%, #e6ecff 100%);
+            box-shadow: 0 12px 28px rgba(67, 97, 238, 0.15);
+        }
+
+        /* Thème Dark */
+        [data-theme="dark"] .main-container {
+            background: linear-gradient(145deg, #1a1a2e 0%, #16213e 100%);
+            box-shadow: 0 12px 28px rgba(16, 20, 58, 0.3);
+        }
+
+        /* Animation d'entrée améliorée */
+        .animated-entry {
+            animation: fadeInSlide 0.8s cubic-bezier(0.16, 1, 0.3, 1), 
+                    pulse 2s ease-in-out 0.8s 3;
+            transform-origin: center bottom;
+        }
+
+        /* Animations */
+        @keyframes gradientBG {
+            0% { background-position: 0% 0%; }
+            50% { background-position: 100% 100%; }
+            100% { background-position: 0% 0%; }
+        }
+
+        @keyframes fadeInSlide {
+            from { 
+                opacity: 0;
+                transform: translateY(20px) scale(0.98);
+                filter: blur(2px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0) scale(1);
+                filter: blur(0);
+            }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        @keyframes borderRotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        /* Effet hover premium */
+        .main-container:hover {
+            transform: translateY(-6px) scale(1.01);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+
+        [data-theme="light"] .main-container:hover {
+            box-shadow: 0 20px 40px rgba(67, 97, 238, 0.25);
+            background: linear-gradient(145deg, #f0f4ff 0%, #d9e2ff 100%);
+        }
+
+        [data-theme="dark"] .main-container:hover {
+            box-shadow: 0 20px 40px rgba(106, 143, 199, 0.4);
+            background: linear-gradient(145deg, #1f1f3d 0%, #1a2a4a 100%);
+        }
+
+        /* Effet de brillance au survol */
+        .main-container:hover::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, 
+                rgba(255,255,255,0.15) 0%, 
+                transparent 70%);
+            animation: shine 1.5s ease-out;
+            transform: rotate(30deg);
+        }
+
+        @keyframes shine {
+            0% { transform: translateY(-100%) rotate(30deg); }
+            100% { transform: translateY(100%) rotate(30deg); }
+        }
+    </style>
+    """, unsafe_allow_html=True)
+
     # Contenu principal
-    st.markdown(f"<h1 style='color: #4a6fa5;'>Tableau de bord Administrateur</h1>", unsafe_allow_html=True)
+    st.markdown( 
+        f"""<div class="main-container animated-entry">
+            <h1>🏠 Tableau de bord {st.session_state.user['role'].capitalize()}</h1>
+        </div>""", unsafe_allow_html=True
+    )
     
     try:
         conn = get_db_connection()
@@ -1062,8 +1160,6 @@ def admin_dashboard():
             st.metric(label="📊 Actions aujourd'hui", value=len(user_manager.get_activity_logs(date_filter=datetime.now().date())))
         with cols[3]:
             st.metric(label="⏳ Demandes en attente", value=len(user_manager.get_pending_admin_requests()))
-
-        style_metric_cards()
         
         # Graphiques avec Plotly
         st.markdown("## Activité récente")
@@ -1094,26 +1190,11 @@ def admin_dashboard():
         
         with tab3:
             show_system_settings()
-        
-        
-        # Dernières activités
-        #st.markdown("## Dernières activités")
-        #if logs:
-        #    with st.expander("Voir les dernières activités", expanded=True):
-        #        st.dataframe(
-        #            df_logs.head(10),
-        #            use_container_width=True,
-        #            hide_index=True,
-        #            column_config={
-        #                "created_at": st.column_config.DatetimeColumn("Date"),
-        #                "action": "Action",
-        #                "username": "Utilisateur",
-        #                "details": "Détails"
-        #            }
-        #        )
+
+        #st.success("Tableau de bord chargé avec succès !")
         
     except Exception as e:
-        show_notification(f"Erreur: {str(e)}", "error", "❌")
+        st.error(f"Erreur: {str(e)} ❌")
     finally:
         if 'conn' in locals():
             conn.close()
@@ -1169,23 +1250,76 @@ def logout() -> None:
     st.rerun()
 
 # =============================================
+# INTÉGRATION AVEC LES AUTRES COMPOSANTS
+# =============================================
+
+# Pour les DataFrames
+def show_animated_dataframe(data):
+    """Affiche un DataFrame avec animation"""
+    st.markdown("""
+    <style>
+        @keyframes fadeInData {{
+            from {{ opacity: 0; }}
+            to {{ opacity: 1; }}
+        }}
+        
+        .dataframe {{
+            animation: fadeInData 1s ease-out;
+        }}
+    </style>
+    """, unsafe_allow_html=True)
+    
+    st.dataframe(data)
+
+# Pour les graphiques
+def show_animated_chart(fig):
+    """Affiche un graphique avec animation"""
+    st.markdown("""
+    <style>
+        @keyframes chartEntrance {{
+            from {{ transform: scale(0.9); opacity: 0; }}
+            to {{ transform: scale(1); opacity: 1; }}
+        }}
+        
+        .stPlotlyChart {{
+            animation: chartEntrance 0.5s ease-out;
+        }}
+    </style>
+    """, unsafe_allow_html=True)
+    
+    st.plotly_chart(fig)
+
+# =============================================
 # 5. FONCTION PRINCIPALE
 # =============================================
 
-
 def main():
     """Point d'entrée principal avec animations"""
+    #set_custom_theme()
     init_session()
+
+    # Chargement des styles CSS et des assets
+    def load_css(file_name):
+        with open(file_name) as f:
+            st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
+
+    load_css("assets/styles.css")
     
-    # Vérifie si les tables existent, sinon les crée
+    # Vérification initiale avec animation
+    loading_animation("Vérification de la session...")
+    
     try:
         conn = get_db_connection()
         user_manager = EnhancedUserManager(conn)
         conn.close()
+        
+        # Notification discrète
+        #st.info("Connecté à la base de données")
     except Exception as e:
+        st.error(f"Erreur de connexion: {str(e)}")
         logger.error(f"Erreur initiale: {str(e)}")
-        show_notification(f"Erreur de connexion à la base de données: {str(e)}", "error", "❌")
-
+        return
+    
     check_authentication()
 
 def show_admin_dashboard():
@@ -1198,6 +1332,135 @@ def show_admin_dashboard():
         initial_sidebar_state="expanded"
     )
 
+    set_custom_theme()
+    init_session()
+
+    st.markdown("""
+    <style>
+        /* Conteneur principal - Version premium */
+        .main-container {
+            background: linear-gradient(135deg, var(--surface) 0%, var(--border) 150%);
+            animation: gradientBG 18s ease infinite, float 6s ease-in-out infinite;
+            background-size: 300% 300%;
+            border-radius: 18px;
+            padding: 2.5rem;
+            box-shadow: 0 12px 24px rgba(0,0,0,0.08);
+            margin-bottom: 2.5rem;
+            transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+            border: none;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(8px);
+        }
+
+        /* Effet de bordure animée */
+        .main-container::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 18px;
+            padding: 2px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            animation: borderRotate 8s linear infinite;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* Thème Light */
+        [data-theme="light"] .main-container {
+            background: linear-gradient(145deg, #f8faff 0%, #e6ecff 100%);
+            box-shadow: 0 12px 28px rgba(67, 97, 238, 0.15);
+        }
+
+        /* Thème Dark */
+        [data-theme="dark"] .main-container {
+            background: linear-gradient(145deg, #1a1a2e 0%, #16213e 100%);
+            box-shadow: 0 12px 28px rgba(16, 20, 58, 0.3);
+        }
+
+        /* Animation d'entrée améliorée */
+        .animated-entry {
+            animation: fadeInSlide 0.8s cubic-bezier(0.16, 1, 0.3, 1), 
+                    pulse 2s ease-in-out 0.8s 3;
+            transform-origin: center bottom;
+        }
+
+        /* Animations */
+        @keyframes gradientBG {
+            0% { background-position: 0% 0%; }
+            50% { background-position: 100% 100%; }
+            100% { background-position: 0% 0%; }
+        }
+
+        @keyframes fadeInSlide {
+            from { 
+                opacity: 0;
+                transform: translateY(20px) scale(0.98);
+                filter: blur(2px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0) scale(1);
+                filter: blur(0);
+            }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        @keyframes borderRotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        /* Effet hover premium */
+        .main-container:hover {
+            transform: translateY(-6px) scale(1.01);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+
+        [data-theme="light"] .main-container:hover {
+            box-shadow: 0 20px 40px rgba(67, 97, 238, 0.25);
+            background: linear-gradient(145deg, #f0f4ff 0%, #d9e2ff 100%);
+        }
+
+        [data-theme="dark"] .main-container:hover {
+            box-shadow: 0 20px 40px rgba(106, 143, 199, 0.4);
+            background: linear-gradient(145deg, #1f1f3d 0%, #1a2a4a 100%);
+        }
+
+        /* Effet de brillance au survol */
+        .main-container:hover::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, 
+                rgba(255,255,255,0.15) 0%, 
+                transparent 70%);
+            animation: shine 1.5s ease-out;
+            transform: rotate(30deg);
+        }
+
+        @keyframes shine {
+            0% { transform: translateY(-100%) rotate(30deg); }
+            100% { transform: translateY(100%) rotate(30deg); }
+        }
+    </style>
+    """, unsafe_allow_html=True)
+    
     # Chargement des styles CSS et des assets
     def load_css(file_name):
         with open(file_name) as f:
@@ -1211,21 +1474,64 @@ def show_admin_dashboard():
     
     # Barre latérale
     with st.sidebar:
-        st.image(logo_img, width=20, use_column_width=True)
-        st.markdown("<h1 style='text-align: center;'>Digital Financial Service</h1>", unsafe_allow_html=True)
-        st.markdown(f"### {st.session_state.user['username']}")
-        st.markdown(f"*Rôle: {st.session_state.user['role'].capitalize()}*")
-        
-        if st.button("🔄 Rafraîchir"):
-            st.rerun()
+        st.image(logo_img, width=20, use_container_width=True)
+        st.markdown("<h2 style='text-align: center;'>Digital Financial Service</h2>", unsafe_allow_html=True)
+        st.markdown(f"<h4 style='text-align: center;'>Rôle: {st.session_state.user['role'].capitalize()}</h4>", unsafe_allow_html=True)
+        st.markdown(f"<h4 style='text-align: center;'>{st.session_state.user['username']}</h4>", unsafe_allow_html=True)
             
-        if st.button("🚪 Déconnexion"):
+
+        if st.button(
+            "🔄 Rafraîchir", 
+            use_container_width=True,
+            key="rafraichir",
+            help="Actualiser",
+            type="secondary"
+        ):st.rerun()
+
+        # Bouton de déconnexion avec effet
+        if st.button(
+            "🚪 Déconnexion", 
+            use_container_width=True,
+            key="logout_btn",
+            help="Se déconnecter du tableau de bord",
+            type="secondary"
+        ):
             st.session_state.authenticated = False
             st.session_state.user = None
+            st.balloons()
+            st.success("Déconnexion réussie")
+            time.sleep(2)
             st.rerun()
-    
-    # Contenu principal en fonction du rôle
-    st.title(f"🏠 Tableau de bord {st.session_state.user['role'].capitalize()}")
+            
+    # Contenu principal avec animations
+    st.markdown( 
+        f"""<div class="main-container animated-entry">
+            <h1>🏠 Tableau de bord {st.session_state.user['role'].capitalize()}</h1>
+        </div>""", unsafe_allow_html=True
+    )
+
+    # Effet de fond animé
+    st.markdown("""
+    <style>
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .login-container {
+            background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            padding: 2em;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            color: white;
+        }
+    </style>
+    """, unsafe_allow_html=True)
+
+    st.markdown('<div class="login-container">', unsafe_allow_html=True)
     
     try:
         conn = get_db_connection()
@@ -1302,9 +1608,10 @@ def show_admin_dashboard():
                     "container": {"padding": "0!important"},
                     "icon": {"font-size": "16px"}, 
                     "nav-link": {"font-size": "14px", "text-align": "left", "margin": "4px"},
-                    "nav-link-selected": {"background-color": "#2c3e50"},
+                    "nav-link-selected": {"background": "linear-gradient(45deg, #4a6fa5, #166088)"},
                 }
             )
+
 
         # Style pour les KPI
         def kpi_card(title, value, delta=None, delta_color="normal"):
@@ -2041,39 +2348,191 @@ def show_admin_dashboard():
         # Page Générer Reçu
         elif selected == "Reçus":
             st.markdown("""
-            <style>
-                .receipt-card {
-                    border-radius: 10px;
-                    padding: 20px;
-                    margin: 15px 0;
-                    background-color: #f8f9fa;
-                    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        <style>
+            /* Structure principale avec animations */
+            .receipt-card {
+                border-radius: 16px;
+                padding: 28px;
+                margin: 20px 0;
+                background: var(--surface);
+                box-shadow: 0 6px 30px rgba(0,0,0,0.08);
+                transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+                position: relative;
+                overflow: hidden;
+                border: 1px solid var(--border);
+                animation: fadeInUp 0.8s ease-out;
+            }
+
+            /* Thème Light */
+            [data-theme="light"] .receipt-card {
+                background: linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%);
+                box-shadow: 0 8px 32px rgba(67, 97, 238, 0.12);
+            }
+
+            /* Thème Dark */
+            [data-theme="dark"] .receipt-card {
+                background: linear-gradient(145deg, #1e1e2e 0%, #232339 100%);
+                box-shadow: 0 8px 32px rgba(16, 20, 58, 0.3);
+            }
+
+            /* Effet hover élégant */
+            .receipt-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 15px 45px rgba(0,0,0,0.15);
+            }
+
+            [data-theme="light"] .receipt-card:hover {
+                box-shadow: 0 15px 45px rgba(67, 97, 238, 0.2);
+            }
+
+            [data-theme="dark"] .receipt-card:hover {
+                box-shadow: 0 15px 45px rgba(106, 143, 199, 0.35);
+            }
+
+            /* En-tête avec effet de vague */
+            .receipt-header {
+                border-bottom: 2px solid var(--primary);
+                padding-bottom: 15px;
+                margin-bottom: 20px;
+                position: relative;
+                animation: fadeIn 0.6s ease-out;
+            }
+
+            .receipt-header::after {
+                content: '';
+                position: absolute;
+                bottom: -2px;
+                left: 0;
+                width: 100%;
+                height: 2px;
+                background: linear-gradient(90deg, var(--primary), var(--accent));
+                transform: scaleX(0);
+                transform-origin: left;
+                animation: headerUnderline 1.5s ease-in-out forwards;
+            }
+
+            /* Sections avec entrée séquentielle */
+            .receipt-section {
+                margin-bottom: 20px;
+                padding: 15px;
+                border-radius: 10px;
+                background-color: rgba(var(--primary-rgb), 0.03);
+                transition: all 0.3s ease;
+                animation: fadeIn 0.6s ease-out;
+                animation-fill-mode: both;
+            }
+
+            [data-theme="dark"] .receipt-section {
+                background-color: rgba(106, 143, 199, 0.08);
+            }
+
+            .receipt-section:nth-child(1) { animation-delay: 0.1s; }
+            .receipt-section:nth-child(2) { animation-delay: 0.2s; }
+            .receipt-section:nth-child(3) { animation-delay: 0.3s; }
+
+            .receipt-section:hover {
+                transform: translateX(5px);
+                background-color: rgba(var(--primary-rgb), 0.08);
+            }
+
+            /* Signature avec effet de tracé */
+            .receipt-signature {
+                margin-top: 40px;
+                text-align: right;
+                position: relative;
+                animation: fadeIn 0.8s ease-out;
+            }
+
+            .signature-line {
+                width: 200px;
+                margin-top: 5px;
+                display: inline-block;
+                position: relative;
+                height: 2px;
+                background: linear-gradient(90deg, transparent, var(--text));
+                opacity: 0.7;
+            }
+
+            .signature-line::after {
+                content: '';
+                position: absolute;
+                top: -3px;
+                right: 0;
+                width: 0;
+                height: 8px;
+                background-color: var(--primary);
+                animation: drawLine 1s ease-in-out 0.5s forwards;
+            }
+
+            /* Bouton de téléchargement premium */
+            .stDownloadButton button {
+                background: linear-gradient(135deg, var(--primary), var(--secondary)) !important;
+                color: white !important;
+                border: none !important;
+                border-radius: 10px !important;
+                padding: 10px 24px !important;
+                font-weight: 500 !important;
+                letter-spacing: 0.5px !important;
+                box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.2) !important;
+                transition: all 0.3s ease !important;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .stDownloadButton button:hover {
+                transform: translateY(-2px) !important;
+                box-shadow: 0 8px 20px rgba(var(--primary-rgb), 0.3) !important;
+            }
+
+            .stDownloadButton button::after {
+                content: '';
+                position: absolute;
+                top: -50%;
+                left: -50%;
+                width: 200%;
+                height: 200%;
+                background: linear-gradient(
+                    to bottom right,
+                    rgba(255,255,255,0.3) 0%,
+                    rgba(255,255,255,0) 60%
+                );
+                transform: rotate(30deg);
+                animation: shine 2s infinite;
+            }
+
+            /* Animations personnalisées */
+            @keyframes fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
+
+            @keyframes fadeInUp {
+                from { 
+                    opacity: 0;
+                    transform: translateY(20px);
                 }
-                .receipt-header {
-                    border-bottom: 2px solid #3498db;
-                    padding-bottom: 10px;
-                    margin-bottom: 15px;
+                to { 
+                    opacity: 1;
+                    transform: translateY(0);
                 }
-                .receipt-section {
-                    margin-bottom: 15px;
-                }
-                .receipt-signature {
-                    margin-top: 30px;
-                    text-align: right;
-                }
-                .signature-line {
-                    border-top: 1px solid #333;
-                    width: 200px;
-                    margin-top: 5px;
-                    display: inline-block;
-                }
-                .stDownloadButton button {
-                    background-color: #27ae60 !important;
-                    color: white !important;
-                    border: none !important;
-                }
-            </style>
-            """, unsafe_allow_html=True)
+            }
+
+            @keyframes headerUnderline {
+                0% { transform: scaleX(0); }
+                100% { transform: scaleX(1); }
+            }
+
+            @keyframes drawLine {
+                0% { width: 0; }
+                100% { width: 200px; }
+            }
+
+            @keyframes shine {
+                0% { transform: translateY(-100%) rotate(30deg); }
+                100% { transform: translateY(100%) rotate(30deg); }
+            }
+        </style>
+        """, unsafe_allow_html=True)
 
             st.title("🧾 Gestion des Reçus")
             
@@ -3014,7 +3473,12 @@ def show_admin_dashboard():
                         st.error(f"Erreur lors du traitement: {str(e)}")
 
         elif selected == "Générateur":
-            st.title("📑 Générateur QR")
+            st.markdown("""
+                <div class="animated-entry">
+                    <h2>📑 Générateur QR</h2>
+                </div>
+                """, unsafe_allow_html=True)
+            #st.title("📑 Générateur QR")
             
             # Correction: Utiliser st.tabs() correctement et créer un seul onglet
             tab1, = st.tabs(["📤 Importer PDF"])  # Notez la virgule après tab1 pour unpack le tuple
@@ -3263,6 +3727,7 @@ def show_admin_dashboard():
 
                     except Exception as e:
                         st.error(f"Erreur lors du traitement: {str(e)}")
+
             
     except Exception as e:
         st.error(f"Erreur: {str(e)}")

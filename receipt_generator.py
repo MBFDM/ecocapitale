@@ -20,7 +20,6 @@ except:
 def generate_receipt_pdf(transaction_data, client_data, iban_data, company_name, 
                         logo_path=None, receipt_title="REÇU DE TRANSACTION", 
                         additional_notes="", include_signature=True, include_qr=True):
-                        
     """
     Génère un reçu PDF professionnel avec QR code
     
@@ -33,8 +32,6 @@ def generate_receipt_pdf(transaction_data, client_data, iban_data, company_name,
         receipt_title: Titre du document
         additional_notes: Notes additionnelles
         include_signature: Inclure une ligne de signature
-        qr_code: Booléen pour inclure ou non le QR code
-        include_signature: Inclure une ligne de signature
         include_qr: Inclure un QR code de vérification
     
     Returns:
@@ -44,7 +41,7 @@ def generate_receipt_pdf(transaction_data, client_data, iban_data, company_name,
     os.makedirs("receipts", exist_ok=True)
     pdf_path = f"receipts/receipt_{transaction_data['id']}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
     
-    # Créer le document avec des marges plus modernes
+    # Créer le document
     doc = SimpleDocTemplate(
         pdf_path, 
         pagesize=A4,
@@ -54,13 +51,14 @@ def generate_receipt_pdf(transaction_data, client_data, iban_data, company_name,
         bottomMargin=1.5*cm
     )
     
-    # Styles personnalisés
+    # Obtenir les styles de base
     styles = getSampleStyleSheet()
     
-    # Modifier les styles existants ou ajouter des nouveaux
-    if 'Title' not in styles:
+    # MODIFICATION CLÉ : Vérifier si le style existe avant de l'ajouter
+    if not hasattr(styles, 'MyTitle'):
         styles.add(ParagraphStyle(
-            name='Title',
+            name='MyTitle',
+            parent=styles['Title'],
             fontName='Helvetica-Bold',
             fontSize=16,
             leading=20,
@@ -69,9 +67,10 @@ def generate_receipt_pdf(transaction_data, client_data, iban_data, company_name,
             textColor=colors.HexColor('#2c3e50')
         ))
     
-    if 'Heading2' not in styles:
+    if not hasattr(styles, 'MyHeading2'):
         styles.add(ParagraphStyle(
-            name='Heading2',
+            name='MyHeading2',
+            parent=styles['Heading2'],
             fontName='Helvetica-Bold',
             fontSize=12,
             leading=15,
@@ -88,12 +87,15 @@ def generate_receipt_pdf(transaction_data, client_data, iban_data, company_name,
     
     # En-tête avec logo
     if logo_path and os.path.exists(logo_path):
-        logo = Image(logo_path, width=4*cm, height=2*cm)
-        elements.append(logo)
-        elements.append(Spacer(1, 0.5*cm))
+        try:
+            logo = Image(logo_path, width=4*cm, height=2*cm)
+            elements.append(logo)
+            elements.append(Spacer(1, 0.5*cm))
+        except:
+            pass  # Passe si le logo ne peut pas être chargé
     
-    # Titre principal
-    elements.append(Paragraph(receipt_title, styles['Title']))
+    # Titre principal (utilisez MyTitle au lieu de Title)
+    elements.append(Paragraph(receipt_title, styles['MyTitle']))
     elements.append(Paragraph(company_name, styles['Normal']))
     elements.append(Spacer(1, 0.5*cm))
     
@@ -106,17 +108,31 @@ def generate_receipt_pdf(transaction_data, client_data, iban_data, company_name,
         spaceAfter=0.5*cm
     ))
     
-    # Informations de la transaction
-    trans_date = datetime.strptime(transaction_data['date'], '%Y-%m-%d %H:%M:%S')
-    formatted_amount = f"{float(transaction_data['amount']):,.2f}".replace(",", " ")
+    # Gestion de la date
+    trans_date = transaction_data['date']
+    if isinstance(trans_date, str):
+        try:
+            trans_date = datetime.strptime(trans_date, '%Y-%m-%d %H:%M:%S')
+        except ValueError:
+            trans_date = datetime.now()
+    elif not isinstance(trans_date, datetime):
+        trans_date = datetime.now()
     
+    # Formatage du montant
+    try:
+        amount = float(transaction_data['amount'])
+        formatted_amount = f"{amount:,.2f}".replace(",", " ")
+    except (ValueError, TypeError, KeyError):
+        formatted_amount = "0.00"
+    
+    # Informations de la transaction
     transaction_info = [
-        ["Référence", transaction_data['id']],
+        ["Référence", str(transaction_data.get('id', 'N/A'))],
         ["Date", trans_date.strftime('%d/%m/%Y %H:%M')],
-        ["Type", transaction_data['type'].upper()],
-        ["Montant", f"{formatted_amount} {iban_data['currency']}"],
-        ["IBAN", iban_data['iban']],
-        ["Description", transaction_data['description'] or "-"]
+        ["Type", str(transaction_data.get('type', 'N/A')).upper()],
+        ["Montant", f"{formatted_amount} {iban_data.get('currency', '')}"],
+        ["IBAN", str(iban_data.get('iban', 'N/A'))],
+        ["Description", str(transaction_data.get('description', '-'))]
     ]
     
     t = Table(transaction_info, colWidths=[3*cm, 12*cm])
@@ -190,7 +206,6 @@ def generate_receipt_pdf(transaction_data, client_data, iban_data, company_name,
             "<i>Scannez ce code pour vérifier la transaction</i>",
             styles['Italic']
         ))
-
     
     # Notes additionnelles
     if additional_notes:
