@@ -1,5 +1,5 @@
 import logging
-from turtle import st
+import streamlit as st
 import mysql.connector
 from datetime import datetime, timedelta
 import random
@@ -20,10 +20,15 @@ class NotFoundError(DatabaseError):
 
 
 class BankDatabase:
-    def __init__(self, host: str = "db-mav-1.cdeaqqe46t76.eu-north-1.rds.amazonaws.com", user: str = "admin", 
-                 password: str = "Frz5E1LTv49J7xF6MQleP0hgrYrCO3ybyHpJujA", database: str = "ecocapital"):
+    def __init__(
+            self, host: str = "db-mav-1.cdeaqqe46t76.eu-north-1.rds.amazonaws.com", 
+            user: str = "admin", 
+            password: str = "Frz5E1LTv49J7xF6MQleP0hgrYrCO3ybyHpJujA", 
+            database: str = "ecocapital"):
+        
         """Initialise la connexion à la base de données MySQL et met à jour les tables"""
         logging.basicConfig(filename='database.log', level=logging.INFO)
+
         try:
             self.conn = mysql.connector.connect(
                 host=host,
