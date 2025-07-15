@@ -1,4 +1,5 @@
 import logging
+from turtle import st
 import mysql.connector
 from datetime import datetime, timedelta
 import random
@@ -539,6 +540,77 @@ class BankDatabase:
             self.conn.commit()
         except mysql.connector.Error as e:
             raise DatabaseError(f"Erreur lors de la création des tables: {str(e)}")
+        
+    def delete_transaction(self, transaction_id):
+        """Supprime une transaction de la base de données"""
+        try:
+            cursor = self.conn.cursor()
+            query = "DELETE FROM transactions WHERE id = %s"
+            cursor.execute(query, (transaction_id,))
+            self.conn.commit()
+            cursor.close()
+        except mysql.connector.Error as e:
+            raise DatabaseError(f"Erreur lors de la suppression de la transaction: {str(e)}")
+
+    def delete_client(self, client_id):
+        """Supprime un client de la base de données"""
+        try:
+            cursor = self.conn.cursor()
+            cursor.execute("DELETE FROM clients WHERE id = %s", (client_id,))
+            self.conn.commit()
+            return cursor.rowcount > 0
+        except mysql.connector.Error as e:
+            self.conn.rollback()
+            raise DatabaseError(f"Erreur lors de la suppression du client: {str(e)}")
+        finally:
+            if 'cursor' in locals():
+                cursor.close()
+
+    def delete_account(self, account_id):
+        """Supprime un compte de la base de données"""
+        try:
+            cursor = self.conn.cursor()
+            cursor.execute("DELETE FROM ibans WHERE id = %s", (account_id,))
+            self.conn.commit()
+            return cursor.rowcount > 0
+        except mysql.connector.Error as e:
+            self.conn.rollback()
+            raise DatabaseError(f"Erreur lors de la suppression du compte: {str(e)}")
+        finally:
+            if 'cursor' in locals():
+                cursor.close()
+
+    def delete_avi(self, reference):
+        """Supprime une AVI de la base de données"""
+        query = "DELETE FROM avis WHERE reference = %s"
+        self.cursor.execute(query, (reference,))
+        self.conn.commit()
+
+    def get_transactions_by_iban(self, iban_id):
+        """Récupère toutes les transactions d'un compte"""
+        try:
+            cursor = self.conn.cursor(dictionary=True)
+            cursor.execute("SELECT id FROM transactions WHERE iban_id = %s", (iban_id,))
+            return cursor.fetchall()
+        except mysql.connector.Error as e:
+            raise DatabaseError(f"Erreur lors de la récupération des transactions: {str(e)}")
+        finally:
+            if 'cursor' in locals():
+                cursor.close()
+
+    def delete_transactions_by_iban(self, iban_id):
+        """Supprime toutes les transactions d'un compte"""
+        try:
+            cursor = self.conn.cursor()
+            cursor.execute("DELETE FROM transactions WHERE iban_id = %s", (iban_id,))
+            self.conn.commit()
+            return cursor.rowcount
+        except mysql.connector.Error as e:
+            self.conn.rollback()
+            raise DatabaseError(f"Erreur lors de la suppression des transactions: {str(e)}")
+        finally:
+            if 'cursor' in locals():
+                cursor.close()
         
     def get_avi_by_id(self, avi_id: int) -> Optional[Dict]:
         """Récupère une AVI par son ID"""

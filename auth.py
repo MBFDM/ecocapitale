@@ -1748,46 +1748,138 @@ def show_admin_dashboard():
             
             with tab1:
                 st.subheader("Liste des Clients")
-                clients = db.get_all_clients()
                 
-                if clients:
+                # Récupération des données
+                try:
+                    clients = db.get_all_clients()
+                    
+                    if not clients:
+                        st.info("Aucun client enregistré", icon="ℹ️")
+                        st.stop()
+                    
+                    # Préparation du DataFrame
                     df = pd.DataFrame(clients)
+                    df.insert(0, 'Supprimer', False)  # Colonne de suppression en première position
                     
-                    # Barre de recherche avancée
-                    search_cols = st.columns([3, 1])
-                    with search_cols[0]:
-                        search_query = st.text_input("Rechercher", placeholder="Nom, email, téléphone...")
-                    with search_cols[1]:
-                        status_filter = st.selectbox("Statut", ["Tous", "Actif", "Inactif"])
+                    # Section Recherche et Filtres
+                    with st.container():
+                        cols = st.columns([3, 1, 2])
+                        with cols[0]:
+                            search_query = st.text_input("🔍 Rechercher", 
+                                                    placeholder="Nom, email, téléphone...",
+                                                    help="Recherche dans tous les champs du client",
+                                                    key="client_search_input")
+                        with cols[1]:
+                            status_filter = st.selectbox("Statut", ["Tous", "Actif", "Inactif"],
+                                                    key="client_status_filter")
+                        with cols[2]:
+                            st.write("")  # Espace pour alignement
                     
-                    # Filtrage
+                    # Création d'une copie pour le filtrage
+                    filtered_df = df.copy()
+                    
+                    # Application des filtres
                     if search_query:
-                        mask = df.apply(lambda row: row.astype(str).str.contains(search_query, case=False).any(), axis=1)
+                        mask = df.astype(str).apply(lambda x: x.str.contains(search_query, case=False)).any(axis=1)
                         df = df[mask]
+                    
                     if status_filter != "Tous":
-                        df = df[df['status'] == status_filter]
+                        filtered_df = filtered_df[filtered_df['status'] == status_filter]
                     
-                    # Affichage avec onglets pour différents types de clients
-                    client_types = df['type'].unique()
-                    tabs = st.tabs([f"Tous ({len(df)})"] + [f"{t} ({len(df[df['type']==t])})" for t in client_types])
-                    
-                    with tabs[0]:
-                        st.dataframe(
-                            df,
+                    # Configuration de l'éditeur de données
+                    def configure_client_editor(dataframe, key_suffix):
+                        return st.data_editor(
+                            dataframe,
                             use_container_width=True,
                             hide_index=True,
-                            column_order=["id", "first_name", "last_name", "email", "phone", "type", "status"]
+                            column_config={
+                                "Supprimer": st.column_config.CheckboxColumn("Supprimer"),
+                                "email": st.column_config.TextColumn("Email", help="Email du client"),
+                                "phone": st.column_config.TextColumn("Téléphone", help="Numéro de téléphone"),
+                                "type": st.column_config.SelectboxColumn(
+                                    "Type",
+                                    options=["Particulier", "Entreprise", "VIP"],
+                                    help="Type de client"
+                                ),
+                                "status": st.column_config.SelectboxColumn(
+                                    "Statut",
+                                    options=["Actif", "Inactif"],
+                                    help="Statut du compte client"
+                                )
+                            },
+                            disabled=["id", "first_name", "last_name", "email", "phone", "type", "status"],
+                            key=f"client_editor_{key_suffix}"
                         )
                     
-                    for i, t in enumerate(client_types, 1):
+                    # Affichage par onglets (sans argument key)
+                    client_types = sorted(filtered_df['type'].unique())
+                    tab_labels = [f"Tous ({len(filtered_df)})"] + [f"{t} ({len(filtered_df[filtered_df['type']==t])})" for t in client_types]
+                    tabs = st.tabs(tab_labels)
+                    
+                    edited_dfs = []  # Pour stocker tous les DataFrames édités
+                    
+                    for i, client_type in enumerate([None] + client_types):
                         with tabs[i]:
-                            st.dataframe(
-                                df[df['type']==t],
-                                use_container_width=True,
-                                hide_index=True
-                            )
-                else:
-                    st.info("Aucun client enregistré", icon="ℹ️")
+                            display_df = filtered_df if client_type is None else filtered_df[filtered_df['type'] == client_type]
+                            
+                            # Définir l'ordre des colonnes
+                            column_order = ['Supprimer', 'id', 'first_name', 'last_name', 
+                                        'email', 'phone', 'type', 'status']
+                            column_order = [col for col in column_order if col in display_df.columns]
+                            
+                            # Créer une clé unique basée sur l'index et le type
+                            tab_key = f"tab_{i}_{str(client_type).lower() if client_type else 'all'}"
+                            edited_df = configure_client_editor(display_df[column_order], tab_key)
+                            edited_dfs.append(edited_df)
+                    
+                    # Gestion de la suppression
+                    delete_button = st.button("🗑️ Supprimer les clients sélectionnés", 
+                                            type="primary", 
+                                            key="delete_clients_button")
+
+                    if delete_button and edited_dfs:
+                        all_to_delete = []
+                        for edf in edited_dfs:
+                            if not edf.empty and 'Supprimer' in edf.columns and 'id' in edf.columns:
+                                to_delete = edf[edf['Supprimer']]['id'].tolist()
+                                all_to_delete.extend(to_delete)
+                        
+                        if not all_to_delete:
+                            st.warning("Aucun client sélectionné pour suppression")
+                        else:
+                            try:
+                                success_count = 0
+                                with st.spinner(f"Suppression de {len(all_to_delete)} clients..."):
+                                    try:
+                                        # Utilisation de la méthode delete_client de BankDatabase
+                                        for client_id in all_to_delete:
+                                            try:
+                                                # Vérifier d'abord s'il y a des comptes associés
+                                                accounts = db.get_ibans_by_client(client_id)
+                                                if accounts:
+                                                    st.warning(f"Le client ID {client_id} a des comptes associés. Suppression des comptes d'abord...")
+                                                    for account in accounts:
+                                                        db.delete_account(account['id'])
+                                                
+                                                # Maintenant supprimer le client
+                                                db.delete_client(client_id)
+                                                success_count += 1
+                                            except Exception as e:
+                                                st.error(f"Erreur avec le client ID {client_id}: {str(e)}")
+                                                continue
+                                        
+                                        if success_count > 0:
+                                            st.success(f"{success_count}/{len(all_to_delete)} clients supprimés avec succès!")
+                                            time.sleep(1)
+                                            st.rerun()
+                                    except Exception as e:
+                                        st.error(f"Erreur de base de données: {str(e)}")
+                                            
+                            except Exception as e:
+                                st.error(f"Erreur inattendue: {str(e)}")
+                
+                except Exception as e:
+                    st.error(f"Erreur lors du chargement des clients: {str(e)}")
             
             with tab2:
                 st.subheader("Ajouter un Client")
@@ -1865,77 +1957,194 @@ def show_admin_dashboard():
             st.title("💳 Gestion des Comptes Bancaires")
             
             tab1, tab2 = st.tabs(["📋 Liste des Comptes", "➕ Associer un Compte"])
-            
+    
             with tab1:
                 st.subheader("Liste Complète des Comptes")
                 
-                # Filtres avancés
-                with st.expander("Filtres Avancés", expanded=False):
-                    col1, col2, col3 = st.columns(3)
-                    with col1:
+                # Section Filtres avec barre de recherche
+                with st.container():
+                    cols = st.columns([3, 1, 1, 1])
+                    with cols[0]:
+                        search_query = st.text_input("🔍 Rechercher", placeholder="IBAN, nom banque ou client")
+                    with cols[1]:
                         type_filter = st.multiselect(
-                            "Type de compte",
+                            "Type",
                             options=["Courant", "Épargne", "Entreprise"],
                             default=["Courant", "Épargne", "Entreprise"]
                         )
-                    with col2:
+                    with cols[2]:
                         currency_filter = st.multiselect(
                             "Devise",
                             options=["XAF", "USD", "EUR"],
                             default=["XAF", "USD", "EUR"]
                         )
-                    with col3:
-                        balance_filter = st.slider(
-                            "Solde minimum",
+                    with cols[3]:
+                        balance_filter = st.number_input(
+                            "Solde min (XAF)", 
                             min_value=0,
-                            max_value=10000,
                             value=0,
-                            step=100
+                            step=10000
                         )
                 
-                # Affichage des comptes
-                accounts = db.get_all_ibans()
-                if accounts:
+                # Récupération des données
+                try:
+                    accounts = db.get_all_ibans()
+                    if not accounts:
+                        st.info("Aucun compte trouvé", icon="ℹ️")
+                        st.stop()
+                        
+                    # Préparation du DataFrame
                     df = pd.DataFrame(accounts)
+                    df.insert(0, 'Supprimer', False)
                     
                     # Application des filtres
+                    if search_query:
+                        mask = df.astype(str).apply(lambda x: x.str.contains(search_query, case=False)).any(axis=1)
+                        df = df[mask]
                     if type_filter:
                         df = df[df['type'].isin(type_filter)]
                     if currency_filter:
                         df = df[df['currency'].isin(currency_filter)]
                     df = df[df['balance'] >= balance_filter]
                     
-                    # Affichage avec onglets par devise
-                    currencies = df['currency'].unique()
-                    tabs = st.tabs([f"Tous ({len(df)})"] + [f"{c} ({len(df[df['currency']==c])})" for c in currencies])
+                    # Configuration de l'affichage
+                    def configure_columns():
+                        return {
+                            "Supprimer": st.column_config.CheckboxColumn("Supprimer"),
+                            "iban": st.column_config.TextColumn("IBAN", width="large"),
+                            "bank_name": st.column_config.TextColumn("Banque"),
+                            "bank_code": st.column_config.TextColumn("Code Banque"),
+                            "branch_code": st.column_config.TextColumn("Code Guichet"),
+                            "account_number": st.column_config.TextColumn("Numéro Compte"),
+                            "rib_key": st.column_config.TextColumn("Clé RIB"),
+                            "bic": st.column_config.TextColumn("BIC/SWIFT"),
+                            "first_name": st.column_config.TextColumn("Prénom Client"),
+                            "last_name": st.column_config.TextColumn("Nom Client"),
+                            "balance": st.column_config.NumberColumn("Solde", format="%.2f XAF"),
+                            "currency": st.column_config.TextColumn("Devise"),
+                            "type": st.column_config.TextColumn("Type"),
+                            "created_at": st.column_config.DatetimeColumn("Création", format="DD/MM/YYYY")
+                        }
                     
-                    with tabs[0]:
-                        st.dataframe(
-                            df,
-                            use_container_width=True,
-                            column_config={
-                                "iban": "IBAN",
-                                "balance": st.column_config.NumberColumn(
-                                    "Solde",
-                                    format="%.2f XAF"
-                                ),
-                                "created_at": st.column_config.DatetimeColumn(
-                                    "Date création",
-                                    format="DD/MM/YYYY"
-                                )
-                            },
-                            hide_index=True
-                        )
+                    # Affichage par onglets
+                    currencies = sorted(df['currency'].unique())
+                    tab_labels = [f"Tous ({len(df)})"] + [f"{c} ({len(df[df['currency']==c])})" for c in currencies]
+                    tabs = st.tabs(tab_labels)
                     
-                    for i, currency in enumerate(currencies, 1):
+                    edited_dfs = []  # Pour stocker tous les DataFrames édités
+                    
+                    for i, currency in enumerate([None] + currencies):
                         with tabs[i]:
-                            st.dataframe(
-                                df[df['currency'] == currency],
+                            display_df = df if currency is None else df[df['currency'] == currency]
+                            
+                            # Ordre des colonnes
+                            column_order = [
+                                'Supprimer', 
+                                'id',
+                                'iban', 
+                                'bank_name',
+                                'bank_code',
+                                'branch_code',
+                                'account_number',
+                                'rib_key',
+                                'bic',
+                                'first_name',
+                                'last_name',
+                                'balance', 
+                                'currency', 
+                                'type', 
+                                'created_at' 
+                            ]
+                            
+                            # Filtrer pour n'afficher que les colonnes existantes
+                            column_order = [col for col in column_order if col in display_df.columns]
+ 
+
+                            edited_df = st.data_editor(
+                                display_df[column_order],
                                 use_container_width=True,
-                                hide_index=True
+                                column_config=configure_columns(),
+                                disabled=['id', 'iban', 'bank_name', 'bank_code', 'branch_code', 
+                                        'account_number', 'rib_key', 'bic', 'first_name', 'last_name',
+                                        'balance', 'currency', 'type', 'created_at'],
+                                hide_index=True,
+                                key=f"account_editor_{i}"
                             )
-                else:
-                    st.info("Aucun compte trouvé", icon="ℹ️")
+                            edited_dfs.append(edited_df)
+                    
+                    if st.button("🗑️ Supprimer les sélections", type="primary", key="delete_accounts"):
+                        to_delete = []
+                        for edf in edited_dfs:
+                            if not edf.empty and 'Supprimer' in edf.columns and 'id' in edf.columns:
+                                to_delete.extend(edf[edf['Supprimer']]['id'].tolist())
+                        
+                        if not to_delete:
+                            st.warning("Aucun compte sélectionné")
+                        else:
+                            try:
+                                with st.spinner(f"Vérification des transactions associées..."):
+                                    conn = mysql.connector.connect(
+                                        host='db-mav-1.cdeaqqe46t76.eu-north-1.rds.amazonaws.com',
+                                        user='admin',
+                                        password='Frz5E1LTv49J7xF6MQleP0hgrYrCO3ybyHpJujA',
+                                        database='ecocapital'
+                                    )
+                                    try:
+                                        cursor = conn.cursor()
+                                        
+                                        # Check transaction counts
+                                        cursor.execute("""
+                                            SELECT i.id, i.iban, COUNT(t.id) as transaction_count 
+                                            FROM ibans i
+                                            LEFT JOIN transactions t ON i.id = t.iban_id
+                                            WHERE i.id IN (%s)
+                                            GROUP BY i.id, i.iban
+                                        """ % ','.join(['%s']*len(to_delete)), to_delete)
+                                        
+                                        affected = cursor.fetchall()
+                                        total_transactions = sum(row[2] for row in affected)
+                                        
+                                        if total_transactions > 0:
+                                            st.warning(f"Attention: Cette suppression supprimera également {total_transactions} transactions associées!")
+                                            st.write("Comptes affectés:")
+                                            for row in affected:
+                                                st.write(f"- IBAN: {row[1]} ({row[2]} transactions)")
+                                            
+                                            if st.checkbox("Je confirme la suppression des comptes et transactions associées"):
+                                                # First delete transactions
+                                                cursor.execute("""
+                                                    DELETE FROM transactions 
+                                                    WHERE iban_id IN (%s)
+                                                """ % ','.join(['%s']*len(to_delete)), to_delete)
+                                                
+                                                # Then delete ibans
+                                                cursor.execute("""
+                                                    DELETE FROM ibans 
+                                                    WHERE id IN (%s)
+                                                """ % ','.join(['%s']*len(to_delete)), to_delete)
+                                                
+                                                conn.commit()
+                                                st.success(f"{len(to_delete)} comptes et {total_transactions} transactions supprimés!")
+                                                time.sleep(1)
+                                                st.rerun()
+                                        else:
+                                            # No transactions, just delete ibans
+                                            cursor.execute("""
+                                                DELETE FROM ibans 
+                                                WHERE id IN (%s)
+                                            """ % ','.join(['%s']*len(to_delete)), to_delete)
+                                            conn.commit()
+                                            st.success(f"{len(to_delete)} comptes supprimés!")
+                                            time.sleep(1)
+                                            st.rerun()
+                                            
+                                    finally:
+                                        conn.close()
+                            except Exception as e:
+                                st.error(f"Erreur: {str(e)}")
+                                
+                except Exception as e:
+                    st.error(f"Erreur de chargement: {str(e)}")
             
                 # Dans la section "Associer un Nouveau Compte", modifiez le code comme suit :
 
@@ -2082,23 +2291,116 @@ def show_admin_dashboard():
             with tab1:
                 st.subheader("Historique des Transactions")
                 
-                # Barre de recherche
-                search_query = st.text_input("Rechercher dans les transactions", "")
+                try:
+                    # Récupération des transactions depuis la base de données
+                    transactions = db.get_all_transactions()
+                    
+                    if not transactions:
+                        st.info("Aucune transaction trouvée", icon="ℹ️")
+                    else:
+                        # Création du DataFrame
+                        df = pd.DataFrame(transactions)
+                        
+                        # Ajout d'une colonne de sélection
+                        df['Supprimer'] = False
+                        
+                        # Barre de recherche intelligente
+                        with st.expander("🔍 Options de recherche avancée", expanded=False):
+                            cols = st.columns([3, 1, 1, 1])
+                            with cols[0]:
+                                search_query = st.text_input("Rechercher", placeholder="IBAN, nom, type, montant...")
+                            with cols[1]:
+                                type_filter = st.multiselect(
+                                    "Type",
+                                    options=sorted(df['type'].unique()),
+                                    default=[]
+                                )
+                            with cols[2]:
+                                min_amount = st.number_input("Montant min", min_value=0, value=0)
+                            with cols[3]:
+                                date_range = st.date_input(
+                                    "Période",
+                                    value=[datetime.now() - timedelta(days=30), datetime.now()],
+                                    max_value=datetime.now()
+                                )
+                        
+                        # Filtrage des données
+                        if search_query:
+                            mask = df.astype(str).apply(lambda x: x.str.contains(search_query, case=False)).any(axis=1)
+                            df = df[mask]
+                        
+                        if type_filter:
+                            df = df[df['type'].isin(type_filter)]
+                        
+                        if min_amount > 0:
+                            df = df[df['amount'] >= min_amount]
+                        
+                        if len(date_range) == 2:
+                            start_date, end_date = date_range
+                            df = df[(df['date'].dt.date >= start_date) & (df['date'].dt.date <= end_date)]
+                        
+                        # Configuration des colonnes pour l'affichage
+                        column_config = {
+                            "id": None,
+                            "client_id": None,
+                            "iban_id": None,
+                            "date": st.column_config.DatetimeColumn("Date", format="DD/MM/YYYY HH:mm"),
+                            "type": st.column_config.TextColumn("Type"),
+                            "amount": st.column_config.NumberColumn("Montant", format="%.2f XAF"),
+                            "description": st.column_config.TextColumn("Description"),
+                            "iban": st.column_config.TextColumn("IBAN"),
+                            "first_name": st.column_config.TextColumn("Prénom"),
+                            "last_name": st.column_config.TextColumn("Nom"),
+                            "Supprimer": st.column_config.CheckboxColumn("Supprimer")
+                        }
+                        
+                        # Réorganisation des colonnes
+                        column_order = [
+                            'Supprimer', 'date', 'type', 'amount', 
+                            'description', 'iban', 'first_name', 'last_name'
+                        ]
+                        
+                        # Affichage du nombre de résultats
+                        st.caption(f"📊 {len(df)} transactions trouvées")
+                        
+                        # Éditeur de données
+                        edited_df = st.data_editor(
+                            df,
+                            column_config=column_config,
+                            column_order=column_order,
+                            use_container_width=True,
+                            hide_index=True,
+                            disabled=["id", "client_id", "iban_id", "date", "type", "amount", "description", "iban", "first_name", "last_name"]
+                        )
+                        
+                        # Bouton pour supprimer les transactions sélectionnées
+                        if st.button("🗑️ Supprimer les sélections", type="primary", key="delete_transactions"):
+                            to_delete = edited_df[edited_df['Supprimer']]['id'].tolist()
+                            
+                            if not to_delete:
+                                st.warning("Aucune transaction sélectionnée pour suppression")
+                            else:
+                                try:
+                                    with st.spinner(f"Suppression de {len(to_delete)} transactions..."):
+                                        # Suppression des transactions sélectionnées
+                                        success_count = 0
+                                        for trans_id in to_delete:
+                                            try:
+                                                db.delete_transaction(trans_id)
+                                                success_count += 1
+                                            except Exception as e:
+                                                st.error(f"Erreur avec la transaction {trans_id}: {str(e)}")
+                                        
+                                        if success_count > 0:
+                                            st.success(f"{success_count} transactions supprimées!")
+                                            time.sleep(1)
+                                            st.rerun()
+                                
+                                except Exception as e:
+                                    st.error(f"Erreur lors de la suppression : {str(e)}")
                 
-                transactions = db.get_all_transactions()
-                if transactions:
-                    # Convertir les dates en strings pour le formatage
-                    df = pd.DataFrame(transactions)
-                    df['date_str'] = df['date'].dt.strftime('%Y-%m-%d %H:%M')  # Conversion datetime -> string
-                    
-                    # Filtrage basé sur la recherche
-                    if search_query:
-                        mask = df.apply(lambda row: row.astype(str).str.contains(search_query, case=False).any(), axis=1)
-                        df = df[mask]
-                    
-                    st.dataframe(df, use_container_width=True, hide_index=True)
-                else:
-                    st.warning("Aucune transaction trouvée.")
+                except Exception as e:
+                    st.error(f"Erreur lors du chargement : {str(e)}")
             
             with tab2:
                 st.subheader("Effectuer une Transaction")
@@ -2648,34 +2950,36 @@ def show_admin_dashboard():
             with tab1:
                 st.subheader("Liste des Attestations")
                 
-                # Filtres
-                col1, col2 = st.columns(2)
-                with col1:
-                    search_term = st.text_input("Rechercher", "")
-                with col2:
-                    statut_filter = st.selectbox("Filtrer par statut", ["Tous", "Etudiant", "Fonctionnaire"])
-                
-                # Récupération des AVI
-                avis = db.search_avis(
-                    search_term=search_term if search_term else None,
-                    statut=statut_filter if statut_filter != "Tous" else None
-                )
-                
+                avis = db.get_all_avis(with_details=True)
                 if avis:
                     df = pd.DataFrame(avis)
-                    st.dataframe(
+                    df['Supprimer'] = False
+                    
+                    edited_df = st.data_editor(
                         df,
                         use_container_width=True,
                         column_config={
                             "date_creation": st.column_config.DateColumn("Date création", format="DD/MM/YYYY"),
                             "date_expiration": st.column_config.DateColumn("Date expiration", format="DD/MM/YYYY"),
-                            "montant": st.column_config.NumberColumn("Montant", format="%.2f FCFA")
+                            "montant": st.column_config.NumberColumn("Montant", format="%.2f FCFA"),
+                            "Supprimer": st.column_config.CheckboxColumn("Supprimer")
                         },
                         hide_index=True,
-                        column_order=["reference", "nom_complet", "code_banque", "iban", "montant", "date_creation", "statut"]
+                        disabled=["reference", "nom_complet", "code_banque", "iban", "bic", 
+                                "montant", "date_creation", "date_expiration", "statut", "commentaires"],
+                        column_order=["Supprimer", "reference", "nom_complet", "code_banque", "iban", 
+                                    "montant", "date_creation", "statut"]
                     )
-                else:
-                    st.info("Aucune attestation trouvée", icon="ℹ️")
+                    
+                    if st.button("Supprimer les AVI sélectionnées", type="primary"):
+                        to_delete = edited_df[edited_df['Supprimer']]['reference'].tolist()
+                        if to_delete:
+                            for avi_ref in to_delete:
+                                db.delete_avi(avi_ref)
+                            st.success(f"{len(to_delete)} AVI supprimées avec succès!")
+                            st.rerun()
+                        else:
+                            st.warning("Aucune AVI sélectionnée pour suppression")
             
             with tab2:
                 st.subheader("Ajouter une Nouvelle Attestation")
