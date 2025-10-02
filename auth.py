@@ -51,9 +51,17 @@ import string
 #admin
 #Frz5E1LTv49J7xF6MQleP0hgrYrCO3ybyHpJujA
 
-# Configuration MySQL
+# ⚠️ STREAMLIT CONFIG DOIT ÊTRE LA PREMIÈRE COMMANDE STREAMLIT
+st.set_page_config(
+    page_title="GESTION BANQUE",
+    page_icon="🏦",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
+# Le reste de votre configuration...
 MYSQL_CONFIG = {
-    'host': 'db-mav-1.cdeaqqe46t76.eu-north-1.rds.amazonaws.com',  # Remplacez par l'adresse de votre serveur MySQL
+    'host': 'db-mav-1.cdeaqqe46t76.eu-north-1.rds.amazonaws.com',
     'user': 'admin',
     'password': 'Frz5E1LTv49J7xF6MQleP0hgrYrCO3ybyHpJujA',
     'database': 'ecocapital',
@@ -945,12 +953,12 @@ def show_system_settings():
 
 def admin_dashboard():
     """Tableau de bord admin avec nouveau design"""
-    st.set_page_config(
-        page_title="GESTION BANQUE",
-        page_icon="assets/logo.png",
-        layout="wide",
-        initial_sidebar_state="expanded"
-    )
+    #st.set_page_config(
+    #    page_title="GESTION BANQUE",
+    #    page_icon="assets/logo.png",
+    #    layout="wide",
+    #    initial_sidebar_state="expanded"
+    #)
 
     # Chargement des styles CSS et des assets
     def load_css(file_name):
@@ -1328,12 +1336,12 @@ def main():
 def show_admin_dashboard():
     """Page de tableau de bord pour les utilisateurs non admin"""
     # Configuration de la page
-    st.set_page_config(
-        page_title="GESTION BANQUE",
-        page_icon="assets/logo.png",
-        layout="wide",
-        initial_sidebar_state="expanded"
-    )
+    #st.set_page_config(
+    #    page_title="GESTION BANQUE",
+    #    page_icon="assets/logo.png",
+    #    layout="wide",
+    #    initial_sidebar_state="expanded"
+    #)
 
     set_custom_theme()
     init_session()
