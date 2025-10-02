@@ -54,7 +54,7 @@ import string
 # ⚠️ STREAMLIT CONFIG DOIT ÊTRE LA PREMIÈRE COMMANDE STREAMLIT
 st.set_page_config(
     page_title="GESTION BANQUE",
-    page_icon="🏦",
+    page_icon="assets/logo.png",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -3907,4 +3907,5 @@ def show_admin_dashboard():
             conn.close()
 
 if __name__ == "__main__":
+
     main()
