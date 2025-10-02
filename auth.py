@@ -47,10 +47,13 @@ import bcrypt
 import secrets
 import string
 
+#db-mav-1.cdeaqqe46t76.eu-north-1.rds.amazonaws.com
+#admin
+#Frz5E1LTv49J7xF6MQleP0hgrYrCO3ybyHpJujA
 
 # Configuration MySQL
 MYSQL_CONFIG = {
-    'host': 'db-mav-1.cdeaqqe46t76.eu-north-1.rds.amazonaws.com',
+    'host': 'db-mav-1.cdeaqqe46t76.eu-north-1.rds.amazonaws.com',  # Remplacez par l'adresse de votre serveur MySQL
     'user': 'admin',
     'password': 'Frz5E1LTv49J7xF6MQleP0hgrYrCO3ybyHpJujA',
     'database': 'ecocapital',

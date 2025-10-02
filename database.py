@@ -18,6 +18,10 @@ class NotFoundError(DatabaseError):
     """Erreur lorsque l'élément recherché n'existe pas"""
     pass
 
+#db-mav-1.cdeaqqe46t76.eu-north-1.rds.amazonaws.com
+#Frz5E1LTv49J7xF6MQleP0hgrYrCO3ybyHpJujA
+#admin
+
 
 class BankDatabase:
     def __init__(
