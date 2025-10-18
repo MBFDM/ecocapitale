@@ -25,9 +25,9 @@ class NotFoundError(DatabaseError):
 
 class BankDatabase:
     def __init__(
-            self, host: str = "db-mav-1.cdeaqqe46t76.eu-north-1.rds.amazonaws.com", 
-            user: str = "admin", 
-            password: str = "Frz5E1LTv49J7xF6MQleP0hgrYrCO3ybyHpJujA", 
+            self, host: str = "ecocapital-mbfdm.c.aivencloud.com", 
+            user: str = "avnadmin", 
+            password: str = "AVNS_3a2plzaevzttmJ4Tcs9", 
             database: str = "ecocapital"):
         
         """Initialise la connexion à la base de données MySQL et met à jour les tables"""

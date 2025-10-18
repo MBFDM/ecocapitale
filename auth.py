@@ -61,11 +61,11 @@ st.set_page_config(
 
 # Le reste de votre configuration...
 MYSQL_CONFIG = {
-    'host': 'db-mav-1.cdeaqqe46t76.eu-north-1.rds.amazonaws.com',
-    'user': 'admin',
-    'password': 'Frz5E1LTv49J7xF6MQleP0hgrYrCO3ybyHpJujA',
+    'host': 'ecocapital-mbfdm.c.aivencloud.com',
+    'user': 'avnadmin',
+    'password': 'AVNS_3a2plzaevzttmJ4Tcs9',
     'database': 'ecocapital',
-    'port': 3306,
+    'port': 14431,
 }
 
 # Configuration du logging
@@ -3907,5 +3907,4 @@ def show_admin_dashboard():
             conn.close()
 
 if __name__ == "__main__":
-
     main()
