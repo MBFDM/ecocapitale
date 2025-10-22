@@ -56,6 +56,7 @@ class BankDatabase:
                 
                 self.create_tables()
                 self.update_database_schema()
+                self.fix_database_schema()
                 logging.info(f"Connexion à la base de données MySQL: {database}")
                 break  # Sortir de la boucle si la connexion réussit
                 
@@ -115,6 +116,32 @@ class BankDatabase:
         #"ECOBANK": {"code": "30006", "bic": "ECOCCGCG"},
         #"Société Générale": {"code": "30003", "bic": "SOGEFRPP"}
     }
+
+    def fix_database_schema(self):
+        """Corrige les problèmes de schéma identifiés"""
+        try:
+            cursor = self.conn.cursor()
+            
+            # Vérifier et corriger les valeurs de statut dans clients
+            cursor.execute("""
+            UPDATE clients 
+            SET status = 'Actif' 
+            WHERE status = 'actif' OR status = 'active'
+            """)
+            
+            # Vérifier et corriger les valeurs de statut dans users  
+            cursor.execute("""
+            UPDATE users 
+            SET status = 'actif' 
+            WHERE status = 'Actif' OR status = 'active'
+            """)
+            
+            self.conn.commit()
+            logging.info("Schéma de base de données corrigé avec succès")
+            
+        except mysql.connector.Error as e:
+            logging.error(f"Erreur lors de la correction du schéma: {str(e)}")
+            raise DatabaseError(f"Erreur lors de la correction du schéma: {str(e)}")
     
     def generate_account_number(self, bank_name="Digital Financial Service"):
         """Génère un numéro de compte complet avec clé RIB"""
@@ -923,12 +950,12 @@ class BankDatabase:
         """Compte le nombre de clients actifs"""
         try:
             cursor = self.conn.cursor()
-            # Utiliser 'Actif' au lieu de 'active'
+            # Correction : utiliser 'Actif' (avec majuscule) comme dans la table
             cursor.execute('SELECT COUNT(*) FROM clients WHERE status="Actif"')
             return cursor.fetchone()[0]
         except mysql.connector.Error as e:
             raise DatabaseError(f"Erreur lors du comptage des clients actifs: {str(e)}")
-
+            
     def get_clients_by_type(self) -> List[tuple]:
         """Retourne le nombre de clients par type"""
         try:
@@ -1151,8 +1178,8 @@ class BankDatabase:
                 withdrawal = cursor.fetchone()[0]
                 
                 dates.append(date_str)
-                deposits.append(deposit)
-                withdrawals.append(withdrawal)
+                deposits.append(float(deposit))
+                withdrawals.append(float(withdrawal))
                 
                 current_date += timedelta(days=1)
             
@@ -1197,3 +1224,4 @@ class BankDatabase:
         """Ferme la connexion à la fin du contexte"""
 
         self.close()
+
