@@ -18,97 +18,34 @@ class NotFoundError(DatabaseError):
     """Erreur lorsque l'élément recherché n'existe pas"""
     pass
 
-#db-mav-1.cdeaqqe46t76.eu-north-1.rds.amazonaws.com
-#Frz5E1LTv49J7xF6MQleP0hgrYrCO3ybyHpJujA
-#admin
+#db-mav-1.cdeaqqe46t76.eu-north-1.rds.amazonaws.com   ecocapital-mbfdm.c.aivencloud.com
+#Frz5E1LTv49J7xF6MQleP0hgrYrCO3ybyHpJujA AVNS_3a2plzaevzttmJ4Tcs9
+#admin  avnadmin
 
 
 class BankDatabase:
     def __init__(
-        self, 
-        host: str = "ecocapital-mbfdm.c.aivencloud.com", 
-        user: str = "avnadmin", 
-        password: str = "AVNS_3a2plzaevzttmJ4Tcs9", 
-        database: str = "ecocapital",
-        port: int = 14431):
-    
-    logging.basicConfig(filename='database.log', level=logging.INFO)
+            self, host: str = "ecocapital-mbfdm.c.aivencloud.com", 
+            user: str = "avnadmin", 
+            password: str = "AVNS_3a2plzaevzttmJ4Tcs9", 
+            database: str = "ecocapital"):
+        
+        """Initialise la connexion à la base de données MySQL et met à jour les tables"""
+        logging.basicConfig(filename='database.log', level=logging.INFO)
 
-    max_retries = 3
-    retry_delay = 2
-    
-    for attempt in range(max_retries):
         try:
             self.conn = mysql.connector.connect(
                 host=host,
                 user=user,
                 password=password,
-                database=database,
-                port=port,
-                connect_timeout=30,
-                buffered=True
+                database=database
             )
-            
-            # Test de la connexion
-            cursor = self.conn.cursor()
-            cursor.execute("SELECT 1")
-            cursor.close()
-            
-            # Vérifier la structure AVANT de créer les tables
-            self.verify_table_structure()
             self.create_tables()
             self.update_database_schema()
             logging.info(f"Connexion à la base de données MySQL: {database}")
-            break
-            
         except mysql.connector.Error as e:
-            logger.error(f"Tentative {attempt + 1}/{max_retries} échouée: {str(e)}")
-            
-            if attempt < max_retries - 1:
-                logger.info(f"Nouvelle tentative dans {retry_delay} secondes...")
-                time.sleep(retry_delay)
-            else:
-                logger.error("Échec de toutes les tentatives de connexion")
-                raise DatabaseError(f"Erreur de connexion à la base de données: {str(e)}")
-
-    def reconnect(self):
-        """Tente de rétablir la connexion"""
-        max_retries = 3
-        retry_delay = 2
-        
-        for attempt in range(max_retries):
-            try:
-                # Fermer l'ancienne connexion si elle existe
-                if hasattr(self, 'conn') and self.conn.is_connected():
-                    self.conn.close()
-                
-                # Nouvelle connexion
-                self.conn = mysql.connector.connect(
-                    host=self.host,
-                    user=self.user,
-                    password=self.password,
-                    database=self.database,
-                    port=self.port,
-                    connect_timeout=30,
-                    buffered=True
-                )
-                
-                # Tester la nouvelle connexion
-                cursor = self.conn.cursor()
-                cursor.execute("SELECT 1")
-                cursor.close()
-                
-                logger.info("Reconnexion réussie")
-                return True
-                
-            except mysql.connector.Error as e:
-                logger.error(f"Tentative de reconnexion {attempt + 1}/{max_retries} échouée: {e}")
-                
-                if attempt < max_retries - 1:
-                    time.sleep(retry_delay)
-                else:
-                    logger.error("Échec de toutes les tentatives de reconnexion")
-                    return False
+            logger.error(f"Erreur de connexion: {str(e)}")
+            raise DatabaseError(f"Erreur de connexion à la base de données: {str(e)}")
 
     # Dictionnaire des banques avec leurs codes et BIC
     BANK_DATA = {
@@ -241,35 +178,6 @@ class BankDatabase:
         except mysql.connector.Error as e:
             raise DatabaseError(f"Erreur lors de la mise à jour du schéma: {str(e)}")
 
-    def verify_table_structure(self):
-        """Vérifie et corrige la structure des tables si nécessaire"""
-        try:
-            cursor = self.conn.cursor()
-            
-            # Vérifier si la colonne status existe dans la table clients
-            cursor.execute("""
-                SELECT COLUMN_NAME 
-                FROM INFORMATION_SCHEMA.COLUMNS 
-                WHERE TABLE_SCHEMA = %s AND TABLE_NAME = 'clients'
-                AND COLUMN_NAME = 'status'
-            """, (self.conn.database,))
-            
-            status_column_exists = cursor.fetchone() is not None
-            
-            if not status_column_exists:
-                # Ajouter la colonne status si elle n'existe pas
-                cursor.execute("ALTER TABLE clients ADD COLUMN status VARCHAR(50) DEFAULT 'Actif'")
-                logger.info("Colonne 'status' ajoutée à la table clients")
-                
-                # Mettre à jour les valeurs existantes
-                cursor.execute("UPDATE clients SET status = 'Actif' WHERE status IS NULL")
-                logger.info("Valeurs de statut mises à jour pour les clients existants")
-            
-            self.conn.commit()
-            
-        except mysql.connector.Error as e:
-            logger.error(f"Erreur lors de la vérification de la structure: {str(e)}")
-            self.conn.rollback()
 
     def add_account(self, account_data: dict) -> int:
         """Ajoute un compte bancaire avec toutes les informations requises"""
@@ -567,10 +475,7 @@ class BankDatabase:
         try:
             cursor = self.conn.cursor()
             
-            # Supprimer et recréer la table clients avec toutes les colonnes
-            cursor.execute('DROP TABLE IF EXISTS clients')
-            
-            # Table Clients avec toutes les colonnes
+            # Table Clients
             cursor.execute('''
             CREATE TABLE IF NOT EXISTS clients (
                 id INT AUTO_INCREMENT PRIMARY KEY,
@@ -579,11 +484,11 @@ class BankDatabase:
                 email VARCHAR(255) UNIQUE,
                 phone VARCHAR(50),
                 type ENUM('Particulier', 'Entreprise', 'VIP'),
-                status ENUM('Actif', 'Inactif', 'En attente') DEFAULT 'Actif',
+                status ENUM('Actif', 'Inactif', 'En attente'),
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
             ''')
-                
+            
             # Table IBAN avec toutes les colonnes nécessaires
             cursor.execute('''
             CREATE TABLE IF NOT EXISTS ibans (
@@ -942,56 +847,27 @@ class BankDatabase:
         try:
             cursor = self.conn.cursor(dictionary=True)
             cursor.execute('SELECT * FROM clients ORDER BY last_name, first_name')
-            clients = cursor.fetchall()
-            
-            # Assurer que tous les clients ont un statut
-            for client in clients:
-                if client.get('status') is None:
-                    client['status'] = 'Actif'
-                    
-            return clients
+            return cursor.fetchall()
         except mysql.connector.Error as e:
             raise DatabaseError(f"Erreur lors de la récupération des clients: {str(e)}")
 
     def count_active_clients(self) -> int:
-        """Compte le nombre de clients actifs - Version robuste"""
+        """Compte le nombre de clients actifs"""
         try:
             cursor = self.conn.cursor()
-            
-            # Vérifier d'abord si la colonne status existe
-            cursor.execute("""
-                SELECT COUNT(*) 
-                FROM INFORMATION_SCHEMA.COLUMNS 
-                WHERE TABLE_SCHEMA = %s 
-                AND TABLE_NAME = 'clients' 
-                AND COLUMN_NAME = 'status'
-            """, (self.conn.database,))
-            
-            status_exists = cursor.fetchone()[0] > 0
-            
-            if status_exists:
-                # Si la colonne existe, utiliser la requête normale
-                cursor.execute('SELECT COUNT(*) FROM clients WHERE status="Actif"')
-            else:
-                # Si la colonne n'existe pas, compter tous les clients
-                cursor.execute('SELECT COUNT(*) FROM clients')
-                logger.warning("Colonne 'status' non trouvée, comptage de tous les clients")
-            
+            cursor.execute('SELECT COUNT(*) FROM clients WHERE status="Actif"')
             return cursor.fetchone()[0]
-            
         except mysql.connector.Error as e:
-            logger.error(f"Erreur lors du comptage des clients actifs: {str(e)}")
-            # Fallback en cas d'erreur
-            return 0
-    
-        def get_clients_by_type(self) -> List[tuple]:
-            """Retourne le nombre de clients par type"""
-            try:
-                cursor = self.conn.cursor()
-                cursor.execute('SELECT type, COUNT(*) as count FROM clients GROUP BY type')
-                return cursor.fetchall()
-            except mysql.connector.Error as e:
-                raise DatabaseError(f"Erreur lors de la récupération des clients par type: {str(e)}")
+            raise DatabaseError(f"Erreur lors du comptage des clients actifs: {str(e)}")
+
+    def get_clients_by_type(self) -> List[tuple]:
+        """Retourne le nombre de clients par type"""
+        try:
+            cursor = self.conn.cursor()
+            cursor.execute('SELECT type, COUNT(*) as count FROM clients GROUP BY type')
+            return cursor.fetchall()
+        except mysql.connector.Error as e:
+            raise DatabaseError(f"Erreur lors de la récupération des clients par type: {str(e)}")
 
     # ===== Méthodes pour les IBAN =====
     def add_iban(self, client_id: int, iban: str, currency: str, 
@@ -1250,9 +1126,4 @@ class BankDatabase:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         """Ferme la connexion à la fin du contexte"""
-
         self.close()
-
-
-
-
