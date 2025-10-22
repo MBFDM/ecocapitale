@@ -923,8 +923,8 @@ class BankDatabase:
         """Compte le nombre de clients actifs"""
         try:
             cursor = self.conn.cursor()
-            # CORRECTION : Utiliser des paramètres sécurisés au lieu de concaténation de string
-            cursor.execute('SELECT COUNT(*) FROM clients WHERE status = %s', ("Actif",))
+            # Utiliser 'Actif' au lieu de 'active'
+            cursor.execute('SELECT COUNT(*) FROM clients WHERE status="Actif"')
             return cursor.fetchone()[0]
         except mysql.connector.Error as e:
             raise DatabaseError(f"Erreur lors du comptage des clients actifs: {str(e)}")
@@ -1014,7 +1014,7 @@ class BankDatabase:
 
     # ===== Méthodes pour les transactions =====
     def _execute_transaction(self, iban_id: int, amount: float, 
-                       transaction_type: str, description: str) -> None:
+                           transaction_type: str, description: str) -> None:
         """Méthode interne pour exécuter une transaction"""
         if amount <= 0:
             raise ValueError("Le montant doit être positif")
@@ -1022,7 +1022,7 @@ class BankDatabase:
         cursor = self.conn.cursor(dictionary=True)
         
         # Récupère le client_id et vérifie le solde pour les retraits
-        cursor.execute('SELECT client_id, balance FROM ibans WHERE id = %s', (iban_id,))
+        cursor.execute('SELECT client_id, balance FROM ibans WHERE id=%s', (iban_id,))
         result = cursor.fetchone()
         
         if not result:
@@ -1041,9 +1041,9 @@ class BankDatabase:
         
         # Met à jour le solde
         if transaction_type == 'Dépôt':
-            cursor.execute('UPDATE ibans SET balance = balance + %s WHERE id = %s', (amount, iban_id))
+            cursor.execute('UPDATE ibans SET balance = balance + %s WHERE id=%s', (amount, iban_id))
         else:
-            cursor.execute('UPDATE ibans SET balance = balance - %s WHERE id = %s', (amount, iban_id))
+            cursor.execute('UPDATE ibans SET balance = balance - %s WHERE id=%s', (amount, iban_id))
 
     def deposit(self, iban_id: int, amount: float, description: str = "") -> None:
         """Effectue un dépôt sur un compte"""
@@ -1118,7 +1118,7 @@ class BankDatabase:
             return cursor.fetchone()[0]
         except mysql.connector.Error as e:
             raise DatabaseError(f"Erreur lors du comptage des transactions journalières: {str(e)}")
-    
+
     def get_last_week_transactions(self) -> Dict[str, List]:
         """Récupère les statistiques des transactions de la semaine"""
         try:
@@ -1138,16 +1138,16 @@ class BankDatabase:
                 cursor.execute('''
                 SELECT COALESCE(SUM(amount), 0)
                 FROM transactions
-                WHERE type = %s AND DATE(date) = DATE(%s)
-                ''', ("Dépôt", date_str))
+                WHERE type='Dépôt' AND DATE(date) = DATE(%s)
+                ''', (date_str,))
                 deposit = cursor.fetchone()[0]
                 
                 # Retraits
                 cursor.execute('''
                 SELECT COALESCE(SUM(amount), 0)
                 FROM transactions
-                WHERE type = %s AND DATE(date) = DATE(%s)
-                ''', ("Retrait", date_str))
+                WHERE type='Retrait' AND DATE(date) = DATE(%s)
+                ''', (date_str,))
                 withdrawal = cursor.fetchone()[0]
                 
                 dates.append(date_str)
@@ -1168,16 +1168,16 @@ class BankDatabase:
         """Retourne le total des dépôts"""
         try:
             cursor = self.conn.cursor()
-            cursor.execute('SELECT COALESCE(SUM(amount), 0) FROM transactions WHERE type = %s', ("Dépôt",))
+            cursor.execute('SELECT COALESCE(SUM(amount), 0) FROM transactions WHERE type="Dépôt"')
             return cursor.fetchone()[0]
         except mysql.connector.Error as e:
             raise DatabaseError(f"Erreur lors du calcul des dépôts totaux: {str(e)}")
-    
+
     def total_withdrawals(self) -> float:
         """Retourne le total des retraits"""
         try:
             cursor = self.conn.cursor()
-            cursor.execute('SELECT COALESCE(SUM(amount), 0) FROM transactions WHERE type = %s', ("Retrait",))
+            cursor.execute('SELECT COALESCE(SUM(amount), 0) FROM transactions WHERE type="Retrait"')
             return cursor.fetchone()[0]
         except mysql.connector.Error as e:
             raise DatabaseError(f"Erreur lors du calcul des retraits totaux: {str(e)}")
@@ -1197,10 +1197,3 @@ class BankDatabase:
         """Ferme la connexion à la fin du contexte"""
 
         self.close()
-
-
-
-
-
-
-
