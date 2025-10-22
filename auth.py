@@ -66,6 +66,7 @@ MYSQL_CONFIG = {
     'password': 'AVNS_3a2plzaevzttmJ4Tcs9',
     'database': 'ecocapital',
     'port': 14431,
+    'connect_timeout': 30,
 }
 
 # Configuration du logging
@@ -500,13 +501,39 @@ def hash_password(password: str) -> str:
     return hashlib.sha256(password.encode()).hexdigest()
 
 def get_db_connection() -> mysql.connector.MySQLConnection:
-    """Établit une connexion à la base de données MySQL"""
-    try:
-        conn = mysql.connector.connect(**MYSQL_CONFIG)
-        return conn
-    except mysql.connector.Error as err:
-        logger.error(f"Erreur de connexion à MySQL: {err}")
-        raise
+    """Établit une connexion à la base de données MySQL avec gestion d'erreur"""
+    max_retries = 3
+    retry_delay = 5  # secondes
+    
+    for attempt in range(max_retries):
+        try:
+            conn = mysql.connector.connect(
+                host='ecocapital-mbfdm.c.aivencloud.com',
+                user='avnadmin',
+                password='AVNS_3a2plzaevzttmJ4Tcs9',
+                database='ecocapital',
+                port=14431,
+                connect_timeout=30,
+                connection_retries=2
+            )
+            
+            # Tester la connexion
+            cursor = conn.cursor()
+            cursor.execute("SELECT 1")
+            cursor.close()
+            
+            logger.info("Connexion à la base de données établie avec succès")
+            return conn
+            
+        except mysql.connector.Error as err:
+            logger.error(f"Tentative {attempt + 1}/{max_retries} échouée: {err}")
+            
+            if attempt < max_retries - 1:
+                logger.info(f"Nouvelle tentative dans {retry_delay} secondes...")
+                time.sleep(retry_delay)
+            else:
+                logger.error("Échec de toutes les tentatives de connexion")
+                raise
 
 def init_session():
     """Initialise les variables de session"""
@@ -519,6 +546,73 @@ def get_last_activity(user_manager: EnhancedUserManager) -> str:
     logs = user_manager.get_activity_logs()
     return logs[0]['created_at'].strftime('%Y-%m-%d %H:%M') if logs else "Aucune"
 
+def check_database_connectivity():
+    """Vérifie la connectivité à la base de données"""
+    try:
+        import socket
+        import subprocess
+        
+        # Vérifier si l'hôte est accessible
+        host = 'ecocapital-mbfdm.c.aivencloud.com'
+        port = 14431
+        
+        # Test de connexion réseau
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(10)
+        result = sock.connect_ex((host, port))
+        sock.close()
+        
+        if result == 0:
+            st.success("✅ Serveur de base de données accessible")
+            return True
+        else:
+            st.error(f"❌ Impossible d'atteindre le serveur {host}:{port}")
+            return False
+            
+    except Exception as e:
+        st.error(f"Erreur de vérification de connectivité: {e}")
+        return False
+
+def show_diagnostics():
+    """Affiche les diagnostics du système"""
+    st.title("🔧 Diagnostics Système")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.subheader("Connectivité Base de Données")
+        if check_database_connectivity():
+            try:
+                conn = get_db_connection()
+                cursor = conn.cursor()
+                
+                # Test des tables principales
+                cursor.execute("SHOW TABLES")
+                tables = cursor.fetchall()
+                
+                st.success(f"✅ Base de données accessible - {len(tables)} tables trouvées")
+                
+                # Statut des tables
+                st.subheader("Statut des Tables")
+                for table in ['clients', 'ibans', 'transactions', 'avis']:
+                    cursor.execute(f"SELECT COUNT(*) FROM {table}")
+                    count = cursor.fetchone()[0]
+                    st.write(f"- {table}: {count} enregistrements")
+                
+                cursor.close()
+                conn.close()
+                
+            except Exception as e:
+                st.error(f"❌ Erreur base de données: {e}")
+    
+    with col2:
+        st.subheader("Configuration")
+        st.json({
+            "host": "ecocapital-mbfdm.c.aivencloud.com",
+            "port": 14431,
+            "database": "ecocapital",
+            "user": "avnadmin"
+        })
 
 def generate_secure_token(length=32):
     """Génère un token sécurisé pour les sessions"""
@@ -3907,4 +4001,5 @@ def show_admin_dashboard():
             conn.close()
 
 if __name__ == "__main__":
+
     main()
