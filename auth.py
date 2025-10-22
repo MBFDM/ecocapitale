@@ -1741,8 +1741,15 @@ def show_admin_dashboard():
                 unsafe_allow_html=True
             )
 
-        # Page Tableau de Bord
+        # Dans la section Tableau de Bord, après l'initialisation de db
         if selected == "Tableau de Bord":
+            # Diagnostic (optionnel - à enlever après correction)
+            with st.expander("🔧 Diagnostic Base de Données", expanded=False):
+                try:
+                    diagnosis = db.diagnose_table_issue()
+                    st.text(diagnosis)
+                except Exception as e:
+                    st.error(f"Erreur de diagnostic: {e}")
             
             # Section KPI
             st.subheader("Indicateurs Clés", divider="blue")
@@ -4013,4 +4020,5 @@ def show_admin_dashboard():
 if __name__ == "__main__":
 
     main()
+
 
