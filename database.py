@@ -271,7 +271,6 @@ class BankDatabase:
             logger.error(f"Erreur lors de la vérification de la structure: {str(e)}")
             self.conn.rollback()
 
-
     def add_account(self, account_data: dict) -> int:
         """Ajoute un compte bancaire avec toutes les informations requises"""
         try:
@@ -1253,6 +1252,7 @@ class BankDatabase:
         """Ferme la connexion à la fin du contexte"""
 
         self.close()
+
 
 
 
