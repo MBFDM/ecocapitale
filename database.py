@@ -1042,7 +1042,7 @@ class BankDatabase:
 
     # ===== Méthodes pour les transactions =====
     def _execute_transaction(self, iban_id: int, amount: float, 
-                       transaction_type: str, description: str) -> None:
+                   transaction_type: str, description: str) -> None:
         """Méthode interne pour exécuter une transaction"""
         if amount <= 0:
             raise ValueError("Le montant doit être positif")
@@ -1198,7 +1198,7 @@ class BankDatabase:
         """Retourne le total des dépôts"""
         try:
             cursor = self.conn.cursor()
-            # CORRECTION : Ajouter les guillemets simples
+            # CORRECTION : Utiliser des guillemets simples pour les valeurs de chaîne
             cursor.execute("SELECT COALESCE(SUM(amount), 0) FROM transactions WHERE type = 'Dépôt'")
             return cursor.fetchone()[0]
         except mysql.connector.Error as e:
@@ -1208,7 +1208,7 @@ class BankDatabase:
         """Retourne le total des retraits"""
         try:
             cursor = self.conn.cursor()
-            # CORRECTION : Ajouter les guillemets simples
+            # CORRECTION : Utiliser des guillemets simples pour les valeurs de chaîne
             cursor.execute("SELECT COALESCE(SUM(amount), 0) FROM transactions WHERE type = 'Retrait'")
             return cursor.fetchone()[0]
         except mysql.connector.Error as e:
@@ -1239,4 +1239,5 @@ class BankDatabase:
         """Ferme la connexion à la fin du contexte"""
 
         self.close()
+
 
