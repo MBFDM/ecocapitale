@@ -923,12 +923,10 @@ class BankDatabase:
         """Compte le nombre de clients actifs"""
         try:
             cursor = self.conn.cursor()
-            cursor.execute('SELECT COUNT(*) FROM clients WHERE status = %s', ('Actif',))
-            result = cursor.fetchone()[0]
-            print(f"DEBUG: Nombre de clients actifs trouvés: {result}")  # Pour déboguer
-            return result
+            # CORRECTION : Utiliser des paramètres sécurisés au lieu de concaténation de string
+            cursor.execute('SELECT COUNT(*) FROM clients WHERE status = %s', ("Actif",))
+            return cursor.fetchone()[0]
         except mysql.connector.Error as e:
-            print(f"DEBUG: Erreur SQL: {str(e)}")  # Pour déboguer
             raise DatabaseError(f"Erreur lors du comptage des clients actifs: {str(e)}")
 
     def get_clients_by_type(self) -> List[tuple]:
@@ -1199,6 +1197,7 @@ class BankDatabase:
         """Ferme la connexion à la fin du contexte"""
 
         self.close()
+
 
 
 
