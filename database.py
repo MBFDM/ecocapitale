@@ -34,30 +34,10 @@ class BankDatabase:
         
         logging.basicConfig(filename='database.log', level=logging.INFO)
 
-        try:
-            self.conn = mysql.connector.connect(
-                host=host,
-                user=user,
-                password=password,
-                database=database,
-                port=port,
-                connect_timeout=30,  # Timeout de connexion
-                connection_retries=3  # Tentatives de reconnexion
-            )
-            
-            # Test de la connexion
-            cursor = self.conn.cursor()
-            cursor.execute("SELECT 1")
-            cursor.close()
-            
-            self.create_tables()
-            self.update_database_schema()
-            logging.info(f"Connexion à la base de données MySQL: {database}")
-            
-        except mysql.connector.Error as e:
-            logger.error(f"Erreur de connexion: {str(e)}")
-            
-            # Tentative de reconnexion
+        max_retries = 3
+        retry_delay = 2
+        
+        for attempt in range(max_retries):
             try:
                 self.conn = mysql.connector.connect(
                     host=host,
@@ -65,32 +45,68 @@ class BankDatabase:
                     password=password,
                     database=database,
                     port=port,
-                    connect_timeout=60
+                    connect_timeout=30,
+                    buffered=True  # Argument valide
                 )
-                logging.info("Reconnexion réussie")
-            except mysql.connector.Error as retry_error:
-                logger.error(f"Échec de reconnexion: {str(retry_error)}")
-                raise DatabaseError(f"Erreur de connexion à la base de données: {str(retry_error)}")
+                
+                # Test de la connexion
+                cursor = self.conn.cursor()
+                cursor.execute("SELECT 1")
+                cursor.close()
+                
+                self.create_tables()
+                self.update_database_schema()
+                logging.info(f"Connexion à la base de données MySQL: {database}")
+                break  # Sortir de la boucle si la connexion réussit
+                
+            except mysql.connector.Error as e:
+                logger.error(f"Tentative {attempt + 1}/{max_retries} échouée: {str(e)}")
+                
+                if attempt < max_retries - 1:
+                    logger.info(f"Nouvelle tentative dans {retry_delay} secondes...")
+                    time.sleep(retry_delay)
+                else:
+                    logger.error("Échec de toutes les tentatives de connexion")
+                    raise DatabaseError(f"Erreur de connexion à la base de données: {str(e)}")
 
     def reconnect(self):
         """Tente de rétablir la connexion"""
-        try:
-            self.conn.ping(reconnect=True, attempts=3, delay=5)
-            return True
-        except mysql.connector.Error:
+        max_retries = 3
+        retry_delay = 2
+        
+        for attempt in range(max_retries):
             try:
+                # Fermer l'ancienne connexion si elle existe
+                if hasattr(self, 'conn') and self.conn.is_connected():
+                    self.conn.close()
+                
+                # Nouvelle connexion
                 self.conn = mysql.connector.connect(
                     host=self.host,
                     user=self.user,
                     password=self.password,
                     database=self.database,
                     port=self.port,
-                    connect_timeout=30
+                    connect_timeout=30,
+                    buffered=True
                 )
+                
+                # Tester la nouvelle connexion
+                cursor = self.conn.cursor()
+                cursor.execute("SELECT 1")
+                cursor.close()
+                
+                logger.info("Reconnexion réussie")
                 return True
+                
             except mysql.connector.Error as e:
-                logger.error(f"Échec de reconnexion: {e}")
-                return False
+                logger.error(f"Tentative de reconnexion {attempt + 1}/{max_retries} échouée: {e}")
+                
+                if attempt < max_retries - 1:
+                    time.sleep(retry_delay)
+                else:
+                    logger.error("Échec de toutes les tentatives de reconnexion")
+                    return False
 
     # Dictionnaire des banques avec leurs codes et BIC
     BANK_DATA = {
@@ -1173,5 +1189,6 @@ class BankDatabase:
         """Ferme la connexion à la fin du contexte"""
 
         self.close()
+
 
 
