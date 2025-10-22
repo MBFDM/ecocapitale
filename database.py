@@ -955,44 +955,68 @@ class BankDatabase:
             raise DatabaseError(f"Erreur lors de la récupération des clients: {str(e)}")
 
     def count_active_clients(self) -> int:
-        """Compte le nombre de clients actifs - Version robuste"""
+        """Compte le nombre de clients - Version ultra robuste"""
         try:
             cursor = self.conn.cursor()
             
-            # Vérifier d'abord si la colonne status existe
+            # Essayer différentes approches
+            try:
+                cursor.execute('SELECT COUNT(*) FROM clients WHERE status="Actif"')
+                return cursor.fetchone()[0]
+            except mysql.connector.Error:
+                try:
+                    # Si la colonne status n'existe pas
+                    cursor.execute('SELECT COUNT(*) FROM clients')
+                    return cursor.fetchone()[0]
+                except mysql.connector.Error:
+                    # Si la table n'existe pas
+                    return 0
+                    
+        except Exception as e:
+            logger.error(f"Erreur lors du comptage des clients: {str(e)}")
+            return 0
+    
+        def get_clients_by_type(self) -> List[tuple]:
+            """Retourne le nombre de clients par type"""
+            try:
+                cursor = self.conn.cursor()
+                cursor.execute('SELECT type, COUNT(*) as count FROM clients GROUP BY type')
+                return cursor.fetchall()
+            except mysql.connector.Error as e:
+                raise DatabaseError(f"Erreur lors de la récupération des clients par type: {str(e)}")
+
+    def diagnose_table_issue(self):
+        """Diagnostique les problèmes de structure de table"""
+        try:
+            cursor = self.conn.cursor()
+            
+            # Vérifier si la table clients existe
             cursor.execute("""
                 SELECT COUNT(*) 
-                FROM INFORMATION_SCHEMA.COLUMNS 
-                WHERE TABLE_SCHEMA = %s 
-                AND TABLE_NAME = 'clients' 
-                AND COLUMN_NAME = 'status'
+                FROM INFORMATION_SCHEMA.TABLES 
+                WHERE TABLE_SCHEMA = %s AND TABLE_NAME = 'clients'
             """, (self.conn.database,))
             
-            status_exists = cursor.fetchone()[0] > 0
+            table_exists = cursor.fetchone()[0] > 0
             
-            if status_exists:
-                # Si la colonne existe, utiliser la requête normale
-                cursor.execute('SELECT COUNT(*) FROM clients WHERE status="Actif"')
-            else:
-                # Si la colonne n'existe pas, compter tous les clients
-                cursor.execute('SELECT COUNT(*) FROM clients')
-                logger.warning("Colonne 'status' non trouvée, comptage de tous les clients")
+            if not table_exists:
+                return "Table 'clients' n'existe pas"
             
-            return cursor.fetchone()[0]
+            # Vérifier les colonnes de la table clients
+            cursor.execute("""
+                SELECT COLUMN_NAME, DATA_TYPE, IS_NULLABLE, COLUMN_DEFAULT
+                FROM INFORMATION_SCHEMA.COLUMNS 
+                WHERE TABLE_SCHEMA = %s AND TABLE_NAME = 'clients'
+                ORDER BY ORDINAL_POSITION
+            """, (self.conn.database,))
+            
+            columns = cursor.fetchall()
+            column_info = "\n".join([f"- {col[0]} ({col[1]})" for col in columns])
+            
+            return f"Table 'clients' existe. Colonnes:\n{column_info}"
             
         except mysql.connector.Error as e:
-            logger.error(f"Erreur lors du comptage des clients actifs: {str(e)}")
-            # Fallback en cas d'erreur
-            return 0
-
-    def get_clients_by_type(self) -> List[tuple]:
-        """Retourne le nombre de clients par type"""
-        try:
-            cursor = self.conn.cursor()
-            cursor.execute('SELECT type, COUNT(*) as count FROM clients GROUP BY type')
-            return cursor.fetchall()
-        except mysql.connector.Error as e:
-            raise DatabaseError(f"Erreur lors de la récupération des clients par type: {str(e)}")
+            return f"Erreur de diagnostic: {str(e)}"
 
     # ===== Méthodes pour les IBAN =====
     def add_iban(self, client_id: int, iban: str, currency: str, 
@@ -1253,4 +1277,5 @@ class BankDatabase:
         """Ferme la connexion à la fin du contexte"""
 
         self.close()
+
 
