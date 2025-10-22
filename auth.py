@@ -318,12 +318,12 @@ class EnhancedUserManager:
                     email VARCHAR(255) UNIQUE NOT NULL,
                     password_hash VARCHAR(255) NOT NULL,
                     role VARCHAR(50) DEFAULT 'user',
-                    status VARCHAR(50) DEFAULT 'active',
+                    status VARCHAR(50) DEFAULT 'actif',
                     last_login TIMESTAMP NULL,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                     CONSTRAINT chk_role CHECK (role IN ('user', 'manager', 'admin')),
-                    CONSTRAINT chk_status CHECK (status IN ('active', 'inactive', 'suspended'))
+                    CONSTRAINT chk_status CHECK (status IN ('actif', 'inactif', 'suspended'))
                 )''')
 
                 # Table des demandes admin
@@ -402,7 +402,7 @@ class EnhancedUserManager:
     def count_active_users(self) -> int:
         """Compte les utilisateurs actifs"""
         with self.conn.cursor() as cursor:
-            cursor.execute('SELECT COUNT(*) FROM users WHERE status="active"')
+            cursor.execute('SELECT COUNT(*) FROM users WHERE status="actif"')
             return cursor.fetchone()[0]
 
     def log_activity(self, user_id: int, action: str, details: str = "", ip_address: str = "") -> None:
@@ -934,7 +934,7 @@ def show_user_management(user_manager: EnhancedUserManager):
                 ),
                 "status": st.column_config.SelectboxColumn(
                     "Statut",
-                    options=["active", "inactive", "suspended"]
+                    options=["actif", "inactif", "suspended"]
                 )
             },
             hide_index=True,
@@ -4012,6 +4012,7 @@ def show_admin_dashboard():
 if __name__ == "__main__":
 
     main()
+
 
 
 
