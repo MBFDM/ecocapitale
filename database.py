@@ -1168,16 +1168,16 @@ class BankDatabase:
         """Retourne le total des dépôts"""
         try:
             cursor = self.conn.cursor()
-            cursor.execute('SELECT COALESCE(SUM(amount), 0) FROM transactions WHERE type="Dépôt"')
+            cursor.execute('SELECT COALESCE(SUM(amount), 0) FROM transactions WHERE type = %s', ("Dépôt",))
             return cursor.fetchone()[0]
         except mysql.connector.Error as e:
             raise DatabaseError(f"Erreur lors du calcul des dépôts totaux: {str(e)}")
-
+    
     def total_withdrawals(self) -> float:
         """Retourne le total des retraits"""
         try:
             cursor = self.conn.cursor()
-            cursor.execute('SELECT COALESCE(SUM(amount), 0) FROM transactions WHERE type="Retrait"')
+            cursor.execute('SELECT COALESCE(SUM(amount), 0) FROM transactions WHERE type = %s', ("Retrait",))
             return cursor.fetchone()[0]
         except mysql.connector.Error as e:
             raise DatabaseError(f"Erreur lors du calcul des retraits totaux: {str(e)}")
@@ -1197,6 +1197,7 @@ class BankDatabase:
         """Ferme la connexion à la fin du contexte"""
 
         self.close()
+
 
 
 
