@@ -25,13 +25,13 @@ class NotFoundError(DatabaseError):
 
 class BankDatabase:
     def __init__(
-            self, host: str = "ecocapital-mbfdm.c.aivencloud.com", 
+            self, 
+            host: str = "ecocapital-mbfdm.c.aivencloud.com", 
             user: str = "avnadmin", 
             password: str = "AVNS_3a2plzaevzttmJ4Tcs9", 
             database: str = "ecocapital",
-            port: int = 14431):  # Ajout du port
+            port: int = 14431):
         
-        """Initialise la connexion à la base de données MySQL et met à jour les tables"""
         logging.basicConfig(filename='database.log', level=logging.INFO)
 
         try:
@@ -40,14 +40,37 @@ class BankDatabase:
                 user=user,
                 password=password,
                 database=database,
-                port=port
+                port=port,
+                connect_timeout=30,  # Timeout de connexion
+                connection_retries=3  # Tentatives de reconnexion
             )
+            
+            # Test de la connexion
+            cursor = self.conn.cursor()
+            cursor.execute("SELECT 1")
+            cursor.close()
+            
             self.create_tables()
             self.update_database_schema()
             logging.info(f"Connexion à la base de données MySQL: {database}")
+            
         except mysql.connector.Error as e:
             logger.error(f"Erreur de connexion: {str(e)}")
-            raise DatabaseError(f"Erreur de connexion à la base de données: {str(e)}")
+            
+            # Tentative de reconnexion
+            try:
+                self.conn = mysql.connector.connect(
+                    host=host,
+                    user=user,
+                    password=password,
+                    database=database,
+                    port=port,
+                    connect_timeout=60
+                )
+                logging.info("Reconnexion réussie")
+            except mysql.connector.Error as retry_error:
+                logger.error(f"Échec de reconnexion: {str(retry_error)}")
+                raise DatabaseError(f"Erreur de connexion à la base de données: {str(retry_error)}")
 
     # Dictionnaire des banques avec leurs codes et BIC
     BANK_DATA = {
@@ -1130,3 +1153,4 @@ class BankDatabase:
         """Ferme la connexion à la fin du contexte"""
 
         self.close()
+
