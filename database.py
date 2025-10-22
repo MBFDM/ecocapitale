@@ -28,7 +28,8 @@ class BankDatabase:
             self, host: str = "ecocapital-mbfdm.c.aivencloud.com", 
             user: str = "avnadmin", 
             password: str = "AVNS_3a2plzaevzttmJ4Tcs9", 
-            database: str = "ecocapital"):
+            database: str = "ecocapital",
+            port: int = 14431):  # Ajout du port
         
         """Initialise la connexion à la base de données MySQL et met à jour les tables"""
         logging.basicConfig(filename='database.log', level=logging.INFO)
@@ -38,7 +39,8 @@ class BankDatabase:
                 host=host,
                 user=user,
                 password=password,
-                database=database
+                database=database,
+                port=port
             )
             self.create_tables()
             self.update_database_schema()
@@ -1126,4 +1128,5 @@ class BankDatabase:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         """Ferme la connexion à la fin du contexte"""
+
         self.close()
