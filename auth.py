@@ -402,6 +402,7 @@ class EnhancedUserManager:
     def count_active_users(self) -> int:
         """Compte les utilisateurs actifs"""
         with self.conn.cursor() as cursor:
+            # Correction : utiliser 'actif' (avec minuscule) comme dans la table users
             cursor.execute('SELECT COUNT(*) FROM users WHERE status="actif"')
             return cursor.fetchone()[0]
 
@@ -4012,6 +4013,7 @@ def show_admin_dashboard():
 if __name__ == "__main__":
 
     main()
+
 
 
 
