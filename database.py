@@ -72,6 +72,26 @@ class BankDatabase:
                 logger.error(f"Échec de reconnexion: {str(retry_error)}")
                 raise DatabaseError(f"Erreur de connexion à la base de données: {str(retry_error)}")
 
+    def reconnect(self):
+        """Tente de rétablir la connexion"""
+        try:
+            self.conn.ping(reconnect=True, attempts=3, delay=5)
+            return True
+        except mysql.connector.Error:
+            try:
+                self.conn = mysql.connector.connect(
+                    host=self.host,
+                    user=self.user,
+                    password=self.password,
+                    database=self.database,
+                    port=self.port,
+                    connect_timeout=30
+                )
+                return True
+            except mysql.connector.Error as e:
+                logger.error(f"Échec de reconnexion: {e}")
+                return False
+
     # Dictionnaire des banques avec leurs codes et BIC
     BANK_DATA = {
         "Digital Financial Service": {"code": "30001", "bic": "UNAFCGCG"},
@@ -1153,4 +1173,5 @@ class BankDatabase:
         """Ferme la connexion à la fin du contexte"""
 
         self.close()
+
 
