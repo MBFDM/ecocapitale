@@ -1042,7 +1042,7 @@ class BankDatabase:
 
     # ===== Méthodes pour les transactions =====
     def _execute_transaction(self, iban_id: int, amount: float, 
-                           transaction_type: str, description: str) -> None:
+                       transaction_type: str, description: str) -> None:
         """Méthode interne pour exécuter une transaction"""
         if amount <= 0:
             raise ValueError("Le montant doit être positif")
@@ -1058,6 +1058,7 @@ class BankDatabase:
             
         client_id, balance = result['client_id'], result['balance']
         
+        # CORRECTION : guillemets simples
         if transaction_type == 'Retrait' and balance < amount:
             raise ValueError("Solde insuffisant pour ce retrait")
         
@@ -1068,11 +1069,12 @@ class BankDatabase:
         ''', (iban_id, client_id, transaction_type, amount, description))
         
         # Met à jour le solde
+        # CORRECTION : guillemets simples dans la comparaison
         if transaction_type == 'Dépôt':
             cursor.execute('UPDATE ibans SET balance = balance + %s WHERE id=%s', (amount, iban_id))
         else:
             cursor.execute('UPDATE ibans SET balance = balance - %s WHERE id=%s', (amount, iban_id))
-
+            
     def deposit(self, iban_id: int, amount: float, description: str = "") -> None:
         """Effectue un dépôt sur un compte"""
         try:
@@ -1162,25 +1164,25 @@ class BankDatabase:
                 date_str = current_date.strftime('%Y-%m-%d')
                 cursor = self.conn.cursor()
                 
-                # Dépôts
+                # Dépôts - CORRECTION : guillemets simples
                 cursor.execute('''
                 SELECT COALESCE(SUM(amount), 0)
                 FROM transactions
-                WHERE type='Dépôt' AND DATE(date) = DATE(%s)
+                WHERE type = 'Dépôt' AND DATE(date) = DATE(%s)
                 ''', (date_str,))
                 deposit = cursor.fetchone()[0]
                 
-                # Retraits
+                # Retraits - CORRECTION : guillemets simples
                 cursor.execute('''
                 SELECT COALESCE(SUM(amount), 0)
                 FROM transactions
-                WHERE type='Retrait' AND DATE(date) = DATE(%s)
+                WHERE type = 'Retrait' AND DATE(date) = DATE(%s)
                 ''', (date_str,))
                 withdrawal = cursor.fetchone()[0]
                 
                 dates.append(date_str)
-                deposits.append(deposit)
-                withdrawals.append(withdrawal)
+                deposits.append(float(deposit))
+                withdrawals.append(float(withdrawal))
                 
                 current_date += timedelta(days=1)
             
@@ -1196,19 +1198,31 @@ class BankDatabase:
         """Retourne le total des dépôts"""
         try:
             cursor = self.conn.cursor()
-            cursor.execute('SELECT COALESCE(SUM(amount), 0) FROM transactions WHERE type="Dépôt"')
+            # CORRECTION : Ajouter les guillemets simples
+            cursor.execute("SELECT COALESCE(SUM(amount), 0) FROM transactions WHERE type = 'Dépôt'")
             return cursor.fetchone()[0]
         except mysql.connector.Error as e:
             raise DatabaseError(f"Erreur lors du calcul des dépôts totaux: {str(e)}")
-
+    
     def total_withdrawals(self) -> float:
         """Retourne le total des retraits"""
         try:
             cursor = self.conn.cursor()
-            cursor.execute('SELECT COALESCE(SUM(amount), 0) FROM transactions WHERE type="Retrait"')
+            # CORRECTION : Ajouter les guillemets simples
+            cursor.execute("SELECT COALESCE(SUM(amount), 0) FROM transactions WHERE type = 'Retrait'")
             return cursor.fetchone()[0]
         except mysql.connector.Error as e:
             raise DatabaseError(f"Erreur lors du calcul des retraits totaux: {str(e)}")
+    
+    def count_daily_transactions(self) -> int:
+        """Compte les transactions du jour"""
+        try:
+            cursor = self.conn.cursor()
+            today = datetime.now().strftime('%Y-%m-%d')
+            cursor.execute('SELECT COUNT(*) FROM transactions WHERE DATE(date) = DATE(%s)', (today,))
+            return cursor.fetchone()[0]
+        except mysql.connector.Error as e:
+            raise DatabaseError(f"Erreur lors du comptage des transactions journalières: {str(e)}")
 
     def close(self) -> None:
         """Ferme la connexion à la base de données"""
@@ -1225,3 +1239,4 @@ class BankDatabase:
         """Ferme la connexion à la fin du contexte"""
 
         self.close()
+
