@@ -923,11 +923,30 @@ class BankDatabase:
         """Compte le nombre de clients actifs"""
         try:
             cursor = self.conn.cursor()
-            # Utiliser 'Actif' au lieu de 'active'
-            cursor.execute('SELECT COUNT(*) FROM clients WHERE status="Actif"')
+            # Correction : utiliser 'Actif' comme valeur, pas comme nom de colonne
+            cursor.execute('SELECT COUNT(*) FROM clients WHERE status = "Actif"')
             return cursor.fetchone()[0]
         except mysql.connector.Error as e:
             raise DatabaseError(f"Erreur lors du comptage des clients actifs: {str(e)}")
+
+    def get_clients_by_status(self, status: str) -> List[Dict]:
+        """Récupère les clients par statut"""
+        try:
+            cursor = self.conn.cursor(dictionary=True)
+            cursor.execute('SELECT * FROM clients WHERE status = %s ORDER BY last_name, first_name', (status,))
+            return cursor.fetchall()
+        except mysql.connector.Error as e:
+            raise DatabaseError(f"Erreur lors de la récupération des clients par statut: {str(e)}")
+    
+    def update_client_status(self, client_id: int, status: str) -> bool:
+        """Met à jour le statut d'un client"""
+        try:
+            cursor = self.conn.cursor()
+            cursor.execute('UPDATE clients SET status = %s WHERE id = %s', (status, client_id))
+            self.conn.commit()
+            return cursor.rowcount > 0
+        except mysql.connector.Error as e:
+            raise DatabaseError(f"Erreur lors de la mise à jour du statut: {str(e)}")
 
     def get_clients_by_type(self) -> List[tuple]:
         """Retourne le nombre de clients par type"""
@@ -1197,3 +1216,4 @@ class BankDatabase:
         """Ferme la connexion à la fin du contexte"""
 
         self.close()
+
