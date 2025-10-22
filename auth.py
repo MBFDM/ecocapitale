@@ -60,13 +60,21 @@ st.set_page_config(
 )
 
 # Le reste de votre configuration...
-MYSQL_CONFIG = {
+# Arguments de connexion valides
+MYSQL_CONFIG  = {
     'host': 'ecocapital-mbfdm.c.aivencloud.com',
     'user': 'avnadmin',
     'password': 'AVNS_3a2plzaevzttmJ4Tcs9',
     'database': 'ecocapital',
     'port': 14431,
     'connect_timeout': 30,
+    'buffered': True,
+    'autocommit': True,
+    'pool_size': 5,
+    'charset': 'utf8mb4',
+    'collation': 'utf8mb4_unicode_ci',
+    'use_pure': True,
+    'ssl_disabled': False,  # Si votre serveur Aiven utilise SSL
 }
 
 # Configuration du logging
@@ -514,7 +522,8 @@ def get_db_connection() -> mysql.connector.MySQLConnection:
                 database='ecocapital',
                 port=14431,
                 connect_timeout=30,
-                connection_retries=2
+                buffered=True,  # Argument valide
+                pool_size=5     # Argument valide pour le pooling
             )
             
             # Tester la connexion
@@ -533,6 +542,7 @@ def get_db_connection() -> mysql.connector.MySQLConnection:
                 time.sleep(retry_delay)
             else:
                 logger.error("Échec de toutes les tentatives de connexion")
+                st.error(f"Impossible de se connecter à la base de données: {err}")
                 raise
 
 def init_session():
@@ -4003,3 +4013,4 @@ def show_admin_dashboard():
 if __name__ == "__main__":
 
     main()
+
