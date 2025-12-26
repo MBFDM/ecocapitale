@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 import random
 from typing import Optional, Dict, List, Union
 from venv import logger
+import time  
 
 class DatabaseError(Exception):
     """Classe de base pour les erreurs de base de données"""
@@ -64,7 +65,7 @@ class BankDatabase:
                 
                 if attempt < max_retries - 1:
                     logger.info(f"Nouvelle tentative dans {retry_delay} secondes...")
-                    time.sleep(retry_delay)
+                    time.sleep(retry_delay)  # Utiliser time.sleep
                 else:
                     logger.error("Échec de toutes les tentatives de connexion")
                     raise DatabaseError(f"Erreur de connexion à la base de données: {str(e)}")
@@ -391,9 +392,37 @@ class BankDatabase:
             if not account_data:
                 raise NotFoundError(f"Aucun compte trouvé avec l'IBAN {iban}")
             
+            # Vérifier que toutes les données nécessaires sont présentes
+            required_fields = ['first_name', 'last_name', 'iban', 'bank_name', 
+                            'bank_code', 'bic', 'rib_key', 'account_number', 
+                            'branch_code', 'currency', 'type']
+            
+            missing_fields = [field for field in required_fields if field not in account_data or account_data[field] is None]
+            
+            if missing_fields:
+                # Fournir des valeurs par défaut pour les champs manquants
+                for field in missing_fields:
+                    if field in ['first_name', 'last_name']:
+                        account_data[field] = "Non spécifié"
+                    elif field in ['bank_code', 'branch_code', 'account_number', 'rib_key']:
+                        account_data[field] = "00000" if field != 'rib_key' else "00"
+                    elif field == 'bic':
+                        account_data[field] = "UNKNOWN"
+                    elif field == 'bank_name':
+                        account_data[field] = "Banque Non Spécifiée"
+                    elif field == 'currency':
+                        account_data[field] = "XAF"
+                    elif field == 'type':
+                        account_data[field] = "Courant"
+            
+            # Vérifier et nettoyer les champs critiques
+            if not isinstance(account_data.get('balance'), (int, float)):
+                account_data['balance'] = 0.0
+            
             from fpdf import FPDF
             from datetime import datetime
             import os
+            import tempfile
 
             # Configuration du PDF
             pdf = FPDF()
@@ -402,17 +431,36 @@ class BankDatabase:
             
             # ---- En-tête avec logo ----
             try:
-                # Ajoutez votre logo (remplacez par le chemin correct)
-                pdf.image("assets/logo.png", x=10, y=8, w=30)
-            except:
-                pass  # Continue si le logo n'est pas trouvé
+                # Essayer différents chemins de logo
+                possible_logo_paths = [
+                    "assets/logo.png",
+                    "logo.png",
+                    "../assets/logo.png",
+                    "./assets/logo.png"
+                ]
+                
+                logo_found = False
+                for logo_path in possible_logo_paths:
+                    if os.path.exists(logo_path):
+                        pdf.image(logo_path, x=10, y=8, w=30)
+                        logo_found = True
+                        break
+                
+                if not logo_found:
+                    # Créer un placeholder si le logo n'existe pas
+                    pdf.set_font("Arial", 'B', 12)
+                    pdf.cell(30, 10, "ECO CAPITAL", 0, 0, 'L')
+                    
+            except Exception as e:
+                print(f"Erreur logo: {e}")
+                # Continuer sans logo
             
             pdf.set_font("Arial", 'B', 16)
             pdf.cell(0, 10, "RELEVE DE COMPTE", 0, 1, 'C')
             
             # Référence du document
             pdf.set_font("Arial", 'B', 10)
-            pdf.cell(0, 5, f"REF: RIB-{datetime.now().strftime('%Y%m%d')}-{iban[-4:]}", 0, 1, 'C')
+            pdf.cell(0, 5, f"REF: RIB-{datetime.now().strftime('%Y%m%d')}-{iban[-4:] if iban and len(iban) >= 4 else 'XXXX'}", 0, 1, 'C')
             pdf.ln(10)
             
             # ---- Informations Banque ----
@@ -423,8 +471,8 @@ class BankDatabase:
             pdf.set_font("Arial", '', 10)
             bank_info = [
                 ("Structure Financière", "Eco Capital"),
-                #("Nom", account_data['bank_name']),
-                ("BIC/SWIFT", account_data['bic']),
+                ("Nom Banque", account_data.get('bank_name', 'Non spécifié')),
+                ("BIC/SWIFT", account_data.get('bic', 'Non spécifié')),
                 ("Adresse", "1636 Boulevard Dénis SASSOU NGUESSO, Brazzaville, Congo"),
                 ("Téléphone", "+242 06 113 5605"),
                 ("Email", "contacts@ecocapitale.com")
@@ -432,7 +480,9 @@ class BankDatabase:
             
             for label, value in bank_info:
                 pdf.cell(40, 6, f"{label} :", 0, 0)
-                pdf.cell(0, 6, value, 0, 1)
+                # Nettoyer la valeur pour éviter les erreurs d'encodage
+                safe_value = str(value) if value is not None else "Non spécifié"
+                pdf.cell(0, 6, safe_value, 0, 1)
             pdf.ln(5)
             
             # ---- Informations Client ----
@@ -442,7 +492,7 @@ class BankDatabase:
             
             pdf.set_font("Arial", '', 10)
             client_info = [
-                ("Nom", f"{account_data['first_name']} {account_data['last_name']}"),
+                ("Nom", f"{account_data.get('first_name', '')} {account_data.get('last_name', '')}"),
                 ("Email", account_data.get('email', 'Non renseigné')),
                 ("Téléphone", account_data.get('phone', 'Non renseigné')),
                 ("Type Client", account_data.get('client_type', 'Particulier'))
@@ -450,7 +500,8 @@ class BankDatabase:
             
             for label, value in client_info:
                 pdf.cell(40, 6, f"{label} :", 0, 0)
-                pdf.cell(0, 6, value, 0, 1)
+                safe_value = str(value) if value is not None else "Non renseigné"
+                pdf.cell(0, 6, safe_value, 0, 1)
             pdf.ln(5)
             
             # ---- Détails du Compte ----
@@ -467,19 +518,20 @@ class BankDatabase:
             
             pdf.set_font("Arial", '', 10)
             account_details = [
-                ("Code Banque", account_data['bank_code'], ""),
-                ("Code Guichet", account_data['branch_code'], ""),
-                ("Numéro Compte", account_data['account_number'], ""),
-                ("Clé RIB", account_data['rib_key'], ""),
-                ("IBAN", account_data['iban'], ""),
-                ("Type Compte", account_data['type'], ""),
-                ("Devise", account_data['currency'], ""),
-                ("Solde Actuel", f"{account_data.get('balance', 0):,.2f}", account_data['currency'])
+                ("Code Banque", account_data.get('bank_code', '00000'), ""),
+                ("Code Guichet", account_data.get('branch_code', '00000'), ""),
+                ("Numéro Compte", account_data.get('account_number', '00000000000'), ""),
+                ("Clé RIB", account_data.get('rib_key', '00'), ""),
+                ("IBAN", account_data.get('iban', 'Non spécifié'), ""),
+                ("Type Compte", account_data.get('type', 'Courant'), ""),
+                ("Devise", account_data.get('currency', 'XAF'), ""),
+                ("Solde Actuel", f"{float(account_data.get('balance', 0)):,.2f}", account_data.get('currency', 'XAF'))
             ]
             
             for field, value, extra in account_details:
                 pdf.cell(70, 8, field, 1, 0)
-                pdf.cell(70, 8, value, 1, 0)
+                safe_value = str(value) if value is not None else ""
+                pdf.cell(70, 8, safe_value, 1, 0)
                 pdf.cell(50, 8, extra, 1, 1)
             pdf.ln(10)
             
@@ -488,13 +540,11 @@ class BankDatabase:
                 import qrcode
                 from io import BytesIO
                 
-                qr_data = {
-                    "IBAN": account_data['iban'],
-                    "Nom": f"{account_data['first_name']} {account_data['last_name']}",
-                    "BIC": account_data['bic'],
-                    "Banque": account_data['bank_name'],
-                    "Date": datetime.now().strftime('%d/%m/%Y')
-                }
+                qr_data = f"IBAN: {account_data.get('iban', '')}\n"
+                qr_data += f"Nom: {account_data.get('first_name', '')} {account_data.get('last_name', '')}\n"
+                qr_data += f"BIC: {account_data.get('bic', '')}\n"
+                qr_data += f"Banque: {account_data.get('bank_name', '')}\n"
+                qr_data += f"Date: {datetime.now().strftime('%d/%m/%Y')}"
                 
                 qr = qrcode.QRCode(
                     version=1,
@@ -513,7 +563,9 @@ class BankDatabase:
                 pdf.image(img_bytes, x=150, y=pdf.get_y()+10, w=40)
 
             except ImportError:
-                pass
+                print("QRCode non disponible - continuer sans QR Code")
+            except Exception as e:
+                print(f"Erreur QRCode: {e}")
             
             # ---- Pied de page ----
             pdf.set_y(-20)
@@ -523,13 +575,106 @@ class BankDatabase:
             # ---- Sauvegarde ----
             if not output_path:
                 os.makedirs("rib_documents", exist_ok=True)
-                output_path = f"rib_documents/RIB_{account_data['iban']}.pdf"
+                safe_iban = iban.replace(' ', '_').replace('/', '_') if iban else "UNKNOWN"
+                output_path = f"rib_documents/RIB_{safe_iban}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
             
             pdf.output(output_path)
             return output_path
             
         except Exception as e:
             raise DatabaseError(f"Erreur lors de la génération du RIB: {str(e)}")
+        
+    def validate_account_data(self, account_data: dict) -> dict:
+        """
+        Valide et nettoie les données du compte pour éviter les erreurs
+        """
+        if not account_data:
+            raise ValueError("Données du compte non fournies")
+        
+        # Champs requis avec valeurs par défaut
+        default_values = {
+            'first_name': 'Prénom',
+            'last_name': 'Nom',
+            'iban': 'IBAN_INCONNU',
+            'bank_name': 'Banque Inconnue',
+            'bank_code': '00000',
+            'bic': 'UNKNOWN',
+            'rib_key': '00',
+            'account_number': '00000000000',
+            'branch_code': '00000',
+            'currency': 'XAF',
+            'type': 'Courant',
+            'balance': 0.0,
+            'email': 'Non spécifié',
+            'phone': 'Non spécifié',
+            'client_type': 'Particulier'
+        }
+        
+        # Remplacer les None par des valeurs par défaut
+        cleaned_data = account_data.copy()
+        for key, default_value in default_values.items():
+            if key not in cleaned_data or cleaned_data[key] is None:
+                cleaned_data[key] = default_value
+        
+        # Convertir le solde en float
+        try:
+            cleaned_data['balance'] = float(cleaned_data['balance'])
+        except (ValueError, TypeError):
+            cleaned_data['balance'] = 0.0
+        
+        return cleaned_data
+    
+    def display_rib_preview(self, iban: str) -> None:
+        """
+        Affiche un aperçu du RIB dans Streamlit pour débogage
+        """
+        try:
+            account_data = self.get_account_by_iban(iban)
+            if not account_data:
+                st.error(f"Aucun compte trouvé avec l'IBAN {iban}")
+                return
+            
+            st.subheader("Aperçu du RIB")
+            
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                st.markdown("**Informations Client**")
+                st.text(f"Nom: {account_data['first_name']} {account_data['last_name']}")
+                st.text(f"Email: {account_data['email']}")
+                st.text(f"Téléphone: {account_data['phone']}")
+                
+            with col2:
+                st.markdown("**Informations Compte**")
+                st.text(f"IBAN: {account_data['iban']}")
+                st.text(f"BIC: {account_data['bic']}")
+                st.text(f"Banque: {account_data['bank_name']}")
+                st.text(f"Solde: {account_data['balance']} {account_data['currency']}")
+            
+            # Bouton pour générer le RIB
+            if st.button("Générer le RIB PDF"):
+                try:
+                    rib_path = self.generate_rib_receipt(iban)
+                    st.success(f"RIB généré avec succès: {rib_path}")
+                    
+                    # Afficher le PDF
+                    with open(rib_path, "rb") as f:
+                        pdf_bytes = f.read()
+                    
+                    st.download_button(
+                        label="Télécharger le RIB",
+                        data=pdf_bytes,
+                        file_name=os.path.basename(rib_path),
+                        mime="application/pdf"
+                    )
+                    
+                except Exception as e:
+                    st.error(f"Erreur lors de la génération: {str(e)}")
+                    st.text("Détails du compte pour débogage:")
+                    st.json(account_data)
+                    
+        except Exception as e:
+            st.error(f"Erreur: {str(e)}")
 
     def create_tables(self) -> None:
         """Crée toutes les tables nécessaires avec les colonnes requises"""
@@ -1018,11 +1163,18 @@ class BankDatabase:
                 c.phone,
                 c.type as client_type
             FROM ibans i
-            JOIN clients c ON i.client_id = c.id
+            LEFT JOIN clients c ON i.client_id = c.id
             WHERE i.iban = %s
             ''', (iban,))
             
-            return cursor.fetchone()
+            account = cursor.fetchone()
+            
+            # Si aucun compte trouvé, retourner None
+            if not account:
+                return None
+            
+            # S'assurer que tous les champs nécessaires existent
+            return self.validate_account_data(account)
             
         except mysql.connector.Error as e:
             raise DatabaseError(f"Erreur lors de la récupération du compte par IBAN: {str(e)}")
