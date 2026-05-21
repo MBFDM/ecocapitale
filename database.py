@@ -1,4 +1,5 @@
 import logging
+import uuid
 import streamlit as st
 import mysql.connector
 from datetime import datetime, timedelta
@@ -108,6 +109,150 @@ class BankDatabase:
                 else:
                     logger.error("Échec de toutes les tentatives de reconnexion")
                     return False
+    # Ajoutez ces nouvelles méthodes dans la classe BankDatabase (Code 3) :
+
+    def get_avi_requests_from_users(self) -> List[Dict]:
+        """Récupère toutes les demandes AVI des utilisateurs (table avi_requests)"""
+        try:
+            cursor = self.conn.cursor(dictionary=True)
+            cursor.execute('''
+            SELECT 
+                ar.id,
+                ar.user_id,
+                ar.user_email,
+                ar.request_data,
+                ar.status,
+                ar.created_at,
+                ar.updated_at,
+                u.first_name,
+                u.last_name,
+                u.phone
+            FROM avi_requests ar
+            LEFT JOIN utilisateurs u ON ar.user_id = u.id
+            ORDER BY ar.created_at DESC
+            ''')
+            results = cursor.fetchall()
+            
+            # Parse JSON request_data
+            for result in results:
+                if result.get('request_data') and isinstance(result['request_data'], str):
+                    try:
+                        result['request_data'] = json.loads(result['request_data'])
+                    except:
+                        pass
+            
+            return results
+        except mysql.connector.Error as e:
+            logger.error(f"Erreur lors de la récupération des demandes AVI: {str(e)}")
+            return []
+
+    def update_avi_request_status(self, request_id: str, status: str) -> bool:
+        """Met à jour le statut d'une demande AVI"""
+        try:
+            cursor = self.conn.cursor()
+            cursor.execute('''
+            UPDATE avi_requests 
+            SET status = %s, updated_at = CURRENT_TIMESTAMP
+            WHERE id = %s
+            ''', (status, request_id))
+            self.conn.commit()
+            return cursor.rowcount > 0
+        except mysql.connector.Error as e:
+            logger.error(f"Erreur lors de la mise à jour du statut AVI: {str(e)}")
+            return False
+
+    def send_avi_to_user(self, user_id: str, avi_data: dict) -> bool:
+        """Envoie une AVI à un ou plusieurs utilisateurs"""
+        try:
+            cursor = self.conn.cursor()
+            
+            # Créer l'AVI dans la table avis
+            reference = f"AVI-{datetime.now().strftime('%Y%m%d')}-{random.randint(1000, 9999)}"
+            
+            cursor.execute('''
+            INSERT INTO avis (
+                reference, nom_complet, code_banque, numero_compte, devise,
+                iban, bic, montant, date_creation, statut, commentaires
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            ''', (
+                reference,
+                avi_data.get('nom_complet', ''),
+                avi_data.get('code_banque', ''),
+                avi_data.get('numero_compte', ''),
+                avi_data.get('devise', 'XAF'),
+                avi_data.get('iban', ''),
+                avi_data.get('bic', ''),
+                avi_data.get('montant', 0),
+                datetime.now().strftime('%Y-%m-%d'),
+                avi_data.get('statut', 'Etudiant'),
+                avi_data.get('commentaires', '')
+            ))
+            
+            # Envoyer un message de notification à l'utilisateur
+            cursor.execute('''
+            INSERT INTO messages (id, user_id, sender, content)
+            VALUES (%s, %s, %s, %s)
+            ''', (
+                str(uuid.uuid4()),
+                user_id,
+                'support',
+                f"Votre AVI a été générée. Référence: {reference}. Veuillez consulter votre espace."
+            ))
+            
+            self.conn.commit()
+            return True
+        except mysql.connector.Error as e:
+            logger.error(f"Erreur lors de l'envoi de l'AVI: {str(e)}")
+            return False
+
+    def get_all_users_from_code1(self) -> List[Dict]:
+        """Récupère tous les utilisateurs de la table utilisateurs"""
+        try:
+            cursor = self.conn.cursor(dictionary=True)
+            cursor.execute('''
+            SELECT id, first_name, last_name, email, phone, is_active
+            FROM utilisateurs
+            ORDER BY first_name, last_name
+            ''')
+            return cursor.fetchall()
+        except mysql.connector.Error as e:
+            logger.error(f"Erreur lors de la récupération des utilisateurs: {str(e)}")
+            return []
+
+    def get_conversation_with_user(self, user_id: str) -> List[Dict]:
+        """Récupère la conversation avec un utilisateur spécifique"""
+        try:
+            cursor = self.conn.cursor(dictionary=True)
+            cursor.execute('''
+            SELECT 
+                m.*,
+                u.first_name,
+                u.last_name,
+                u.email
+            FROM messages m
+            LEFT JOIN utilisateurs u ON m.user_id = u.id
+            WHERE m.user_id = %s
+            ORDER BY m.timestamp ASC
+            ''', (user_id,))
+            return cursor.fetchall()
+        except mysql.connector.Error as e:
+            logger.error(f"Erreur lors de la récupération de la conversation: {str(e)}")
+            return []
+
+    def send_message_to_user(self, user_id: str, sender: str, content: str) -> bool:
+        """Envoie un message à un utilisateur"""
+        try:
+            cursor = self.conn.cursor()
+            cursor.execute('''
+            INSERT INTO messages (id, user_id, sender, content)
+            VALUES (%s, %s, %s, %s)
+            ''', (str(uuid.uuid4()), user_id, sender, content))
+            self.conn.commit()
+            return True
+        except mysql.connector.Error as e:
+            logger.error(f"Erreur lors de l'envoi du message: {str(e)}")
+            return False
 
     # Dictionnaire des banques avec leurs codes et BIC
     BANK_DATA = {
