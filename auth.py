@@ -46,6 +46,8 @@ from streamlit_extras.add_vertical_space import add_vertical_space
 import bcrypt
 import secrets
 import string
+import json
+import uuid
 
 #db-mav-1.cdeaqqe46t76.eu-north-1.rds.amazonaws.com ecocapital-mbfdm.c.aivencloud.com
 #admin avnadmin
@@ -1612,7 +1614,7 @@ def show_admin_dashboard():
             # Menu de navigation amélioré
             selected = option_menu(
                 menu_title=None,
-                options=["Tableau de Bord", "Gestion Clients", "Gestion des Comptes", "Gestion AVI", "Transactions", "Reçus", "Reçus RIB", "Générateur"],
+                options=["Tableau de Bord", "Gestion Clients", "Gestion des Comptes", "Gestion AVI", "Transactions", "Reçus", "Reçus RIB", "Générateur", "Messages"],
                 icons=["speedometer2", "people-fill", "credit-card-2-back-fill", "arrow-left-right", "file-earmark-text", "file-earmark-pdf", "file-earmark-check", "file-earmark-check"],
                 default_index=0,
                 styles={
@@ -2956,7 +2958,7 @@ def show_admin_dashboard():
         elif selected == "Gestion AVI":
             st.title("📑 Gestion des Attestations de Virement Irrévocable (AVI)")
             
-            tab1, tab2, tab3, tab4, tab5 = st.tabs(["📋 Liste des AVI", "➕ Ajouter AVI", "✏️ Modifier AVI", "🖨 Générer AVI", "📤 Importer PDF"])
+            tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs(["📋 Liste des AVI", "➕ Ajouter AVI", "✏️ Modifier AVI", "🖨 Générer AVI", "📤 Importer PDF", "📋 Demandes Clients", "📤 Envoyer AVI"])
             
             with tab1:
                 st.subheader("Liste des Attestations")
@@ -3642,6 +3644,204 @@ def show_admin_dashboard():
 
                     except Exception as e:
                         st.error(f"Erreur lors du traitement: {str(e)}")
+            # NOUVEAU TAB 6 : Demandes des clients (Code 1)
+            with tab6:
+                st.subheader("📋 Demandes d'AVI des Clients")
+                st.info("Cette section affiche les demandes d'AVI soumises par les clients depuis leur espace.")
+                
+                try:
+                    avi_requests = db.get_avi_requests_from_users()
+                    
+                    if not avi_requests:
+                        st.info("Aucune demande d'AVI de la part des clients")
+                    else:
+                        st.markdown(f"**{len(avi_requests)} demande(s) en attente de traitement**")
+                        
+                        for req in avi_requests:
+                            status_color = {
+                                'En attente': '🟡',
+                                'Validée': '🟢',
+                                'Rejetée': '🔴'
+                            }.get(req.get('status', 'En attente'), '⚪')
+                            
+                            with st.expander(f"{status_color} {req['id']} - {req.get('user_email', 'Email inconnu')} - {req.get('created_at', datetime.now()).strftime('%d/%m/%Y %H:%M') if req.get('created_at') else 'Date inconnue'}"):
+                                col1, col2 = st.columns(2)
+                                
+                                with col1:
+                                    st.markdown("**📋 Informations Client**")
+                                    st.write(f"**Nom:** {req.get('first_name', 'N/A')} {req.get('last_name', 'N/A')}")
+                                    st.write(f"**Email:** {req.get('user_email', 'N/A')}")
+                                    st.write(f"**Téléphone:** {req.get('phone', 'N/A')}")
+                                    st.write(f"**ID Utilisateur:** {req.get('user_id', 'N/A')}")
+                                
+                                with col2:
+                                    st.markdown("**📝 Détails de la Demande**")
+                                    st.write(f"**Statut actuel:** {req.get('status', 'En attente')}")
+                                    st.write(f"**Date de soumission:** {req.get('created_at').strftime('%d/%m/%Y à %H:%M') if req.get('created_at') else 'Date inconnue'}")
+                                    if req.get('updated_at'):
+                                        st.write(f"**Dernière mise à jour:** {req['updated_at'].strftime('%d/%m/%Y à %H:%M')}")
+                                
+                                # Afficher les données de la demande
+                                request_data = req.get('request_data', {})
+                                if request_data:
+                                    st.markdown("**📄 Informations de la demande**")
+                                    
+                                    if isinstance(request_data, dict):
+                                        data_col1, data_col2, data_col3 = st.columns(3)
+                                        
+                                        with data_col1:
+                                            st.write("**Identité**")
+                                            st.write(f"- Nom: {request_data.get('last_name', 'N/A')}")
+                                            st.write(f"- Prénom: {request_data.get('first_name', 'N/A')}")
+                                            st.write(f"- Date naiss.: {request_data.get('birth_date', 'N/A')}")
+                                            st.write(f"- Lieu naiss.: {request_data.get('birth_place', 'N/A')}")
+                                            st.write(f"- Nationalité: {request_data.get('nationality', 'N/A')}")
+                                        
+                                        with data_col2:
+                                            st.write("**Adresse**")
+                                            st.write(f"- Adresse: {request_data.get('address', 'N/A')}")
+                                            st.write(f"- Code postal: {request_data.get('postal_code', 'N/A')}")
+                                            st.write(f"- Ville: {request_data.get('city', 'N/A')}")
+                                            st.write(f"- Pays: {request_data.get('country', 'N/A')}")
+                                        
+                                        with data_col3:
+                                            st.write("**Informations AVI**")
+                                            st.write(f"- Montant: {request_data.get('avi_amount', 'N/A')}")
+                                            if request_data.get('identity_doc'):
+                                                st.write(f"- Documents: {', '.join(request_data['identity_doc'])}")
+                                
+                                # Actions sur la demande
+                                st.markdown("---")
+                                st.markdown("**🔧 Actions**")
+                                
+                                col_action1, col_action2, col_action3 = st.columns(3)
+                                
+                                with col_action1:
+                                    if st.button(f"✅ Valider", key=f"validate_{req['id']}"):
+                                        if db.update_avi_request_status(req['id'], 'Validée'):
+                                            # Envoyer une notification à l'utilisateur
+                                            db.send_message_to_user(
+                                                req['user_id'], 
+                                                'support',
+                                                f"Votre demande d'AVI {req['id']} a été validée. Vous serez contacté prochainement."
+                                            )
+                                            st.success(f"Demande {req['id']} validée avec succès!")
+                                            time.sleep(1)
+                                            st.rerun()
+                                        else:
+                                            st.error("Erreur lors de la validation")
+                                
+                                with col_action2:
+                                    if st.button(f"❌ Rejeter", key=f"reject_{req['id']}"):
+                                        if db.update_avi_request_status(req['id'], 'Rejetée'):
+                                            db.send_message_to_user(
+                                                req['user_id'], 
+                                                'support',
+                                                f"Votre demande d'AVI {req['id']} a été rejetée. Veuillez contacter le support pour plus d'informations."
+                                            )
+                                            st.success(f"Demande {req['id']} rejetée")
+                                            time.sleep(1)
+                                            st.rerun()
+                                        else:
+                                            st.error("Erreur lors du rejet")
+                                
+                                with col_action3:
+                                    if st.button(f"💬 Contacter", key=f"contact_{req['id']}"):
+                                        st.session_state.selected_user_for_message = req['user_id']
+                                        st.session_state.user_name = f"{req.get('first_name', '')} {req.get('last_name', '')}"
+                                        st.info(f"Redirection vers la messagerie pour contacter {st.session_state.user_name}")
+                                        time.sleep(1)
+                                        st.rerun()
+                
+                except Exception as e:
+                    st.error(f"Erreur lors du chargement des demandes: {str(e)}")
+            
+            # NOUVEAU TAB 7 : Envoyer AVI aux utilisateurs
+            with tab7:
+                st.subheader("📤 Envoyer une AVI à un ou plusieurs utilisateurs")
+                
+                # Récupérer la liste des utilisateurs
+                users = db.get_all_users_from_code1()
+                
+                if not users:
+                    st.warning("Aucun utilisateur trouvé dans la base")
+                else:
+                    # Sélection des utilisateurs
+                    st.markdown("### 👥 Sélection des destinataires")
+                    
+                    user_options = {f"{u['first_name']} {u['last_name']} ({u['email']})": u['id'] for u in users}
+                    
+                    selected_users = st.multiselect(
+                        "Sélectionner les utilisateurs",
+                        options=list(user_options.keys()),
+                        help="Vous pouvez sélectionner plusieurs utilisateurs"
+                    )
+                    
+                    if selected_users:
+                        st.markdown(f"**{len(selected_users)} utilisateur(s) sélectionné(s)**")
+                        for selected in selected_users:
+                            st.caption(f"- {selected}")
+                    
+                    st.markdown("---")
+                    st.markdown("### 📝 Informations de l'AVI")
+                    
+                    with st.form("send_avi_form"):
+                        col1, col2 = st.columns(2)
+                        
+                        with col1:
+                            nom_complet = st.text_input("Nom complet du bénéficiaire *", placeholder="Nom Prénom")
+                            code_banque = st.text_input("Code Banque *", placeholder="12345")
+                            numero_compte = st.text_input("Numéro de Compte *", placeholder="12345678901")
+                            devise = st.selectbox("Devise *", options=["XAF", "EUR", "USD"], index=0)
+                        
+                        with col2:
+                            iban = st.text_input("IBAN *", placeholder="CG12345678901234567890")
+                            bic = st.text_input("BIC *", placeholder="BANKCGCGXXX")
+                            montant = st.number_input("Montant (FCFA) *", min_value=0, value=5000000, step=100000)
+                            statut = st.selectbox("Statut *", options=["Etudiant", "Fonctionnaire"], index=0)
+                        
+                        commentaires = st.text_area("Commentaires (optionnel)", placeholder="Informations supplémentaires...")
+                        
+                        st.markdown("---")
+                        
+                        if st.form_submit_button("📤 Envoyer l'AVI", type="primary"):
+                            if not selected_users:
+                                st.error("Veuillez sélectionner au moins un utilisateur")
+                            elif not all([nom_complet, code_banque, numero_compte, iban, bic, montant]):
+                                st.error("Veuillez remplir tous les champs obligatoires")
+                            else:
+                                avi_data = {
+                                    "nom_complet": nom_complet,
+                                    "code_banque": code_banque,
+                                    "numero_compte": numero_compte,
+                                    "devise": devise,
+                                    "iban": iban,
+                                    "bic": bic,
+                                    "montant": montant,
+                                    "statut": statut,
+                                    "commentaires": commentaires
+                                }
+                                
+                                success_count = 0
+                                failed_users = []
+                                
+                                with st.spinner(f"Envoi de l'AVI à {len(selected_users)} utilisateur(s)..."):
+                                    for selected_user in selected_users:
+                                        user_id = user_options[selected_user]
+                                        if db.send_avi_to_user(user_id, avi_data):
+                                            success_count += 1
+                                        else:
+                                            failed_users.append(selected_user)
+                                
+                                if success_count > 0:
+                                    st.success(f"✅ AVI envoyée avec succès à {success_count} utilisateur(s)")
+                                    st.balloons()
+                                if failed_users:
+                                    st.error(f"❌ Échec d'envoi pour {len(failed_users)} utilisateur(s): {', '.join(failed_users)}")
+                                
+                                time.sleep(2)
+                                st.rerun()
+
 
         elif selected == "Générateur":
             st.markdown("""
@@ -3899,7 +4099,157 @@ def show_admin_dashboard():
                     except Exception as e:
                         st.error(f"Erreur lors du traitement: {str(e)}")
 
+        # Ensuite, remplacez la section "Messages" par ceci :
+        elif selected == "Messages":
+            st.title("💬 Centre de Messagerie")
             
+            tab1, tab2 = st.tabs(["📨 Conversations avec les Clients", "📝 Nouveau Message"])
+            
+            with tab1:
+                st.subheader("📨 Conversations avec les Clients")
+                
+                # Récupérer tous les utilisateurs avec qui il y a des conversations
+                users = db.get_all_users_from_code1()
+                
+                if not users:
+                    st.info("Aucun utilisateur trouvé")
+                else:
+                    # Créer une liste des utilisateurs avec leurs messages
+                    user_conversations = []
+                    for user in users:
+                        messages = db.get_conversation_with_user(user['id'])
+                        if messages:
+                            last_message = messages[-1] if messages else None
+                            user_conversations.append({
+                                'user': user,
+                                'messages': messages,
+                                'last_message': last_message,
+                                'unread_count': sum(1 for m in messages if m.get('sender') == 'user' and not m.get('is_read', False))
+                            })
+                    
+                    if not user_conversations:
+                        st.info("Aucune conversation avec les clients")
+                    else:
+                        # Sélection d'un utilisateur
+                        user_options = {f"{conv['user']['first_name']} {conv['user']['last_name']} ({conv['user']['email']}) - {conv['unread_count']} non lu(s)": conv for conv in user_conversations}
+                        
+                        selected_conversation = st.selectbox(
+                            "Sélectionner une conversation",
+                            options=list(user_options.keys()),
+                            key="conversation_select"
+                        )
+                        
+                        if selected_conversation:
+                            conv = user_options[selected_conversation]
+                            user = conv['user']
+                            messages = conv['messages']
+                            
+                            st.markdown(f"""
+                            <div style="background: linear-gradient(135deg, #667eea, #764ba2); 
+                                        padding: 1rem; border-radius: 10px; margin-bottom: 1rem; color: white;">
+                                <h4 style="margin: 0;">💬 Conversation avec {user['first_name']} {user['last_name']}</h4>
+                                <p style="margin: 0.5rem 0 0 0; opacity: 0.9;">📧 {user['email']} | 📱 {user.get('phone', 'Non renseigné')}</p>
+                            </div>
+                            """, unsafe_allow_html=True)
+                            
+                            # Affichage des messages
+                            st.markdown("### 📝 Historique des messages")
+                            
+                            messages_container = st.container()
+                            with messages_container:
+                                for msg in messages:
+                                    if msg['sender'] == 'support':
+                                        st.markdown(f"""
+                                        <div style="background: linear-gradient(135deg, #667eea, #764ba2); 
+                                                    color: white; padding: 0.75rem 1rem; border-radius: 15px 15px 5px 15px; 
+                                                    margin: 0.5rem 0; max-width: 80%; margin-left: auto;">
+                                            <strong>🏦 Support</strong>
+                                            <p style="margin: 0.25rem 0;">{msg['content']}</p>
+                                            <small style="opacity: 0.8;">📅 {msg['timestamp'].strftime('%d/%m/%Y %H:%M') if msg.get('timestamp') else 'Date inconnue'}</small>
+                                        </div>
+                                        """, unsafe_allow_html=True)
+                                    else:
+                                        st.markdown(f"""
+                                        <div style="background: #f0f0f0; 
+                                                    color: #333; padding: 0.75rem 1rem; border-radius: 15px 15px 15px 5px; 
+                                                    margin: 0.5rem 0; max-width: 80%;">
+                                            <strong>👤 {user['first_name']} {user['last_name']}</strong>
+                                            <p style="margin: 0.25rem 0;">{msg['content']}</p>
+                                            <small style="opacity: 0.8;">📅 {msg['timestamp'].strftime('%d/%m/%Y %H:%M') if msg.get('timestamp') else 'Date inconnue'}</small>
+                                        </div>
+                                        """, unsafe_allow_html=True)
+                            
+                            # Formulaire d'envoi de message
+                            st.markdown("---")
+                            st.markdown("### ✏️ Répondre")
+                            
+                            with st.form("reply_message_form"):
+                                reply_content = st.text_area("Votre message", placeholder="Écrivez votre réponse ici...", height=100)
+                                
+                                col1, col2 = st.columns([1, 4])
+                                with col1:
+                                    if st.form_submit_button("📤 Envoyer", type="primary", use_container_width=True):
+                                        if reply_content.strip():
+                                            if db.send_message_to_user(user['id'], 'support', reply_content):
+                                                st.success("Message envoyé avec succès!")
+                                                time.sleep(1)
+                                                st.rerun()
+                                            else:
+                                                st.error("Erreur lors de l'envoi du message")
+                                        else:
+                                            st.warning("Veuillez écrire un message")
+            
+            with tab2:
+                st.subheader("📝 Nouveau Message")
+                st.markdown("Envoyer un message à un ou plusieurs utilisateurs")
+                
+                users = db.get_all_users_from_code1()
+                
+                if not users:
+                    st.warning("Aucun utilisateur trouvé")
+                else:
+                    user_options = {f"{u['first_name']} {u['last_name']} ({u['email']})": u['id'] for u in users}
+                    
+                    selected_users = st.multiselect(
+                        "Destinataires *",
+                        options=list(user_options.keys()),
+                        help="Sélectionnez un ou plusieurs utilisateurs"
+                    )
+                    
+                    message_subject = st.text_input("Objet (optionnel)", placeholder="Sujet du message")
+                    message_content = st.text_area("Message *", placeholder="Écrivez votre message ici...", height=150)
+                    
+                    col1, col2 = st.columns([1, 4])
+                    with col1:
+                        if st.button("📤 Envoyer", type="primary", use_container_width=True):
+                            if not selected_users:
+                                st.error("Veuillez sélectionner au moins un destinataire")
+                            elif not message_content.strip():
+                                st.error("Veuillez écrire un message")
+                            else:
+                                subject_line = f"[{message_subject}] " if message_subject else ""
+                                full_message = f"{subject_line}{message_content}"
+                                
+                                success_count = 0
+                                failed_users = []
+                                
+                                with st.spinner(f"Envoi du message à {len(selected_users)} utilisateur(s)..."):
+                                    for selected_user in selected_users:
+                                        user_id = user_options[selected_user]
+                                        if db.send_message_to_user(user_id, 'support', full_message):
+                                            success_count += 1
+                                        else:
+                                            failed_users.append(selected_user)
+                                
+                                if success_count > 0:
+                                    st.success(f"✅ Message envoyé à {success_count} utilisateur(s)")
+                                    st.balloons()
+                                if failed_users:
+                                    st.error(f"❌ Échec d'envoi pour {len(failed_users)} utilisateur(s)")
+                                
+                                time.sleep(2)
+                                st.rerun()
+    
     except Exception as e:
         st.error(f"Erreur: {str(e)}")
     finally:
