@@ -35,3 +35,12 @@ Faker==25.5.0
 
 # Typing
 typing-extensions==4.9.0
+
+streamlit-lottie>=0.0.5
+openpyxl>=3.1.0
+
+cryptography>=41.0.0
+
+# Other Utilities
+requests>=2.31.0
+python-dateutil>=2.8.0
