@@ -1,3 +1,4 @@
+import json
 import logging
 import uuid
 import streamlit as st
@@ -33,9 +34,11 @@ class BankDatabase:
             password: str = "AVNS_3a2plzaevzttmJ4Tcs9", 
             database: str = "ecocapital",
             port: int = 14431):
-        
+    
         logging.basicConfig(filename='database.log', level=logging.INFO)
-
+        # Supprimer l'import inutile: from venv import logger
+        # Utiliser logging au lieu de logger
+        
         max_retries = 3
         retry_delay = 2
         
@@ -48,8 +51,15 @@ class BankDatabase:
                     database=database,
                     port=port,
                     connect_timeout=30,
-                    buffered=True  # Argument valide
+                    buffered=True
                 )
+                
+                # Stocker les paramètres pour reconnect()
+                self.host = host
+                self.user = user
+                self.password = password
+                self.database = database
+                self.port = port
                 
                 # Test de la connexion
                 cursor = self.conn.cursor()
@@ -59,16 +69,16 @@ class BankDatabase:
                 self.create_tables()
                 self.update_database_schema()
                 logging.info(f"Connexion à la base de données MySQL: {database}")
-                break  # Sortir de la boucle si la connexion réussit
+                break
                 
             except mysql.connector.Error as e:
-                logger.error(f"Tentative {attempt + 1}/{max_retries} échouée: {str(e)}")
+                logging.error(f"Tentative {attempt + 1}/{max_retries} échouée: {str(e)}")
                 
                 if attempt < max_retries - 1:
-                    logger.info(f"Nouvelle tentative dans {retry_delay} secondes...")
-                    time.sleep(retry_delay)  # Utiliser time.sleep
+                    logging.info(f"Nouvelle tentative dans {retry_delay} secondes...")
+                    time.sleep(retry_delay)
                 else:
-                    logger.error("Échec de toutes les tentatives de connexion")
+                    logging.error("Échec de toutes les tentatives de connexion")
                     raise DatabaseError(f"Erreur de connexion à la base de données: {str(e)}")
 
     def reconnect(self):
@@ -98,17 +108,18 @@ class BankDatabase:
                 cursor.execute("SELECT 1")
                 cursor.close()
                 
-                logger.info("Reconnexion réussie")
+                logging.info("Reconnexion réussie")
                 return True
                 
             except mysql.connector.Error as e:
-                logger.error(f"Tentative de reconnexion {attempt + 1}/{max_retries} échouée: {e}")
+                logging.error(f"Tentative de reconnexion {attempt + 1}/{max_retries} échouée: {e}")
                 
                 if attempt < max_retries - 1:
                     time.sleep(retry_delay)
                 else:
-                    logger.error("Échec de toutes les tentatives de reconnexion")
+                    logging.error("Échec de toutes les tentatives de reconnexion")
                     return False
+            
     # Ajoutez ces nouvelles méthodes dans la classe BankDatabase (Code 3) :
 
     def get_avi_requests_from_users(self) -> List[Dict]:
@@ -942,9 +953,16 @@ class BankDatabase:
 
     def delete_avi(self, reference):
         """Supprime une AVI de la base de données"""
-        query = "DELETE FROM avis WHERE reference = %s"
-        self.cursor.execute(query, (reference,))
-        self.conn.commit()
+        try:
+            cursor = self.conn.cursor()  # Créer un curseur local
+            query = "DELETE FROM avis WHERE reference = %s"
+            cursor.execute(query, (reference,))
+            self.conn.commit()
+            cursor.close()  # Fermer le curseur
+            return True
+        except mysql.connector.Error as e:
+            logger.error(f"Erreur lors de la suppression de l'AVI: {str(e)}")
+            return False
 
     def get_transactions_by_iban(self, iban_id):
         """Récupère toutes les transactions d'un compte"""
