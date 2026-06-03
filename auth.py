@@ -311,7 +311,7 @@ class EnhancedUserManager:
                     email VARCHAR(255) UNIQUE NOT NULL,
                     password_hash VARCHAR(255) NOT NULL,
                     role VARCHAR(50) DEFAULT 'user',
-                    status VARCHAR(50) DEFAULT 'active',
+                    status VARCHAR(50) DEFAULT 'actif',
                     last_login TIMESTAMP NULL,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -349,6 +349,28 @@ class EnhancedUserManager:
             except mysql.connector.Error as err:
                 logger.error(f"Erreur lors de la création des tables: {err}")
                 raise
+            
+    def get_users_from_code3(self) -> List[Dict]:
+        """Récupère tous les utilisateurs de la table utilisateurs (Code 3)"""
+        with self.conn.cursor(dictionary=True) as cursor:
+            try:
+                cursor.execute('''
+                SELECT 
+                    id,
+                    first_name,
+                    last_name,
+                    email,
+                    phone,
+                    is_active,
+                    created_at,
+                    last_login
+                FROM utilisateurs
+                ORDER BY created_at DESC
+                ''')
+                return cursor.fetchall()
+            except mysql.connector.Error as e:
+                logger.error(f"Erreur lors de la récupération des utilisateurs Code 3: {e}")
+                return []
 
     # Méthodes de gestion des utilisateurs
     def add_user(self, username: str, email: str, password_hash: str, role: str = 'user') -> int:
@@ -395,8 +417,29 @@ class EnhancedUserManager:
     def count_active_users(self) -> int:
         """Compte les utilisateurs actifs"""
         with self.conn.cursor() as cursor:
-            cursor.execute('SELECT COUNT(*) FROM users WHERE status="active"')
-            return cursor.fetchone()[0]
+            try:
+                # D'abord, vérifier si la colonne status existe
+                cursor.execute("""
+                    SELECT COUNT(*) FROM information_schema.columns 
+                    WHERE table_schema = DATABASE() 
+                    AND table_name = 'users' 
+                    AND column_name = 'status'
+                """)
+                has_status_column = cursor.fetchone()[0] > 0
+                
+                if has_status_column:
+                    # Compter les utilisateurs avec status = 'actif'
+                    cursor.execute('SELECT COUNT(*) FROM users WHERE status = "actif"')
+                else:
+                    # Fallback: compter tous les utilisateurs
+                    cursor.execute('SELECT COUNT(*) FROM users')
+                
+                return cursor.fetchone()[0]
+            except mysql.connector.Error as e:
+                logger.error(f"Erreur count_active_users: {e}")
+                # Fallback ultime: compter tous les utilisateurs
+                cursor.execute('SELECT COUNT(*) FROM users')
+                return cursor.fetchone()[0]
 
     def log_activity(self, user_id: int, action: str, details: str = "", ip_address: str = "") -> None:
         """Enregistre une activité utilisateur"""
@@ -465,8 +508,24 @@ class EnhancedUserManager:
     def get_pending_admin_requests(self) -> List[Dict]:
         """Récupère les demandes de compte admin en attente"""
         with self.conn.cursor(dictionary=True) as cursor:
-            cursor.execute('SELECT * FROM admin_requests WHERE status="pending"')
-            return cursor.fetchall()
+            try:
+                # Essayer avec 'pending' (anglais)
+                cursor.execute('SELECT * FROM admin_requests WHERE status = "pending"')
+                return cursor.fetchall()
+            except mysql.connector.Error:
+                try:
+                    # Essayer avec 'en_attente' (français)
+                    cursor.execute('SELECT * FROM admin_requests WHERE status = "en_attente"')
+                    return cursor.fetchall()
+                except mysql.connector.Error:
+                    try:
+                        # Vérifier si la colonne existe et retourner toutes les demandes
+                        cursor.execute('SELECT * FROM admin_requests')
+                        all_requests = cursor.fetchall()
+                        # Filtrer en mémoire si possible
+                        return [r for r in all_requests if r.get('status', '') in ['pending', 'en_attente', 'waiting']]
+                    except:
+                        return []
 
     def approve_admin_request(self, request_id: int, approved_by: int) -> bool:
         """Approuve une demande de compte admin"""
@@ -832,7 +891,7 @@ def show_user_management(user_manager: EnhancedUserManager):
                 ),
                 "status": st.column_config.SelectboxColumn(
                     "Statut",
-                    options=["active", "inactive", "suspended"]
+                    options=["actif", "inactif", "suspended"]
                 )
             },
             hide_index=True,
@@ -951,6 +1010,92 @@ def show_system_settings():
         
         if st.form_submit_button("Enregistrer les paramètres"):
             st.success("Paramètres système mis à jour!")
+
+def show_code3_users(user_manager: EnhancedUserManager):
+    """Affiche les utilisateurs de l'espace client (Code 3)"""
+    st.header("👥 Utilisateurs Espace Client")
+    st.markdown("Liste des utilisateurs inscrits depuis l'application Eco Capital Client")
+
+    users = user_manager.get_users_from_code3()
+    
+    if not users:
+        st.info("Aucun utilisateur trouvé dans la base clients")
+        return
+
+    # Statistiques
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        st.metric("👥 Total utilisateurs", len(users))
+    with col2:
+        active_count = sum(1 for u in users if u.get('is_active', True))
+        st.metric("✅ Utilisateurs actifs", active_count)
+    with col3:
+        inactive_count = len(users) - active_count
+        st.metric("⭕ Utilisateurs inactifs", inactive_count)
+    with col4:
+        # Dernière inscription
+        if users:
+            latest = max(users, key=lambda x: x.get('created_at', datetime.min))
+            if latest.get('created_at'):
+                st.metric("📅 Dernière inscription", latest['created_at'].strftime('%d/%m/%Y'))
+            else:
+                st.metric("📅 Dernière inscription", "N/A")
+
+    st.markdown("---")
+    
+    # Préparation du DataFrame
+    df = pd.DataFrame(users)
+    
+    # Renommer les colonnes pour l'affichage
+    df_display = df.rename(columns={
+        'id': 'ID',
+        'first_name': 'Prénom',
+        'last_name': 'Nom',
+        'email': 'Email',
+        'phone': 'Téléphone',
+        'is_active': 'Actif',
+        'created_at': 'Date inscription',
+        'last_login': 'Dernière connexion'
+    })
+    
+    # Ajouter une colonne "Statut" lisible
+    df_display['Statut'] = df_display['Actif'].apply(lambda x: '🟢 Actif' if x else '🔴 Inactif')
+    
+    # Ordre des colonnes
+    column_order = ['ID', 'Prénom', 'Nom', 'Email', 'Téléphone', 'Statut', 'Date inscription', 'Dernière connexion']
+    
+    # Configuration des colonnes
+    column_config = {
+        "ID": st.column_config.TextColumn("ID", width="medium"),
+        "Prénom": st.column_config.TextColumn("Prénom"),
+        "Nom": st.column_config.TextColumn("Nom"),
+        "Email": st.column_config.TextColumn("Email", width="large"),
+        "Téléphone": st.column_config.TextColumn("Téléphone"),
+        "Statut": st.column_config.TextColumn("Statut"),
+        "Date inscription": st.column_config.DatetimeColumn("Date inscription", format="DD/MM/YYYY HH:mm"),
+        "Dernière connexion": st.column_config.DatetimeColumn("Dernière connexion", format="DD/MM/YYYY HH:mm")
+    }
+    
+    # Affichage du tableau
+    st.dataframe(
+        df_display[column_order],
+        column_config=column_config,
+        use_container_width=True,
+        hide_index=True
+    )
+    
+    # Section d'export
+    st.markdown("---")
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        csv = df_display[column_order].to_csv(index=False).encode('utf-8')
+        st.download_button(
+            label="📥 Exporter la liste des utilisateurs (CSV)",
+            data=csv,
+            file_name=f"utilisateurs_espace_client_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
+            mime="text/csv",
+            use_container_width=True
+        )
 
 
 def admin_dashboard():
@@ -1193,7 +1338,7 @@ def admin_dashboard():
             st.plotly_chart(fig, use_container_width=True)
 
         # Onglets
-        tab1, tab2, tab3 = st.tabs(["👥 Gestion Utilisateurs", "📊 Activités", "⚙ Paramètres"])
+        tab1, tab2, tab3, tab4 = st.tabs(["👥 Gestion Utilisateurs", "📊 Activités", "⚙ Paramètres", "👥 Clients"])
         
         with tab1:
             show_user_management(user_manager)
@@ -1204,6 +1349,9 @@ def admin_dashboard():
         with tab3:
             show_system_settings()
 
+        with tab4:
+            show_code3_users(user_manager)
+
         #st.success("Tableau de bord chargé avec succès !")
         
     except Exception as e:
@@ -1212,6 +1360,237 @@ def admin_dashboard():
         if 'conn' in locals():
             conn.close()
 
+def show_clients_list():
+    """Affiche la liste complète des clients (table clients du Code 3)"""
+    st.header("👥 Liste des Clients")
+    
+    try:
+        # Connexion à la base de données
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        
+        # Récupérer tous les clients
+        cursor.execute("""
+            SELECT 
+                id,
+                first_name,
+                last_name,
+                email,
+                phone,
+                type,
+                status,
+                created_at
+            FROM utilisateurs 
+            ORDER BY created_at DESC
+        """)
+        
+        clients = cursor.fetchall()
+        
+        if not clients:
+            st.info("📭 Aucun client enregistré dans la base de données")
+            return
+        
+        # Statistiques rapides
+        col1, col2, col3, col4 = st.columns(4)
+        
+        total_clients = len(clients)
+        active_clients = sum(1 for c in clients if c.get('status') == 'Actif')
+        vip_clients = sum(1 for c in clients if c.get('type') == 'VIP')
+        entreprise_clients = sum(1 for c in clients if c.get('type') == 'Entreprise')
+        
+        with col1:
+            st.metric("👥 Total Clients", total_clients)
+        with col2:
+            st.metric("✅ Clients Actifs", active_clients)
+        with col3:
+            st.metric("⭐ Clients VIP", vip_clients)
+        with col4:
+            st.metric("🏢 Entreprises", entreprise_clients)
+        
+        st.markdown("---")
+        
+        # Barre de recherche
+        search_col1, search_col2 = st.columns([3, 1])
+        with search_col1:
+            search_query = st.text_input("🔍 Rechercher un client", 
+                                        placeholder="Nom, prénom, email ou téléphone...",
+                                        key="client_search_admin")
+        with search_col2:
+            type_filter = st.selectbox("📋 Type de client", 
+                                      ["Tous", "Particulier", "Entreprise", "VIP"],
+                                      key="client_type_filter_admin")
+        
+        # Filtrage
+        filtered_clients = clients.copy()
+        
+        if search_query:
+            search_lower = search_query.lower()
+            filtered_clients = [
+                c for c in filtered_clients 
+                if search_lower in c.get('first_name', '').lower() 
+                or search_lower in c.get('last_name', '').lower()
+                or search_lower in c.get('email', '').lower()
+                or search_lower in (c.get('phone', '') or '').lower()
+            ]
+        
+        if type_filter != "Tous":
+            filtered_clients = [c for c in filtered_clients if c.get('type') == type_filter]
+        
+        st.caption(f"📊 {len(filtered_clients)} client(s) trouvé(s)")
+        
+        # Préparation du DataFrame pour l'affichage
+        if filtered_clients:
+            df = pd.DataFrame(filtered_clients)
+            
+            # Renommer les colonnes pour un meilleur affichage
+            df_display = df.copy()
+            df_display['Nom complet'] = df_display['first_name'] + " " + df_display['last_name']
+            df_display['Date inscription'] = pd.to_datetime(df_display['created_at']).dt.strftime('%d/%m/%Y')
+            
+            # Sélection des colonnes à afficher
+            columns_to_show = ['id', 'Nom complet', 'email', 'phone', 'type', 'status', 'Date inscription']
+            
+            # Configuration des colonnes
+            column_config = {
+                "id": st.column_config.TextColumn("ID", width="small"),
+                "Nom complet": st.column_config.TextColumn("Nom complet", width="medium"),
+                "email": st.column_config.TextColumn("Email", width="large"),
+                "phone": st.column_config.TextColumn("Téléphone", width="medium"),
+                "type": st.column_config.SelectboxColumn(
+                    "Type",
+                    options=["Particulier", "Entreprise", "VIP"],
+                    width="small"
+                ),
+                "status": st.column_config.SelectboxColumn(
+                    "Statut",
+                    options=["Actif", "Inactif", "En attente"],
+                    width="small"
+                ),
+                "Date inscription": st.column_config.TextColumn("Inscription", width="medium")
+            }
+            
+            # Affichage du tableau éditable
+            edited_df = st.data_editor(
+                df_display[columns_to_show],
+                column_config=column_config,
+                use_container_width=True,
+                hide_index=True,
+                disabled=["id", "Nom complet", "email", "phone", "Date inscription"],
+                key="clients_admin_editor"
+            )
+            
+            # Section des détails du client sélectionné
+            st.markdown("---")
+            st.subheader("🔍 Détails du client")
+            
+            # Sélection d'un client pour voir les détails
+            client_options = {f"{c['first_name']} {c['last_name']} (ID: {c['id']})": c['id'] for c in filtered_clients}
+            selected_client_key = st.selectbox(
+                "Sélectionner un client pour voir ses détails",
+                options=list(client_options.keys()),
+                key="client_detail_select"
+            )
+            
+            if selected_client_key:
+                selected_id = client_options[selected_client_key]
+                selected_client = next((c for c in filtered_clients if c['id'] == selected_id), None)
+                
+                if selected_client:
+                    col1, col2 = st.columns(2)
+                    
+                    with col1:
+                        st.markdown(f"""
+                        <div class="custom-card">
+                            <h4>📋 Informations personnelles</h4>
+                            <p><strong>Nom complet:</strong> {selected_client.get('first_name', '')} {selected_client.get('last_name', '')}</p>
+                            <p><strong>Email:</strong> {selected_client.get('email', 'Non renseigné')}</p>
+                            <p><strong>Téléphone:</strong> {selected_client.get('phone', 'Non renseigné')}</p>
+                            <p><strong>Type:</strong> {selected_client.get('type', 'N/A')}</p>
+                            <p><strong>Statut:</strong> <span style="color: {'green' if selected_client.get('status') == 'Actif' else 'orange'}">{selected_client.get('status', 'N/A')}</span></p>
+                            <p><strong>Date d'inscription:</strong> {selected_client.get('created_at').strftime('%d/%m/%Y %H:%M') if selected_client.get('created_at') else 'N/A'}</p>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    
+                    with col2:
+                        # Récupérer les comptes du client
+                        cursor.execute("""
+                            SELECT iban, currency, type as account_type, balance, bank_name
+                            FROM ibans 
+                            WHERE client_id = %s
+                        """, (selected_id,))
+                        accounts = cursor.fetchall()
+                        
+                        if accounts:
+                            st.markdown("### 💳 Comptes bancaires")
+                            accounts_df = pd.DataFrame(accounts)
+                            accounts_df['balance'] = accounts_df['balance'].apply(lambda x: f"{x:,.2f} XAF")
+                            st.dataframe(
+                                accounts_df,
+                                use_container_width=True,
+                                hide_index=True,
+                                column_config={
+                                    "iban": st.column_config.TextColumn("IBAN", width="large"),
+                                    "currency": st.column_config.TextColumn("Devise", width="small"),
+                                    "account_type": st.column_config.TextColumn("Type de compte", width="medium"),
+                                    "balance": st.column_config.TextColumn("Solde", width="medium"),
+                                    "bank_name": st.column_config.TextColumn("Banque", width="medium")
+                                }
+                            )
+                        else:
+                            st.info("Aucun compte bancaire associé à ce client")
+                        
+                        # Récupérer les transactions du client
+                        cursor.execute("""
+                            SELECT t.date, t.type, t.amount, t.description, i.iban
+                            FROM transactions t
+                            JOIN ibans i ON t.iban_id = i.id
+                            WHERE t.client_id = %s
+                            ORDER BY t.date DESC
+                            LIMIT 10
+                        """, (selected_id,))
+                        transactions = cursor.fetchall()
+                        
+                        if transactions:
+                            st.markdown("### 📊 Dernières transactions")
+                            trans_df = pd.DataFrame(transactions)
+                            trans_df['amount'] = trans_df['amount'].apply(lambda x: f"{x:,.2f} XAF")
+                            st.dataframe(
+                                trans_df,
+                                use_container_width=True,
+                                hide_index=True,
+                                column_config={
+                                    "date": st.column_config.DatetimeColumn("Date", format="DD/MM/YYYY HH:mm"),
+                                    "type": st.column_config.TextColumn("Type", width="small"),
+                                    "amount": st.column_config.TextColumn("Montant", width="medium"),
+                                    "description": st.column_config.TextColumn("Description", width="large"),
+                                    "iban": st.column_config.TextColumn("IBAN", width="medium")
+                                }
+                            )
+                        else:
+                            st.info("Aucune transaction trouvée pour ce client")
+            
+            # Bouton d'export
+            st.markdown("---")
+            col1, col2, col3 = st.columns([1, 2, 1])
+            with col2:
+                csv_data = df[['first_name', 'last_name', 'email', 'phone', 'type', 'status']].to_csv(index=False).encode('utf-8')
+                st.download_button(
+                    label="📥 Exporter la liste des clients (CSV)",
+                    data=csv_data,
+                    file_name=f"clients_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
+                    mime="text/csv",
+                    use_container_width=True
+                )
+        
+        cursor.close()
+        conn.close()
+        
+    except mysql.connector.Error as e:
+        st.error(f"❌ Erreur de base de données: {str(e)}")
+        logger.error(f"Erreur show_clients_list: {str(e)}")
+    except Exception as e:
+        st.error(f"❌ Erreur: {str(e)}")
+        logger.error(f"Erreur show_clients_list: {str(e)}")
 
 def check_authentication(required_role: str = None) -> None:
     """
@@ -3126,9 +3505,12 @@ def show_admin_dashboard():
             
             with tab4: 
                 st.subheader("Générer une Attestation")
+                # Récupérer la liste des AVI
                 avis = db.get_all_avis()
                 
-                if avi_data:
+                if not avis:
+                    st.warning("Aucune attestation disponible à générer")
+                else:
                     selected_avi = st.selectbox(
                         "Choisir une attestation à générer",
                         options=[f"{a['reference']} - {a['nom_complet']}" for a in avis],
@@ -3757,90 +4139,247 @@ def show_admin_dashboard():
                     st.error(f"Erreur lors du chargement des demandes: {str(e)}")
             
             # NOUVEAU TAB 7 : Envoyer AVI aux utilisateurs
+            # Dans la page "Gestion AVI", remplacez le contenu du tab7 (Envoyer AVI) par ceci :
             with tab7:
                 st.subheader("📤 Envoyer une AVI à un ou plusieurs utilisateurs")
                 
-                # Récupérer la liste des utilisateurs
-                users = db.get_all_users_from_code1()
+                # Récupérer la liste des AVI existantes
+                avis_existants = db.get_all_avis(with_details=True)
                 
-                if not users:
-                    st.warning("Aucun utilisateur trouvé dans la base")
+                if not avis_existants:
+                    st.warning("Aucune AVI disponible. Veuillez d'abord créer une AVI dans l'onglet 'Ajouter AVI'")
                 else:
-                    # Sélection des utilisateurs
-                    st.markdown("### 👥 Sélection des destinataires")
+                    # Sélectionner l'AVI à envoyer
+                    st.markdown("### 📄 Sélection de l'AVI à envoyer")
                     
-                    user_options = {f"{u['first_name']} {u['last_name']} ({u['email']})": u['id'] for u in users}
+                    avi_options = {}
+                    for avi in avis_existants:
+                        display_text = f"{avi['reference']} - {avi['nom_complet']} - {avi['montant']:,.2f} FCFA"
+                        avi_options[display_text] = avi
                     
-                    selected_users = st.multiselect(
-                        "Sélectionner les utilisateurs",
-                        options=list(user_options.keys()),
-                        help="Vous pouvez sélectionner plusieurs utilisateurs"
+                    selected_avi_display = st.selectbox(
+                        "Choisir une AVI existante",
+                        options=list(avi_options.keys()),
+                        help="Sélectionnez l'attestation que vous souhaitez envoyer"
                     )
                     
-                    if selected_users:
-                        st.markdown(f"**{len(selected_users)} utilisateur(s) sélectionné(s)**")
-                        for selected in selected_users:
-                            st.caption(f"- {selected}")
+                    selected_avi = avi_options[selected_avi_display]
+                    
+                    # Aperçu des informations de l'AVI sélectionnée
+                    with st.expander("📋 Aperçu de l'AVI sélectionnée", expanded=True):
+                        col1, col2 = st.columns(2)
+                        with col1:
+                            st.markdown(f"""
+                            **Référence:** {selected_avi['reference']}  
+                            **Bénéficiaire:** {selected_avi['nom_complet']}  
+                            **Code Banque:** {selected_avi['code_banque']}  
+                            **Numéro Compte:** {selected_avi['numero_compte']}  
+                            **IBAN:** {selected_avi['iban']}
+                            """)
+                        with col2:
+                            st.markdown(f"""
+                            **BIC:** {selected_avi['bic']}  
+                            **Montant:** {selected_avi['montant']:,.2f} {selected_avi.get('devise', 'XAF')}  
+                            **Date création:** {selected_avi['date_creation']}  
+                            **Statut:** {selected_avi.get('statut', 'N/A')}
+                            """)
+                    
+                    # Vérifier si le fichier PDF existe déjà
+                    pdf_path = f"avi_documents/AVI_{selected_avi['reference']}.pdf"
+                    
+                    if not os.path.exists(pdf_path):
+                        st.warning(f"⚠️ Le fichier PDF pour cette AVI n'existe pas encore. Veuillez d'abord le générer dans l'onglet 'Générer AVI'.")
+                        
+                        # Bouton pour générer directement
+                        if st.button("🎯 Générer le PDF maintenant"):
+                            with st.spinner("Génération du PDF en cours..."):
+                                try:
+                                    # Générer le PDF AVI
+                                    pdf = FPDF()
+                                    pdf.add_page()
+                                    
+                                    # Fonction pour convertir montant en lettres
+                                    def montant_en_lettres(montant):
+                                        from num2words import num2words
+                                        partie_entiere = int(montant)
+                                        texte = num2words(partie_entiere, lang='fr')
+                                        if partie_entiere > 1:
+                                            texte += " francs CFA"
+                                        else:
+                                            texte += " franc CFA"
+                                        return texte.capitalize()
+                                    
+                                    # En-tête
+                                    pdf.set_font('Arial', 'B', 16)
+                                    pdf.cell(0, 30, 'ATTESTATION DE VIREMENT IRREVOCABLE', 0, 1, 'C')
+                                    
+                                    # Référence
+                                    pdf.set_font('Arial', 'B', 10)
+                                    pdf.cell(0, 0, f"DGF/EC-{selected_avi['reference']}", 0, 1, 'C')
+                                    pdf.ln(10)
+                                    
+                                    # Logo
+                                    try:
+                                        pdf.image("assets/logo.png", x=10, y=10, w=30)
+                                    except:
+                                        pass
+                                    
+                                    # Corps du document
+                                    pdf.set_font('Arial', '', 12)
+                                    
+                                    intro = [
+                                        "Nous soussignés, Eco Capital (E.C), établissement de microfinance agréé pour exercer des",
+                                        "activités bancaires en République du Congo conformément au décret n°7236/MEFB-CAB du",
+                                        "15 novembre 2007, après avis conforme de la COBAC D-2007/2018, déclarons avoir notre",
+                                        "siège au n°1636 Boulevard Denis Sassou Nguesso, Batignol Brazzaville.",
+                                        "",
+                                        "Représenté par son Directeur Général, Monsieur ILOKO Charmant.",
+                                        "",
+                                        f"Nous certifions par la présente que Monsieur/Madame {selected_avi['nom_complet']}",
+                                        "détient un compte courant enregistré dans nos livres avec les caractéristiques suivantes :",
+                                        ""
+                                    ]
+                                    
+                                    for line in intro:
+                                        pdf.cell(0, 5, line, 0, 2)
+                                    
+                                    # Informations bancaires
+                                    pdf.set_font('Arial', 'B', 12)
+                                    pdf.cell(40, 5, "CODE BANQUE :", 0, 0)
+                                    pdf.set_font('Arial', '', 12)
+                                    pdf.cell(0, 5, selected_avi['code_banque'], 0, 1)
+                                    
+                                    pdf.set_font('Arial', 'B', 12)
+                                    pdf.cell(45, 5, "NUMERO COMPTE : ", 0, 0)
+                                    pdf.set_font('Arial', '', 12)
+                                    pdf.cell(0, 5, selected_avi['numero_compte'], 0, 1)
+                                    
+                                    pdf.set_font('Arial', 'B', 12)
+                                    pdf.cell(20, 5, "Devise :", 0, 0)
+                                    pdf.set_font('Arial', '', 12)
+                                    pdf.cell(0, 5, selected_avi.get('devise', 'XAF'), 0, 1)
+                                    pdf.ln(5)
+                                    
+                                    # Montant
+                                    montant_lettres = montant_en_lettres(selected_avi['montant'])
+                                    pdf.multi_cell(0, 5, f"Il est l'ordonnateur d'un virement irrévocable et permanent d'un montant total de {selected_avi['montant']:,.2f} FCFA ({montant_lettres})", 0, 'L')
+                                    pdf.ln(5)
+                                    
+                                    # IBAN et BIC
+                                    pdf.set_font('Arial', 'B', 12)
+                                    pdf.cell(16, 5, "IBAN :", 0, 0)
+                                    pdf.set_font('Arial', '', 12)
+                                    pdf.cell(0, 5, selected_avi['iban'], 0, 1)
+                                    
+                                    pdf.set_font('Arial', 'B', 12)
+                                    pdf.cell(16, 5, "BIC :", 0, 0)
+                                    pdf.set_font('Arial', '', 12)
+                                    pdf.cell(0, 5, selected_avi['bic'], 0, 1)
+                                    pdf.ln(10)
+                                    
+                                    # Date et signature
+                                    pdf.cell(0, 5, f"Fait à Brazzaville, le {datetime.now().strftime('%d %B %Y')}", 0, 1, 'R')
+                                    pdf.ln(10)
+                                    
+                                    pdf.cell(0, 5, "Rubain MOUNGALA", 0, 1)
+                                    pdf.set_font('Arial', 'B', 12)
+                                    pdf.cell(0, 5, "Directeur de la Gestion Financière", 0, 1)
+                                    
+                                    # Pied de page
+                                    footer = [
+                                        "Eco capital Sarl",
+                                        "Société a responsabilité limité au capital de 60.000.000 XAF",
+                                        "Siège social : 1636 Boulevard Denis Sassou Nguesso Brazzaville",
+                                        "Contact: 00242 06 931 31 06 /04 001 79 40"
+                                    ]
+                                    
+                                    pdf.set_font('Arial', 'I', 10)
+                                    for line in footer:
+                                        pdf.cell(1, 4.5, line, 0, 2, 'L')
+                                    
+                                    # Sauvegarde
+                                    os.makedirs("avi_documents", exist_ok=True)
+                                    pdf.output(pdf_path)
+                                    st.success("✅ PDF généré avec succès!")
+                                    st.rerun()
+                                    
+                                except Exception as e:
+                                    st.error(f"Erreur lors de la génération: {str(e)}")
                     
                     st.markdown("---")
-                    st.markdown("### 📝 Informations de l'AVI")
+                    st.markdown("### 👥 Sélection des destinataires")
                     
-                    with st.form("send_avi_form"):
-                        col1, col2 = st.columns(2)
+                    # Récupérer la liste des utilisateurs
+                    users = db.get_all_users_from_code1()
+                    
+                    if not users:
+                        st.warning("Aucun utilisateur trouvé dans la base")
+                    else:
+                        user_options = {f"{u['first_name']} {u['last_name']} ({u['email']})": u['id'] for u in users}
                         
-                        with col1:
-                            nom_complet = st.text_input("Nom complet du bénéficiaire *", placeholder="Nom Prénom")
-                            code_banque = st.text_input("Code Banque *", placeholder="12345")
-                            numero_compte = st.text_input("Numéro de Compte *", placeholder="12345678901")
-                            devise = st.selectbox("Devise *", options=["XAF", "EUR", "USD"], index=0)
+                        selected_users = st.multiselect(
+                            "Sélectionner les utilisateurs",
+                            options=list(user_options.keys()),
+                            help="Vous pouvez sélectionner plusieurs utilisateurs"
+                        )
                         
-                        with col2:
-                            iban = st.text_input("IBAN *", placeholder="CG12345678901234567890")
-                            bic = st.text_input("BIC *", placeholder="BANKCGCGXXX")
-                            montant = st.number_input("Montant (FCFA) *", min_value=0, value=5000000, step=100000)
-                            statut = st.selectbox("Statut *", options=["Etudiant", "Fonctionnaire"], index=0)
-                        
-                        commentaires = st.text_area("Commentaires (optionnel)", placeholder="Informations supplémentaires...")
+                        if selected_users:
+                            st.markdown(f"**{len(selected_users)} utilisateur(s) sélectionné(s)**")
+                            for selected in selected_users:
+                                st.caption(f"- {selected}")
                         
                         st.markdown("---")
                         
-                        if st.form_submit_button("📤 Envoyer l'AVI", type="primary"):
-                            if not selected_users:
-                                st.error("Veuillez sélectionner au moins un utilisateur")
-                            elif not all([nom_complet, code_banque, numero_compte, iban, bic, montant]):
-                                st.error("Veuillez remplir tous les champs obligatoires")
-                            else:
-                                avi_data = {
-                                    "nom_complet": nom_complet,
-                                    "code_banque": code_banque,
-                                    "numero_compte": numero_compte,
-                                    "devise": devise,
-                                    "iban": iban,
-                                    "bic": bic,
-                                    "montant": montant,
-                                    "statut": statut,
-                                    "commentaires": commentaires
-                                }
-                                
-                                success_count = 0
-                                failed_users = []
-                                
-                                with st.spinner(f"Envoi de l'AVI à {len(selected_users)} utilisateur(s)..."):
-                                    for selected_user in selected_users:
-                                        user_id = user_options[selected_user]
-                                        if db.send_avi_to_user(user_id, avi_data):
-                                            success_count += 1
-                                        else:
-                                            failed_users.append(selected_user)
-                                
-                                if success_count > 0:
-                                    st.success(f"✅ AVI envoyée avec succès à {success_count} utilisateur(s)")
-                                    st.balloons()
-                                if failed_users:
-                                    st.error(f"❌ Échec d'envoi pour {len(failed_users)} utilisateur(s): {', '.join(failed_users)}")
-                                
-                                time.sleep(2)
-                                st.rerun()
+                        # Bouton d'envoi
+                        col1, col2, col3 = st.columns([1, 2, 1])
+                        with col2:
+                            if st.button("📤 Envoyer l'AVI aux utilisateurs sélectionnés", type="primary", use_container_width=True):
+                                if not selected_users:
+                                    st.error("Veuillez sélectionner au moins un utilisateur")
+                                elif not os.path.exists(pdf_path):
+                                    st.error("Le fichier PDF n'existe pas. Veuillez d'abord le générer.")
+                                else:
+                                    success_count = 0
+                                    failed_users = []
+                                    
+                                    with st.spinner(f"Envoi de l'AVI à {len(selected_users)} utilisateur(s)..."):
+                                        # Lire le fichier PDF
+                                        with open(pdf_path, "rb") as pdf_file:
+                                            pdf_bytes = pdf_file.read()
+                                        
+                                        for selected_user in selected_users:
+                                            user_id = user_options[selected_user]
+                                            user_name = selected_user
+                                            
+                                            # Envoyer le message avec le PDF en pièce jointe
+                                            message = f"""📄 **Attestation de Virement Irrévocable**
+
+            Bonjour,
+
+            Veuillez trouver ci-joint votre attestation AVI.
+
+            **Référence:** {selected_avi['reference']}
+            **Bénéficiaire:** {selected_avi['nom_complet']}
+            **Montant:** {selected_avi['montant']:,.2f} FCFA
+
+            Cordialement,
+            Eco Capital Service Client
+            """
+                                            
+                                            if db.send_message_to_user_with_attachment(user_id, 'support', message, pdf_bytes, f"AVI_{selected_avi['reference']}.pdf"):
+                                                success_count += 1
+                                            else:
+                                                failed_users.append(user_name)
+                                        
+                                        # Enregistrer l'envoi dans l'historique
+                                        if success_count > 0:
+                                            db.log_avi_sending(selected_avi['reference'], success_count, len(selected_users))
+                                    
+                                    if success_count > 0:
+                                        st.success(f"✅ AVI envoyée avec succès à {success_count} utilisateur(s)")
+                                        st.balloons()
+                                    if failed_users:
+                                        st.error(f"❌ Échec d'envoi pour {len(failed_users)} utilisateur(s): {', '.join(failed_users)}")
 
 
         elif selected == "Générateur":
@@ -4099,7 +4638,6 @@ def show_admin_dashboard():
                     except Exception as e:
                         st.error(f"Erreur lors du traitement: {str(e)}")
 
-        # Ensuite, remplacez la section "Messages" par ceci :
         elif selected == "Messages":
             st.title("💬 Centre de Messagerie")
             
@@ -4159,45 +4697,138 @@ def show_admin_dashboard():
                             with messages_container:
                                 for msg in messages:
                                     if msg['sender'] == 'support':
+                                        # Message du support
                                         st.markdown(f"""
                                         <div style="background: linear-gradient(135deg, #667eea, #764ba2); 
                                                     color: white; padding: 0.75rem 1rem; border-radius: 15px 15px 5px 15px; 
                                                     margin: 0.5rem 0; max-width: 80%; margin-left: auto;">
                                             <strong>🏦 Support</strong>
                                             <p style="margin: 0.25rem 0;">{msg['content']}</p>
+                                        """, unsafe_allow_html=True)
+                                        
+                                        # Afficher la pièce jointe si elle existe
+                                        if msg.get('attachment') and msg.get('attachment_filename'):
+                                            file_bytes = msg['attachment']
+                                            filename = msg['attachment_filename']
+                                            file_ext = filename.split('.')[-1].lower() if '.' in filename else ''
+                                            
+                                            if file_ext in ['jpg', 'jpeg', 'png', 'gif', 'webp']:
+                                                # Image - afficher un aperçu
+                                                try:
+                                                    img_data = base64.b64encode(file_bytes).decode('utf-8')
+                                                    st.markdown(f"""
+                                                    <div style="margin-top: 0.5rem;">
+                                                        <img src="data:image/{file_ext};base64,{img_data}" 
+                                                            style="max-width: 200px; max-height: 150px; border-radius: 8px; cursor: pointer;"
+                                                            onclick="window.open(this.src)" />
+                                                        <br>
+                                                        <small>📎 {filename}</small>
+                                                    </div>
+                                                    """, unsafe_allow_html=True)
+                                                except:
+                                                    st.markdown(f'<div style="margin-top: 0.5rem;">📎 {filename}</div>', unsafe_allow_html=True)
+                                            else:
+                                                # Bouton de téléchargement pour les autres fichiers
+                                                st.download_button(
+                                                    label=f"📎 Télécharger {filename}",
+                                                    data=file_bytes,
+                                                    file_name=filename,
+                                                    mime="application/octet-stream",
+                                                    key=f"download_admin_{msg.get('id', '')}"
+                                                )
+                                        
+                                        st.markdown(f"""
                                             <small style="opacity: 0.8;">📅 {msg['timestamp'].strftime('%d/%m/%Y %H:%M') if msg.get('timestamp') else 'Date inconnue'}</small>
                                         </div>
                                         """, unsafe_allow_html=True)
                                     else:
+                                        # Message du client
                                         st.markdown(f"""
                                         <div style="background: #f0f0f0; 
                                                     color: #333; padding: 0.75rem 1rem; border-radius: 15px 15px 15px 5px; 
                                                     margin: 0.5rem 0; max-width: 80%;">
                                             <strong>👤 {user['first_name']} {user['last_name']}</strong>
                                             <p style="margin: 0.25rem 0;">{msg['content']}</p>
+                                        """, unsafe_allow_html=True)
+                                        
+                                        # Afficher la pièce jointe du client si elle existe
+                                        if msg.get('attachment') and msg.get('attachment_filename'):
+                                            file_bytes = msg['attachment']
+                                            filename = msg['attachment_filename']
+                                            file_ext = filename.split('.')[-1].lower() if '.' in filename else ''
+                                            
+                                            if file_ext in ['jpg', 'jpeg', 'png', 'gif', 'webp']:
+                                                try:
+                                                    img_data = base64.b64encode(file_bytes).decode('utf-8')
+                                                    st.markdown(f"""
+                                                    <div style="margin-top: 0.5rem;">
+                                                        <img src="data:image/{file_ext};base64,{img_data}" 
+                                                            style="max-width: 200px; max-height: 150px; border-radius: 8px; cursor: pointer;"
+                                                            onclick="window.open(this.src)" />
+                                                        <br>
+                                                        <small>📎 {filename}</small>
+                                                    </div>
+                                                    """, unsafe_allow_html=True)
+                                                except:
+                                                    st.markdown(f'<div style="margin-top: 0.5rem;">📎 {filename}</div>', unsafe_allow_html=True)
+                                            else:
+                                                st.download_button(
+                                                    label=f"📎 Télécharger {filename}",
+                                                    data=file_bytes,
+                                                    file_name=filename,
+                                                    mime="application/octet-stream",
+                                                    key=f"download_client_{msg.get('id', '')}"
+                                                )
+                                        
+                                        st.markdown(f"""
                                             <small style="opacity: 0.8;">📅 {msg['timestamp'].strftime('%d/%m/%Y %H:%M') if msg.get('timestamp') else 'Date inconnue'}</small>
                                         </div>
                                         """, unsafe_allow_html=True)
                             
-                            # Formulaire d'envoi de message
+                            # Formulaire d'envoi de message avec pièce jointe
                             st.markdown("---")
                             st.markdown("### ✏️ Répondre")
                             
                             with st.form("reply_message_form"):
-                                reply_content = st.text_area("Votre message", placeholder="Écrivez votre réponse ici...", height=100)
+                                reply_content = st.text_area("Votre message", placeholder="Écrivez votre réponse ici...", height=80)
                                 
-                                col1, col2 = st.columns([1, 4])
-                                with col1:
-                                    if st.form_submit_button("📤 Envoyer", type="primary", use_container_width=True):
-                                        if reply_content.strip():
-                                            if db.send_message_to_user(user['id'], 'support', reply_content):
-                                                st.success("Message envoyé avec succès!")
-                                                time.sleep(1)
-                                                st.rerun()
-                                            else:
-                                                st.error("Erreur lors de l'envoi du message")
+                                # Upload de fichier
+                                uploaded_file = st.file_uploader(
+                                    "📎 Joindre un fichier (optionnel)",
+                                    type=['pdf', 'png', 'jpg', 'jpeg', 'doc', 'docx', 'xls', 'xlsx', 'txt', 'zip'],
+                                    help="Vous pouvez joindre des documents, images, PDF, etc.",
+                                    key="reply_attachment"
+                                )
+                                
+                                col1, col2, col3 = st.columns([1, 2, 1])
+                                with col2:
+                                    submitted = st.form_submit_button("📤 Envoyer", type="primary", use_container_width=True)
+                                
+                                if submitted:
+                                    if not reply_content.strip() and not uploaded_file:
+                                        st.warning("Veuillez écrire un message ou joindre un fichier.")
+                                    else:
+                                        if uploaded_file:
+                                            file_bytes = uploaded_file.read()
+                                            filename = uploaded_file.name
+                                            file_type = uploaded_file.type
+                                            
+                                            success = db.send_message_to_user_with_attachment(
+                                                user['id'], 
+                                                'support', 
+                                                reply_content if reply_content.strip() else "[Message avec pièce jointe]", 
+                                                file_bytes, 
+                                                filename
+                                            )
                                         else:
-                                            st.warning("Veuillez écrire un message")
+                                            success = db.send_message_to_user(user['id'], 'support', reply_content)
+                                        
+                                        if success:
+                                            st.success("Message envoyé avec succès!")
+                                            time.sleep(1)
+                                            st.rerun()
+                                        else:
+                                            st.error("Erreur lors de l'envoi du message")
             
             with tab2:
                 st.subheader("📝 Nouveau Message")
@@ -4219,13 +4850,22 @@ def show_admin_dashboard():
                     message_subject = st.text_input("Objet (optionnel)", placeholder="Sujet du message")
                     message_content = st.text_area("Message *", placeholder="Écrivez votre message ici...", height=150)
                     
-                    col1, col2 = st.columns([1, 4])
-                    with col1:
+                    # Upload de fichier pour nouveau message
+                    st.markdown("### 📎 Pièce jointe (optionnelle)")
+                    uploaded_file_new = st.file_uploader(
+                        "Choisir un fichier à joindre",
+                        type=['pdf', 'png', 'jpg', 'jpeg', 'doc', 'docx', 'xls', 'xlsx', 'txt', 'zip'],
+                        help="PDF, images, documents Word/Excel...",
+                        key="new_message_attachment"
+                    )
+                    
+                    col1, col2, col3 = st.columns([1, 2, 1])
+                    with col2:
                         if st.button("📤 Envoyer", type="primary", use_container_width=True):
                             if not selected_users:
                                 st.error("Veuillez sélectionner au moins un destinataire")
-                            elif not message_content.strip():
-                                st.error("Veuillez écrire un message")
+                            elif not message_content.strip() and not uploaded_file_new:
+                                st.error("Veuillez écrire un message ou joindre un fichier")
                             else:
                                 subject_line = f"[{message_subject}] " if message_subject else ""
                                 full_message = f"{subject_line}{message_content}"
@@ -4236,7 +4876,17 @@ def show_admin_dashboard():
                                 with st.spinner(f"Envoi du message à {len(selected_users)} utilisateur(s)..."):
                                     for selected_user in selected_users:
                                         user_id = user_options[selected_user]
-                                        if db.send_message_to_user(user_id, 'support', full_message):
+                                        
+                                        if uploaded_file_new:
+                                            file_bytes = uploaded_file_new.read()
+                                            filename = uploaded_file_new.name
+                                            success = db.send_message_to_user_with_attachment(
+                                                user_id, 'support', full_message, file_bytes, filename
+                                            )
+                                        else:
+                                            success = db.send_message_to_user(user_id, 'support', full_message)
+                                        
+                                        if success:
                                             success_count += 1
                                         else:
                                             failed_users.append(selected_user)
