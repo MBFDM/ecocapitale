@@ -195,9 +195,10 @@ class BankDatabase:
                 avi_data.get('iban', ''),
                 avi_data.get('bic', ''),
                 avi_data.get('montant', 0),
-                datetime.now().strftime('%Y-%m-%d'),
+                datetime.now().strftime('%Y-%m-%d'),  
                 avi_data.get('statut', 'Etudiant'),
-                avi_data.get('commentaires', '')
+                avi_data.get('commentaires', ''),
+                user_id 
             ))
             
             # Envoyer un message de notification à l'utilisateur
@@ -320,7 +321,18 @@ class BankDatabase:
             "iban": f"{country_code}{check_digits}{bban}",
             **account_data
         }
-    
+        
+    def get_ibans_by_client(self, client_id):
+        """Récupère tous les IBANs associés à un client"""
+        with self.conn.cursor(dictionary=True) as cursor:
+            cursor.execute("""
+                SELECT * FROM ibans 
+                WHERE client_id = %s
+                ORDER BY created_at DESC
+            """, (client_id,))
+            return cursor.fetchall()
+        
+        
     def backup_database(self, backup_path: str) -> None:
         """Crée une sauvegarde de la base de données"""
         try:
@@ -1164,7 +1176,96 @@ class BankDatabase:
             
         except mysql.connector.Error as e:
             raise DatabaseError(f"Erreur lors de la recherche d'AVI: {str(e)}")
+        
+    def send_message_to_user_with_attachment(self, user_id: int, sender: str, message: str, attachment_bytes: bytes, attachment_filename: str) -> bool:
+        """Envoie un message avec pièce jointe à un utilisateur"""
+        try:
+            import uuid
+            msg_id = str(uuid.uuid4())
+            sender_type = sender if sender else 'support'
+            
+            with self.conn.cursor() as cursor:
+                # Vérifier d'abord si la table messages existe, sinon la créer
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS messages (
+                        id VARCHAR(36) PRIMARY KEY,
+                        user_id INT NOT NULL,
+                        sender VARCHAR(50) NOT NULL,
+                        content TEXT NOT NULL,
+                        attachment LONGBLOB,
+                        attachment_filename VARCHAR(255),
+                        is_read BOOLEAN DEFAULT FALSE,
+                        timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        INDEX idx_user_id (user_id),
+                        INDEX idx_sender (sender),
+                        INDEX idx_timestamp (timestamp)
+                    )
+                """)
+                self.conn.commit()
+                
+                # Vérifier si les colonnes attachment existent dans la table
+                cursor.execute("""
+                    SHOW COLUMNS FROM messages 
+                    WHERE Field IN ('attachment', 'attachment_filename')
+                """)
+                existing_columns = cursor.fetchall()
+                existing_col_names = [col[0] for col in existing_columns] if existing_columns else []
+                
+                # Ajouter les colonnes si elles n'existent pas
+                if 'attachment' not in existing_col_names:
+                    try:
+                        cursor.execute("ALTER TABLE messages ADD COLUMN attachment LONGBLOB")
+                    except Exception as e:
+                        print(f"Erreur ajout colonne attachment: {e}")
+                
+                if 'attachment_filename' not in existing_col_names:
+                    try:
+                        cursor.execute("ALTER TABLE messages ADD COLUMN attachment_filename VARCHAR(255)")
+                    except Exception as e:
+                        print(f"Erreur ajout colonne attachment_filename: {e}")
+                
+                self.conn.commit()
+                
+                # Insérer le message avec la pièce jointe
+                cursor.execute("""
+                    INSERT INTO messages (id, user_id, sender, content, attachment, attachment_filename, timestamp)
+                    VALUES (%s, %s, %s, %s, %s, %s, NOW())
+                """, (msg_id, user_id, sender_type, message, attachment_bytes, attachment_filename))
+                
+                self.conn.commit()
+                print(f"✅ Message envoyé avec succès à l'utilisateur {user_id} (ID: {msg_id})")
+                return True
+                
+        except mysql.connector.Error as e:
+            logger.error(f"Erreur MySQL envoi message avec pièce jointe: {str(e)}")
+            return False
+        except Exception as e:
+            logger.error(f"Erreur générale envoi message avec pièce jointe: {str(e)}")
+            return False
 
+    def log_avi_sending(self, avi_reference: str, success_count: int, total_count: int) -> None:
+        """Enregistre l'envoi d'une AVI dans l'historique"""
+        try:
+            with self.conn.cursor() as cursor:
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS avi_sending_logs (
+                        id INT AUTO_INCREMENT PRIMARY KEY,
+                        avi_reference VARCHAR(50) NOT NULL,
+                        success_count INT DEFAULT 0,
+                        total_count INT DEFAULT 0,
+                        sent_by VARCHAR(100),
+                        timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    )
+                """)
+                self.conn.commit()
+                
+                cursor.execute("""
+                    INSERT INTO avi_sending_logs (avi_reference, success_count, total_count)
+                    VALUES (%s, %s, %s)
+                """, (avi_reference, success_count, total_count))
+                self.conn.commit()
+        except Exception as e:
+            logger.error(f"Erreur log envoi AVI: {str(e)}")
 
     # ===== Méthodes pour les clients =====
     def add_client(self, first_name: str, last_name: str, email: str, phone: str, 
@@ -1554,5 +1655,3 @@ class BankDatabase:
         """Ferme la connexion à la fin du contexte"""
 
         self.close()
-
-
