@@ -1,5 +1,5 @@
 # Core
-streamlit==1.40.1  # Version mise à jour pour compatibilité
+streamlit==1.59.0  # Version mise à jour pour compatibilité
 pandas==2.2.3
 plotly==5.22.0
 sqlalchemy==2.0.25
