@@ -3572,13 +3572,13 @@ def show_admin_dashboard():
                                 pdf.rect(0, 0, 210, 297, 'F')  # Rectangle sur toute la page
                                 
                                 # ---- AJOUT D'UN BORDURE DÉCORATIVE ----
-                                pdf.set_draw_color(74, 111, 165)  # Bleu institutionnel
-                                pdf.set_line_width(1.5)
-                                pdf.rect(8, 8, 194, 281)  # Bordure intérieure
+                                #pdf.set_draw_color(74, 111, 165)  # Bleu institutionnel
+                                #pdf.set_line_width(1.5)
+                                #pdf.rect(8, 8, 194, 281)  # Bordure intérieure
                                 
                                 # ---- BANDEAU EN-TÊTE ----
-                                pdf.set_fill_color(74, 111, 165)  # Bleu institutionnel
-                                pdf.rect(8, 8, 194, 12, 'F')  # Bandeau bleu en haut
+                                #pdf.set_fill_color(74, 111, 165)  # Bleu institutionnel
+                                #pdf.rect(8, 8, 194, 12, 'F')  # Bandeau bleu en haut
                                 
                                 # ---- Marge de la page ----
                                 pdf.set_left_margin(18)
