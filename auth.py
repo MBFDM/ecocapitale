@@ -3614,7 +3614,7 @@ def show_admin_dashboard():
                                     pass  # Continuer sans logo
                                 
                                 # ---- TEXTE D'INTRODUCTION ----
-                                pdf.set_font('Arial', '', 11)
+                                pdf.set_font('Arial', '', 10)
                                 intro_text = [
                                     "Nous soussignés, Eco Capital (E.C), Société à Responsabilité Limitée (SARL),",
                                     "constituée conformément au droit OHADA, ayant pour siège social sis au n°1636,",
@@ -3635,19 +3635,19 @@ def show_admin_dashboard():
                                     pdf.cell(0, 5.5, line, 0, 2)
                                 
                                 # ---- INFORMATIONS BANCAIRES ----
-                                pdf.set_font('Arial', 'B', 11)
+                                pdf.set_font('Arial', 'B', 10)
                                 pdf.cell(45, 6, "CODE BANQUE :", 0, 0)
-                                pdf.set_font('Arial', '', 11)
+                                pdf.set_font('Arial', 'B', 10)
                                 pdf.cell(0, 6, str(avi_data['code_banque']), 0, 1)
                                 
-                                pdf.set_font('Arial', 'B', 11)
+                                pdf.set_font('Arial', 'B', 10)
                                 pdf.cell(45, 6, "NUMERO DE COMPTE :", 0, 0)
-                                pdf.set_font('Arial', '', 11)
+                                pdf.set_font('Arial', 'B', 10)
                                 pdf.cell(0, 6, str(avi_data['numero_compte']), 0, 1)
                                 
-                                pdf.set_font('Arial', 'B', 11)
+                                pdf.set_font('Arial', 'B', 10)
                                 pdf.cell(45, 6, "Devise :", 0, 0)
-                                pdf.set_font('Arial', '', 11)
+                                pdf.set_font('Arial', 'B', 10)
                                 pdf.cell(0, 6, str(avi_data['devise']), 0, 1)
                                 pdf.ln(2)
                                 
@@ -3672,36 +3672,36 @@ def show_admin_dashboard():
                                     ""
                                 ]
                                 
-                                pdf.set_font('Arial', '', 11)
+                                pdf.set_font('Arial', '', 10)
                                 for line in virement_text:
                                     pdf.cell(0, 5.5, line, 0, 2)
                                 
                                 # ---- IBAN ET BIC ----
-                                pdf.set_font('Arial', 'B', 11)
+                                pdf.set_font('Arial', 'B', 10)
                                 pdf.cell(20, 6, "IBAN :", 0, 0)
-                                pdf.set_font('Arial', '', 11)
+                                pdf.set_font('Arial', 'B', 10)
                                 pdf.cell(0, 6, str(avi_data['iban']), 0, 1)
                                 
-                                pdf.set_font('Arial', 'B', 11)
+                                pdf.set_font('Arial', 'B', 10)
                                 pdf.cell(20, 6, "BIC :", 0, 0)
-                                pdf.set_font('Arial', '', 11)
+                                pdf.set_font('Arial', 'B', 10)
                                 pdf.cell(0, 6, str(avi_data['bic']), 0, 1)
                                 pdf.ln(6)
                                 
                                 # ---- CLAUSE DE VALIDATION ----
-                                pdf.set_font('Arial', '', 11)
+                                pdf.set_font('Arial', '', 10)
                                 pdf.cell(0, 6, "En foi de quoi, cette attestation lui est délivrée pour servir et valoir ce que de droit.", 0, 1)
                                 pdf.ln(8)
                                 
                                 # ---- SIGNATURE ----
-                                pdf.set_font('Arial', '', 11)
+                                pdf.set_font('Arial', 'B', 10)
                                 pdf.cell(0, 6, "Rubain OUNGALA", 0, 1, 'R')
-                                pdf.set_font('Arial', 'B', 11)
+                                pdf.set_font('Arial', 'B', 10)
                                 pdf.cell(0, 6, "Responsable des Opérations", 0, 1, 'R')
                                 pdf.ln(6)
                                 
                                 # ---- DATE ----
-                                pdf.set_font('Arial', '', 11)
+                                pdf.set_font('Arial', 'B', 10)
                                 pdf.cell(0, 6, f"Fait à Brazzaville, le {datetime.now().strftime('%d %B %Y')}", 0, 1, 'R')
                                 pdf.ln(10)
                                 
