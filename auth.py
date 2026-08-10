@@ -3529,11 +3529,11 @@ def show_admin_dashboard():
                     if st.button("📄 Générer l'Attestation PDF", type="primary"):
                         with st.spinner("Génération en cours..."):
                             try:
-                                from fpdf import FPDF
-                                import qrcode
-                                from io import BytesIO
-                                import os
-                                from num2words import num2words
+                                #from fpdf import FPDF
+                                #import qrcode
+                                #from io import BytesIO
+                                #import os
+                                #from num2words import num2words
                                 
                                 # =============================================
                                 # FONCTION DE CONVERSION MONTANT EN LETTRES
