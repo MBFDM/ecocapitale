@@ -3522,7 +3522,13 @@ def show_admin_dashboard():
                     
                     if st.button("Générer l'Attestation PDF", type="primary"):
                         with st.spinner("Génération en cours..."):
-                            try:                          
+                            try: 
+                                from fpdf import FPDF
+                                import qrcode
+                                from io import BytesIO
+                                import os
+                                from datetime import datetime
+                                from num2words import num2words
                                 # Création du PDF
                                 pdf = FPDF()
                                 pdf.add_page()
@@ -3547,41 +3553,10 @@ def show_admin_dashboard():
                                         texte += " et " + num2words(partie_decimale, lang='fr') + " centimes"
                                     
                                     return texte.capitalize()
-                                
-                                # ---- Ajout des logos floutés en arrière-plan ----
-                                try:
-                                    logo_path = "assets/logo.png"
-                                    img = Image.open(logo_path)
-                                    
-                                    # Créer une version avec opacité réduite
-                                    if img.mode != 'RGBA':
-                                        img = img.convert('RGBA')
-                                    
-                                    data = img.getdata()
-                                    new_data = []
-                                    for item in data:
-                                        new_data.append((item[0], item[1], item[2], int(item[3] * 0.2)))  # 30% opacity
-                                    img.putdata(new_data)
-                                    
-                                    # Convertir en format utilisable par FPDF
-                                    temp_logo = BytesIO()
-                                    img.save(temp_logo, format='PNG')
-                                    temp_logo.seek(0)
-                                    
-                                    for position in [(30, 30), (120, 200), (50, 300), (100, 100)]:
-                                        pdf.image(temp_logo, x=position[0], y=position[1], w=100)
-                                        
-                                except Exception as e:
-                                    st.warning(f"Logo non trouvé ou erreur de traitement: {str(e)}")
-                                
-                                # ---- En-tête ----
-                                pdf.set_font('Arial', 'B', 16)
-                                pdf.cell(0, 30, 'ATTESTATION DE VIREMENT IRREVOCABLE', 0, 1, 'C')
-                                
-                                # Référence du document
-                                pdf.set_font('Arial', 'B', 10)
-                                pdf.cell(0, 0, f"DGF-EC / {avi_data['reference']}", 0, 1, 'C')
-                                pdf.ln(10)
+
+                                # ---- Marge de la page ----
+                                pdf.set_left_margin(15)
+                                pdf.set_right_margin(15)
                                 
                                 # ---- LOGO (flouté en arrière-plan) ----
                                 try:
@@ -3603,6 +3578,15 @@ def show_admin_dashboard():
                                         pdf.image(temp_logo, x=40, y=30, w=120)
                                 except Exception as e:
                                     pass  # Continuer sans logo si erreur
+                                
+                                # ---- En-tête ----
+                                pdf.set_font('Arial', 'B', 16)
+                                pdf.cell(0, 30, 'ATTESTATION DE VIREMENT IRREVOCABLE', 0, 1, 'C')
+                                
+                                # Référence du document
+                                pdf.set_font('Arial', 'B', 10)
+                                pdf.cell(0, 0, f"DGF-EC / {avi_data['reference']}", 0, 1, 'C')
+                                pdf.ln(10)
                                 
                                 # Fonction pour texte justifié
                                 #def justified_text(text, line_height=5):
