@@ -3636,7 +3636,7 @@ def show_admin_dashboard():
                                 pdf.set_font('Arial', 'B', 10)
                                 pdf.cell(0, 5.5, "Eco Capital (E.C)", 0, 0)
                                 pdf.set_font('Arial', '', 10)
-                                pdf.cell(0, 5.5, ", Société à Responsabilité Limitée (SARL),", 0, 1)
+                                pdf.cell(0, 5.5, ", Société à Responsabilité Limitée (SARL),", 0, 0)
                                 
                                 # Ligne 2: "constituée conformément au droit OHADA, ayant pour siège social sis au n°1636,"
                                 pdf.set_font('Arial', '', 10)
@@ -3646,32 +3646,24 @@ def show_admin_dashboard():
                                 pdf.set_font('Arial', '', 10)
                                 
                                 # Ligne 3: "disposons d'un capital social de 60 000 000 Xaf, soit 91 469,94 euros."
-                                pdf.cell(0, 5.5, "disposons d'un capital social de 60 000 000 Xaf, soit 91 469,94 euros.", 0, 1)
+                                pdf.cell(0, 5.5, "disposons d'un capital social de 60 000 000 Xaf, soit 91 469,94 euros. Immatriculée au Registre", 0, 1)
                                 
                                 # Ligne 4: "Immatriculée au Registre du Commerce et du Crédit Mobilier sous le numéro RCCM/BZV/B12/00320-"
-                                pdf.cell(0, 5.5, "Immatriculée au Registre du Commerce et du Crédit Mobilier sous le numéro RCCM/BZV/B12/00320-", 0, 1)
+                                pdf.cell(0, 5.5, " du Commerce et du Crédit Mobilier sous le numéro RCCM/BZV/B12/00320-NIUM24000000665934H, et", 0, 1)
                                 
                                 # Ligne 5: "NIUM24000000665934H, et agréée par les autorités monétaires sous le numéro"
-                                pdf.cell(0, 5.5, "NIUM24000000665934H, et agréée par les autorités monétaires sous le numéro", 0, 1)
+                                pdf.cell(0, 5.5, " agréée par les autorités monétaires sous le numéro n°078/MFBPP/ARTF/DR-SAR-BOTC, conformément aux", 0, 1)
                                 
                                 # Ligne 6: "n°078/MFBPP/ARTF/DR-SAR-BOTC, conformément aux dispositions légales en"
-                                pdf.cell(0, 5.5, "n°078/MFBPP/ARTF/DR-SAR-BOTC, conformément aux dispositions légales en", 0, 1)
-                                
-                                # Ligne 7: "vigueur du règlement COBAC EMF R-2017/01."
-                                pdf.cell(0, 5.5, "vigueur du règlement COBAC EMF R-2017/01.", 0, 1)
-                                pdf.ln(2)
+                                pdf.cell(0, 5.5, " dispositions légales en vigueur du règlement COBAC EMF R-2017/01.", 0, 1)
                                 
                                 # Ligne 8: "Nous certifions par la présente que Monsieur/Madame"
-                                pdf.cell(0, 5.5, "Nous certifions par la présente que Monsieur/Madame", 0, 1)
+                                pdf.cell(0, 5.5, "Nous certifions par la présente que ", 0, 1)
                                 
                                 # Ligne 9: NOM en gras
                                 pdf.set_font('Arial', 'B', 10)
-                                pdf.cell(0, 5.5, f"{avi_data['nom_complet']}", 0, 1)
+                                pdf.cell(0, 5.5, f"{avi_data['nom_complet']}, détient un compte courant enregistré dans nos livres avec les caractéristiques suivantes :", 0, 1)
                                 pdf.set_font('Arial', '', 10)
-                                
-                                # Ligne 10: "détient un compte courant enregistré dans nos livres avec les caractéristiques suivantes :"
-                                pdf.cell(0, 5.5, "détient un compte courant enregistré dans nos livres avec les caractéristiques suivantes :", 0, 1)
-                                pdf.ln(2)
                                 
                                 # ---- INFORMATIONS BANCAIRES ----
                                 pdf.set_font('Arial', 'B', 10)
@@ -3701,52 +3693,48 @@ def show_admin_dashboard():
                                 
                                 # Ligne 2: Montant en chiffres et en lettres (en gras)
                                 pdf.set_font('Arial', 'B', 10)
-                                pdf.cell(0, 5.5, f"{montant_float:,.0f} FCFA ({montant_lettres}),", 0, 1)
+                                pdf.cell(0, 5.5, f"{montant_float:,.0f} FCFA ({montant_lettres}), équivalant actuellement à", 0, 1)
                                 pdf.set_font('Arial', '', 10)
-                                
-                                # Ligne 3: "équivalant actuellement à"
-                                pdf.cell(0, 5.5, f"équivalant actuellement à", 0, 1)
                                 
                                 # Ligne 4: Montant en euros (en gras)
                                 pdf.set_font('Arial', 'B', 10)
-                                pdf.cell(0, 5.5, f"{montant_euros:,.2f} euros,", 0, 1)
+                                pdf.cell(0, 5.5, f"{montant_euros} euros, cette somme est destinée à couvrir les frais liés", 0, 1)
                                 pdf.set_font('Arial', '', 10)
                                 
                                 # Ligne 5: "cette somme est destinée à couvrir les frais liés à ses études en France."
-                                pdf.cell(0, 5.5, "cette somme est destinée à couvrir les frais liés à ses études en France.", 0, 1)
+                                pdf.cell(0, 5.5, " à ses études en France.", 0, 1)
                                 pdf.ln(2)
                                 
                                 # Lignes suivantes
-                                pdf.cell(0, 5.5, "Il est précisé que ce compte demeurera bloqué jusqu'à la présentation, par le donneur", 0, 1)
-                                pdf.cell(0, 5.5, "d'ordre, de ses nouvelles coordonnées bancaires ouvertes en France.", 0, 1)
+                                pdf.cell(0, 5.5, "Il est précisé que ce compte demeurera bloqué jusqu'à la présentation, par le donneur d'ordre, de ses", 0, 1)
+                                pdf.cell(0, 5.5, " nouvelles coordonnées bancaires ouvertes en France.", 0, 1)
                                 pdf.ln(2)
-                                pdf.cell(0, 5.5, "À défaut, les fonds ne pourront être remis à sa disposition qu'après présentation de son", 0, 1)
-                                pdf.cell(0, 5.5, "passeport attestant d'un refus de visa. Toutefois, nous autorisons le donneur d'ordre, à", 0, 1)
-                                pdf.cell(0, 5.5, "toutes fins utiles, à utiliser notre compte ouvert auprès de United Bank for Africa (UBA).", 0, 1)
-                                pdf.ln(2)
+                                pdf.cell(0, 5.5, "À défaut, les fonds ne pourront être remis à sa disposition qu'après présentation de son passeport", 0, 1)
+                                pdf.cell(0, 5.5, " attestant d'un refus de visa. Toutefois, nous autorisons le donneur d'ordre, à toutes fins utiles, à utiliser", 0, 1)
+                                pdf.cell(0, 5.5, " notre compte ouvert auprès de United Bank for Africa (UBA).", 0, 1)
+                                #pdf.ln(2)
                                 
                                 # ---- IBAN ET BIC ----
                                 pdf.set_font('Arial', 'B', 10)
                                 pdf.cell(20, 6, "IBAN :", 0, 0)
                                 pdf.set_font('Arial', '', 10)
-                                pdf.cell(0, 6, str(avi_data['iban']), 0, 1)
+                                pdf.cell(0, 4, str(avi_data['iban']), 0, 1)
                                 
                                 pdf.set_font('Arial', 'B', 10)
                                 pdf.cell(20, 6, "BIC :", 0, 0)
                                 pdf.set_font('Arial', '', 10)
-                                pdf.cell(0, 6, str(avi_data['bic']), 0, 1)
-                                pdf.ln(6)
+                                pdf.cell(0, 4, str(avi_data['bic']), 0, 1)
                                 
                                 # ---- CLAUSE DE VALIDATION ----
                                 pdf.set_font('Arial', '', 10)
                                 pdf.cell(0, 6, "En foi de quoi, cette attestation lui est délivrée pour servir et valoir ce que de droit.", 0, 1)
-                                pdf.ln(8)
+                                pdf.ln(2)
                                 
                                 # ---- SIGNATURE ----
                                 pdf.set_font('Arial', 'B', 10)
-                                pdf.cell(0, 6, "Rubain OUNGALA", 0, 1, 'R')
+                                pdf.cell(20, 6, "Rubain OUNGALA", 0, 1, 'R')
                                 pdf.set_font('Arial', 'B', 10)
-                                pdf.cell(0, 6, "Responsable des Opérations", 0, 1, 'R')
+                                pdf.cell(20, 6, "Responsable des Opérations", 0, 1, 'R')
                                 pdf.ln(6)
                                 
                                 # ---- DATE ----
@@ -3775,11 +3763,7 @@ def show_admin_dashboard():
                                 
                                 # Ligne 6: Web et email en gras
                                 pdf.set_font('Arial', 'B', 9)
-                                pdf.cell(0, 4.5, "Web : www.ecocapitale.com", 0, 0, 'L')
-                                pdf.set_font('Arial', '', 9)
-                                pdf.cell(0, 4.5, " mail : ", 0, 0, 'L')
-                                pdf.set_font('Arial', 'B', 9)
-                                pdf.cell(0, 4.5, "contacts@ecocapitale.com", 0, 1, 'L')
+                                pdf.cell(0, 4.5, "Web : www.ecocapitale.com mail : contacts@ecocapitale.com", 0, 0, 'L')
                                 
                                 # Ligne 7: Brazzaville République du Congo
                                 pdf.set_font('Arial', '', 9)
