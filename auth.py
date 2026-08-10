@@ -3533,7 +3533,7 @@ def show_admin_dashboard():
                                 #import qrcode
                                 #from io import BytesIO
                                 #import os
-                                #from num2words import num2words
+                                from num2words import num2words
                                 
                                 # =============================================
                                 # FONCTION DE CONVERSION MONTANT EN LETTRES
