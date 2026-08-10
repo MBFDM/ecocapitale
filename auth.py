@@ -3527,12 +3527,11 @@ def show_admin_dashboard():
                     avi_data = db.get_avi_by_reference(reference)
                     
                     if st.button("📄 Générer l'Attestation PDF", type="primary"):
+                        # Initialisation de output_path AVANT le try
+                        output_path = None
+                        
                         with st.spinner("Génération en cours..."):
                             try:
-                                #from fpdf import FPDF
-                                #import qrcode
-                                #from io import BytesIO
-                                #import os
                                 from num2words import num2words
                                 
                                 # =============================================
@@ -3540,8 +3539,10 @@ def show_admin_dashboard():
                                 # =============================================
                                 def montant_en_lettres(montant):
                                     """Convertit un montant numérique en lettres françaises avec devise"""
-                                    partie_entiere = int(montant)
-                                    partie_decimale = int(round((montant - partie_entiere) * 100))
+                                    # Conversion explicite en float pour éviter les problèmes Decimal
+                                    montant_float = float(montant)
+                                    partie_entiere = int(montant_float)
+                                    partie_decimale = int(round((montant_float - partie_entiere) * 100))
                                     
                                     texte = num2words(partie_entiere, lang='fr')
                                     
@@ -3575,31 +3576,24 @@ def show_admin_dashboard():
                                 pdf.ln(8)
                                 
                                 # ---- LOGO (flouté en arrière-plan) ----
-                                # ---- Ajout des logos floutés en arrière-plan ----
                                 try:
                                     logo_path = "assets/logo.png"
-                                    img = Image.open(logo_path)
-                                    
-                                    # Créer une version avec opacité réduite
-                                    if img.mode != 'RGBA':
-                                        img = img.convert('RGBA')
-                                    
-                                    data = img.getdata()
-                                    new_data = []
-                                    for item in data:
-                                        new_data.append((item[0], item[1], item[2], int(item[3] * 0.2)))  # 30% opacity
-                                    img.putdata(new_data)
-                                    
-                                    # Convertir en format utilisable par FPDF
-                                    temp_logo = BytesIO()
-                                    img.save(temp_logo, format='PNG')
-                                    temp_logo.seek(0)
-                                    
-                                    for position in [(30, 30), (120, 200), (50, 300), (100, 100)]:
-                                        pdf.image(temp_logo, x=position[0], y=position[1], w=100)
-                                        
+                                    if os.path.exists(logo_path):
+                                        img = Image.open(logo_path)
+                                        if img.mode != 'RGBA':
+                                            img = img.convert('RGBA')
+                                        data = img.getdata()
+                                        new_data = []
+                                        for item in data:
+                                            new_data.append((item[0], item[1], item[2], int(item[3] * 0.2)))
+                                        img.putdata(new_data)
+                                        temp_logo = BytesIO()
+                                        img.save(temp_logo, format='PNG')
+                                        temp_logo.seek(0)
+                                        for position in [(30, 30), (120, 200), (50, 300), (100, 100)]:
+                                            pdf.image(temp_logo, x=position[0], y=position[1], w=100)
                                 except Exception as e:
-                                    st.warning(f"Logo non trouvé ou erreur de traitement: {str(e)}")
+                                    pass  # Continuer sans logo
                                 
                                 # ---- TEXTE D'INTRODUCTION ----
                                 pdf.set_font('Arial', '', 11)
@@ -3623,32 +3617,31 @@ def show_admin_dashboard():
                                     pdf.cell(0, 5.5, line, 0, 2)
                                 
                                 # ---- INFORMATIONS BANCAIRES ----
-                                # CODE BANQUE
                                 pdf.set_font('Arial', 'B', 11)
                                 pdf.cell(45, 6, "CODE BANQUE :", 0, 0)
                                 pdf.set_font('Arial', '', 11)
-                                pdf.cell(0, 6, avi_data['code_banque'], 0, 1)
+                                pdf.cell(0, 6, str(avi_data['code_banque']), 0, 1)
                                 
-                                # NUMERO DE COMPTE
                                 pdf.set_font('Arial', 'B', 11)
                                 pdf.cell(45, 6, "NUMERO DE COMPTE :", 0, 0)
                                 pdf.set_font('Arial', '', 11)
-                                pdf.cell(0, 6, avi_data['numero_compte'], 0, 1)
+                                pdf.cell(0, 6, str(avi_data['numero_compte']), 0, 1)
                                 
-                                # Devise
                                 pdf.set_font('Arial', 'B', 11)
                                 pdf.cell(45, 6, "Devise :", 0, 0)
                                 pdf.set_font('Arial', '', 11)
-                                pdf.cell(0, 6, avi_data['devise'], 0, 1)
+                                pdf.cell(0, 6, str(avi_data['devise']), 0, 1)
                                 pdf.ln(2)
                                 
                                 # ---- DÉTAILS DU VIREMENT ----
-                                montant_lettres = montant_en_lettres(avi_data['montant'])
-                                montant_euros = avi_data['montant'] / 655.957  # Taux de change approximatif
+                                # Conversion explicite en float pour la division
+                                montant_float = float(avi_data['montant'])
+                                montant_lettres = montant_en_lettres(montant_float)
+                                montant_euros = montant_float / 655.957  # Taux de change approximatif
                                 
                                 virement_text = [
                                     f"il est l'ordonnateur d'un virement irrévocable et permanent d'un montant total de",
-                                    f"{avi_data['montant']:,.0f} FCFA ({montant_lettres}), équivalant actuellement à",
+                                    f"{montant_float:,.0f} FCFA ({montant_lettres}), équivalant actuellement à",
                                     f"{montant_euros:,.2f} euros, cette somme est destinée à couvrir les frais liés à",
                                     "ses études en France.",
                                     "",
@@ -3669,12 +3662,12 @@ def show_admin_dashboard():
                                 pdf.set_font('Arial', 'B', 11)
                                 pdf.cell(20, 6, "IBAN :", 0, 0)
                                 pdf.set_font('Arial', '', 11)
-                                pdf.cell(0, 6, avi_data['iban'], 0, 1)
+                                pdf.cell(0, 6, str(avi_data['iban']), 0, 1)
                                 
                                 pdf.set_font('Arial', 'B', 11)
                                 pdf.cell(20, 6, "BIC :", 0, 0)
                                 pdf.set_font('Arial', '', 11)
-                                pdf.cell(0, 6, avi_data['bic'], 0, 1)
+                                pdf.cell(0, 6, str(avi_data['bic']), 0, 1)
                                 pdf.ln(6)
                                 
                                 # ---- CLAUSE DE VALIDATION ----
@@ -3717,7 +3710,7 @@ def show_admin_dashboard():
                                         "Code Banque": avi_data['code_banque'],
                                         "Numéro Compte": avi_data['numero_compte'],
                                         "BIC": avi_data['bic'],
-                                        "Montant": f"{avi_data['montant']:,.0f} FCFA",
+                                        "Montant": f"{montant_float:,.0f} FCFA",
                                         "Date": avi_data['date_creation']
                                     }
                                     
@@ -3735,10 +3728,9 @@ def show_admin_dashboard():
                                     img.save(img_bytes, format='PNG')
                                     img_bytes.seek(0)
                                     
-                                    # Positionner le QR code en bas à droite
                                     pdf.image(img_bytes, x=150, y=pdf.get_y()-30, w=40)
                                 except Exception as e:
-                                    pass  # Continuer sans QR code si erreur
+                                    pass
                                 
                                 # ---- SAUVEGARDE ----
                                 os.makedirs("avi_documents", exist_ok=True)
@@ -3779,44 +3771,18 @@ def show_admin_dashboard():
                             except Exception as e:
                                 st.error(f"❌ Erreur lors de la génération: {str(e)}")
                                 st.exception(e)
-                                def show_pdf(file_path):
-                                    try:
-                                        with st.spinner("Chargement du document..."):
-                                            with open(file_path, "rb") as f:
-                                                base64_pdf = base64.b64encode(f.read()).decode('utf-8')
-                                            
-                                            container = st.container(border=True)
-                                            with container:
-                                                st.markdown(f"""
-                                                <div style="height: 600px; overflow: auto;">
-                                                    <object 
-                                                        data="data:application/pdf;base64,{base64_pdf}"
-                                                        type="application/pdf"
-                                                        width="100%" 
-                                                        height="100%"
-                                                        style="border: none;"
-                                                    >
-                                                        <p>Votre navigateur ne supporte pas l'affichage direct de PDF. 
-                                                        <a href="data:application/pdf;base64,{base64_pdf}" download="document.pdf">Télécharger le PDF</a></p>
-                                                    </object>
-                                                </div>
-                                                """, unsafe_allow_html=True)
-                                    except Exception as e:
-                                        st.error(f"Erreur lors du chargement du PDF: {str(e)}")
-                                        st.error("Solution alternative :")
-                                        with open(file_path, "rb") as f:
-                                            st.download_button(
-                                                "⬇️ Télécharger le document PDF",
-                                                data=f,
-                                                file_name="document.pdf",
-                                                mime="application/pdf"
-                                            )
                                 
-                                show_pdf(output_path)
-                                
-                            except Exception as e:
-                                st.error(f"❌ Erreur lors de la génération: {str(e)}")
-                                st.exception(e)
+                                # Vérifier si le PDF a quand même été créé
+                                if output_path and os.path.exists(output_path):
+                                    st.warning("⚠️ Le PDF a été partiellement généré. Vous pouvez le télécharger ci-dessous :")
+                                    with open(output_path, "rb") as f:
+                                        st.download_button(
+                                            "⬇️ Télécharger l'AVI (partiel)",
+                                            data=f,
+                                            file_name=f"AVI_{avi_data['reference']}.pdf",
+                                            mime="application/pdf",
+                                            use_container_width=True
+                                        )
                         
             # Fonctions utilitaires (à mettre AVANT le with tab5)
             def extract_between(text, start, end):
