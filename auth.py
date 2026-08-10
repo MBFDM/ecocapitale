@@ -3539,7 +3539,6 @@ def show_admin_dashboard():
                                 # =============================================
                                 def montant_en_lettres(montant):
                                     """Convertit un montant numérique en lettres françaises avec devise"""
-                                    # Conversion explicite en float pour éviter les problèmes Decimal
                                     montant_float = float(montant)
                                     partie_entiere = int(montant_float)
                                     partie_decimale = int(round((montant_float - partie_entiere) * 100))
@@ -3562,38 +3561,61 @@ def show_admin_dashboard():
                                 pdf = FPDF()
                                 pdf.add_page()
                                 
-                                # ---- Marge de la page ----
-                                #pdf.set_left_margin(15)
-                                #pdf.set_right_margin(15)
-
                                 # ---- AJOUT D'UN FOND DE PAGE COLORÉ ----
-                                # Couleur de fond (bleu très clair)
-                                pdf.set_fill_color(245, 247, 250)  # RGB doux
-                                pdf.rect(0, 0, 210, 297, 'F')  # Rectangle sur toute la page
+                                pdf.set_fill_color(245, 247, 250)
+                                pdf.rect(0, 0, 210, 297, 'F')
                                 
-                                # ---- AJOUT D'UN BORDURE DÉCORATIVE ----
-                                #pdf.set_draw_color(74, 111, 165)  # Bleu institutionnel
-                                #pdf.set_line_width(1.5)
-                                #pdf.rect(8, 8, 194, 281)  # Bordure intérieure
-                                
-                                # ---- BANDEAU EN-TÊTE ----
-                                #pdf.set_fill_color(74, 111, 165)  # Bleu institutionnel
-                                #pdf.rect(8, 8, 194, 12, 'F')  # Bandeau bleu en haut
-                                
-                                # ---- Marge de la page ----
+                                # ---- MARGE DE LA PAGE ----
                                 pdf.set_left_margin(18)
                                 pdf.set_right_margin(18)
                                 
-                                # ---- TITRE PRINCIPAL ----
+                                # =============================================
+                                # EN-TÊTE AVEC LOGO ET TITRE ENCADRÉ
+                                # =============================================
+                                
+                                # ---- LOGO EN HAUT À GAUCHE (50x50) ----
+                                try:
+                                    logo_path = "assets/logo.png"
+                                    if os.path.exists(logo_path):
+                                        # Logo principal en haut à gauche
+                                        pdf.image(logo_path, x=18, y=10, w=50, h=50)
+                                except Exception as e:
+                                    pass
+                                
+                                # ---- TITRE ENCADRÉ (centré) ----
+                                # Calcul de la position pour centrer le cadre
+                                titre = "ATTESTATION DE VIREMENT IRREVOCABLE"
                                 pdf.set_font('Arial', 'B', 16)
-                                pdf.cell(0, 20, 'ATTESTATION DE VIREMENT IRREVOCABLE', 0, 1, 'C')
+                                # Largeur du texte
+                                texte_largeur = pdf.get_string_width(titre) + 40
+                                # Position X pour centrer
+                                pos_x = (210 - texte_largeur) / 2
+                                
+                                # Dessin du cadre autour du titre
+                                pdf.set_draw_color(74, 111, 165)  # Bleu institutionnel
+                                pdf.set_line_width(1.5)
+                                pdf.rect(pos_x, 12, texte_largeur, 22)
+                                
+                                # Fond du cadre (optionnel)
+                                pdf.set_fill_color(240, 248, 255)  # Bleu très clair
+                                pdf.rect(pos_x, 12, texte_largeur, 22, 'F')
+                                
+                                # Texte du titre centré dans le cadre
+                                pdf.set_text_color(74, 111, 165)
+                                pdf.set_font('Arial', 'B', 16)
+                                pdf.set_xy(pos_x + 20, 14)
+                                pdf.cell(0, 18, titre, 0, 1, 'C')
                                 
                                 # ---- RÉFÉRENCE ----
+                                pdf.set_text_color(100, 100, 100)
                                 pdf.set_font('Arial', 'B', 10)
-                                pdf.cell(0, 0, f"DGF-EC / {avi_data['reference']}", 0, 1, 'C')
                                 pdf.ln(8)
+                                pdf.cell(0, 0, f"DGF-EC / {avi_data['reference']}", 0, 1, 'C')
+                                pdf.ln(10)
                                 
-                                # ---- LOGO (flouté en arrière-plan) ----
+                                # =============================================
+                                # LOGO FLOTTANT EN ARRIÈRE-PLAN
+                                # =============================================
                                 try:
                                     logo_path = "assets/logo.png"
                                     if os.path.exists(logo_path):
@@ -3603,88 +3625,107 @@ def show_admin_dashboard():
                                         data = img.getdata()
                                         new_data = []
                                         for item in data:
-                                            new_data.append((item[0], item[1], item[2], int(item[3] * 0.2)))
+                                            new_data.append((item[0], item[1], item[2], int(item[3] * 0.15)))
                                         img.putdata(new_data)
                                         temp_logo = BytesIO()
                                         img.save(temp_logo, format='PNG')
                                         temp_logo.seek(0)
-                                        for position in [(30, 30), (120, 200), (50, 300), (100, 100)]:
+                                        for position in [(30, 80), (120, 200), (50, 300), (100, 100)]:
                                             pdf.image(temp_logo, x=position[0], y=position[1], w=100)
                                 except Exception as e:
-                                    pass  # Continuer sans logo
+                                    pass
                                 
-                                # ---- TEXTE D'INTRODUCTION ----
+                                # =============================================
+                                # TEXTE D'INTRODUCTION AVEC ÉLÉMENTS EN GRAS
+                                # =============================================
+                                pdf.set_text_color(0, 0, 0)
                                 pdf.set_font('Arial', '', 10)
-                                intro_text = [
-                                    "Nous soussignés, Eco Capital (E.C), Société à Responsabilité Limitée (SARL),",
-                                    "constituée conformément au droit OHADA, ayant pour siège social sis au n°1636,",
-                                    "Boulevard Denis Sassou Nguesso Batignolles, Brazzaville , disposons d'un capital",
-                                    "social de 60 000 000 Xaf, soit 91 469,94 euros. Immatriculée au Registre du",
-                                    "Commerce et du Crédit Mobilier sous le numéro RCCM/BZV/B12/00320-",
-                                    "NIUM24000000665934H, et agréée par les autorités monétaires sous le numéro",
-                                    "n°078/MFBPP/ARTF/DR-SAR-BOTC, conformément aux dispositions légales en",
-                                    "vigueur du règlement COBAC EMF R-2017/01.",
-                                    "",
-                                    "Nous certifions par la présente que Monsieur/Madame",
-                                    f"{avi_data['nom_complet']}",
-                                    "détient un compte courant enregistré dans nos livres avec les caractéristiques suivantes :",
-                                    ""
-                                ]
                                 
-                                for line in intro_text:
-                                    pdf.cell(0, 5.5, line, 0, 2)
+                                # Ligne 1: "Nous soussignés, Eco Capital (E.C)"
+                                pdf.set_font('Arial', '', 10)
+                                pdf.cell(0, 5.5, "Nous soussignés, ", 0, 0)
+                                pdf.set_font('Arial', 'B', 10)
+                                pdf.cell(0, 5.5, "Eco Capital (E.C)", 0, 1)
+                                
+                                # Ligne 2: suite
+                                pdf.set_font('Arial', '', 10)
+                                pdf.cell(0, 5.5, "Société à Responsabilité Limitée (SARL), constituée conformément au droit OHADA, ayant pour siège social sis au", 0, 1)
+                                
+                                # Ligne 3: adresse en gras
+                                pdf.set_font('Arial', '', 10)
+                                pdf.cell(0, 5.5, "", 0, 0)
+                                pdf.set_font('Arial', 'B', 10)
+                                pdf.cell(0, 5.5, "n°1636, Boulevard Denis Sassou Nguesso Batignolles, Brazzaville", 0, 1)
+                                
+                                # Ligne 4: suite
+                                pdf.set_font('Arial', '', 10)
+                                pdf.cell(0, 5.5, ", disposons d'un capital social de 60 000 000 Xaf, soit 91 469,94 euros. Immatriculée au Registre du", 0, 1)
+                                pdf.cell(0, 5.5, "Commerce et du Crédit Mobilier sous le numéro RCCM/BZV/B12/00320-", 0, 1)
+                                pdf.cell(0, 5.5, "NIUM24000000665934H, et agréée par les autorités monétaires sous le numéro", 0, 1)
+                                pdf.cell(0, 5.5, "n°078/MFBPP/ARTF/DR-SAR-BOTC, conformément aux dispositions légales en", 0, 1)
+                                pdf.cell(0, 5.5, "vigueur du règlement COBAC EMF R-2017/01.", 0, 2)
+                                
+                                # Ligne: "Nous certifions par la présente que Monsieur/Madame"
+                                pdf.set_font('Arial', '', 10)
+                                pdf.cell(0, 5.5, "Nous certifions par la présente que Monsieur/Madame", 0, 1)
+                                
+                                # Nom du bénéficiaire en gras
+                                pdf.set_font('Arial', 'B', 10)
+                                pdf.cell(0, 5.5, f"{avi_data['nom_complet']}", 0, 1)
+                                
+                                pdf.set_font('Arial', '', 10)
+                                pdf.cell(0, 5.5, "détient un compte courant enregistré dans nos livres avec les caractéristiques suivantes :", 0, 2)
                                 
                                 # ---- INFORMATIONS BANCAIRES ----
                                 pdf.set_font('Arial', 'B', 10)
                                 pdf.cell(45, 6, "CODE BANQUE :", 0, 0)
-                                pdf.set_font('Arial', 'B', 10)
+                                pdf.set_font('Arial', '', 10)
                                 pdf.cell(0, 6, str(avi_data['code_banque']), 0, 1)
                                 
                                 pdf.set_font('Arial', 'B', 10)
                                 pdf.cell(45, 6, "NUMERO DE COMPTE :", 0, 0)
-                                pdf.set_font('Arial', 'B', 10)
+                                pdf.set_font('Arial', '', 10)
                                 pdf.cell(0, 6, str(avi_data['numero_compte']), 0, 1)
                                 
                                 pdf.set_font('Arial', 'B', 10)
                                 pdf.cell(45, 6, "Devise :", 0, 0)
-                                pdf.set_font('Arial', 'B', 10)
+                                pdf.set_font('Arial', '', 10)
                                 pdf.cell(0, 6, str(avi_data['devise']), 0, 1)
                                 pdf.ln(2)
                                 
-                                # ---- DÉTAILS DU VIREMENT ----
-                                # Conversion explicite en float pour la division
+                                # ---- DÉTAILS DU VIREMENT AVEC MONTANT EN GRAS ----
                                 montant_float = float(avi_data['montant'])
                                 montant_lettres = montant_en_lettres(montant_float)
-                                montant_euros = montant_float / 655.957  # Taux de change approximatif
+                                montant_euros = montant_float / 655.957
                                 
-                                virement_text = [
-                                    f"il est l'ordonnateur d'un virement irrévocable et permanent d'un montant total de",
-                                    f"{montant_float:,.0f} FCFA ({montant_lettres}), équivalant actuellement à",
-                                    f"{montant_euros:,.2f} euros, cette somme est destinée à couvrir les frais liés à",
-                                    "ses études en France.",
-                                    "",
-                                    "Il est précisé que ce compte demeurera bloqué jusqu'à la présentation, par le donneur",
-                                    "d'ordre, de ses nouvelles coordonnées bancaires ouvertes en France.",
-                                    "",
-                                    "À défaut, les fonds ne pourront être remis à sa disposition qu'après présentation de son",
-                                    "passeport attestant d'un refus de visa. Toutefois, nous autorisons le donneur d'ordre, à",
-                                    "toutes fins utiles, à utiliser notre compte ouvert auprès de United Bank for Africa (UBA).",
-                                    ""
-                                ]
+                                # Ligne d'introduction
+                                pdf.set_font('Arial', '', 10)
+                                pdf.cell(0, 5.5, "il est l'ordonnateur d'un virement irrévocable et permanent d'un montant total de", 0, 1)
+                                
+                                # Montant en chiffres et en lettres (en gras)
+                                pdf.set_font('Arial', 'B', 10)
+                                pdf.cell(0, 5.5, f"{montant_float:,.0f} FCFA ({montant_lettres})", 0, 1)
                                 
                                 pdf.set_font('Arial', '', 10)
-                                for line in virement_text:
-                                    pdf.cell(0, 5.5, line, 0, 2)
+                                pdf.cell(0, 5.5, f", équivalant actuellement à {montant_euros:,.2f} euros, cette somme est destinée à couvrir les frais liés à", 0, 1)
+                                pdf.cell(0, 5.5, "ses études en France.", 0, 2)
+                                
+                                pdf.cell(0, 5.5, "Il est précisé que ce compte demeurera bloqué jusqu'à la présentation, par le donneur", 0, 1)
+                                pdf.cell(0, 5.5, "d'ordre, de ses nouvelles coordonnées bancaires ouvertes en France.", 0, 2)
+                                
+                                pdf.cell(0, 5.5, "À défaut, les fonds ne pourront être remis à sa disposition qu'après présentation de son", 0, 1)
+                                pdf.cell(0, 5.5, "passeport attestant d'un refus de visa. Toutefois, nous autorisons le donneur d'ordre, à", 0, 1)
+                                pdf.cell(0, 5.5, "toutes fins utiles, à utiliser notre compte ouvert auprès de United Bank for Africa (UBA).", 0, 2)
                                 
                                 # ---- IBAN ET BIC ----
                                 pdf.set_font('Arial', 'B', 10)
                                 pdf.cell(20, 6, "IBAN :", 0, 0)
-                                pdf.set_font('Arial', 'B', 10)
+                                pdf.set_font('Arial', '', 10)
                                 pdf.cell(0, 6, str(avi_data['iban']), 0, 1)
                                 
                                 pdf.set_font('Arial', 'B', 10)
                                 pdf.cell(20, 6, "BIC :", 0, 0)
-                                pdf.set_font('Arial', 'B', 10)
+                                pdf.set_font('Arial', '', 10)
                                 pdf.cell(0, 6, str(avi_data['bic']), 0, 1)
                                 pdf.ln(6)
                                 
@@ -3701,26 +3742,46 @@ def show_admin_dashboard():
                                 pdf.ln(6)
                                 
                                 # ---- DATE ----
-                                pdf.set_font('Arial', 'B', 10)
+                                pdf.set_font('Arial', '', 10)
                                 pdf.cell(0, 6, f"Fait à Brazzaville, le {datetime.now().strftime('%d %B %Y')}", 0, 1, 'R')
                                 pdf.ln(10)
                                 
-                                # ---- PIED DE PAGE ----
+                                # ---- PIED DE PAGE AVEC ÉLÉMENTS EN GRAS ----
                                 pdf.set_font('Arial', 'I', 9)
-                                footer_lines = [
-                                    "Eco capital Sarl Société a responsabilité limité au capital de 60.000.000 XAF",
-                                    "Siège social : 1636 Bd Denis Sassou Nguesso Batignolles Brazzaville",
-                                    "RCCM N°CG/BZV/B12-00320 - NIU N°M24000000665934H",
-                                    "Contacts : 00242 06 113 56 12 /06 113 56 05",
-                                    "Web : www.ecocapitalc.com mail : contacts@ecocapitalc.com",
-                                    "Brazzaville République du Congo"
-                                ]
                                 
-                                pdf.set_y(-35)
-                                for line in footer_lines:
-                                    pdf.cell(0, 4.5, line, 0, 2, 'L')
+                                # Ligne 1: Eco capital Sarl (en gras)
+                                pdf.set_font('Arial', 'B', 9)
+                                pdf.cell(0, 4.5, "Eco capital Sarl", 0, 2, 'L')
                                 
-                                # ---- QR CODE (optionnel) ----
+                                # Ligne 2: suite
+                                pdf.set_font('Arial', '', 9)
+                                pdf.cell(0, 4.5, "Société a responsabilité limité au capital de 60.000.000 XAF", 0, 2, 'L')
+                                
+                                # Ligne 3: adresse
+                                pdf.set_font('Arial', '', 9)
+                                pdf.cell(0, 4.5, "Siège social : 1636 Bd Denis Sassou Nguesso Batignolles Brazzaville", 0, 2, 'L')
+                                
+                                # Ligne 4: RCCM
+                                pdf.set_font('Arial', '', 9)
+                                pdf.cell(0, 4.5, "RCCM N°CG/BZV/B12-00320 - NIU N°M24000000665934H", 0, 2, 'L')
+                                
+                                # Ligne 5: Contacts
+                                pdf.set_font('Arial', '', 9)
+                                pdf.cell(0, 4.5, "Contacts : 00242 06 113 56 12 /06 113 56 05", 0, 2, 'L')
+                                
+                                # Ligne 6: Web (en gras)
+                                pdf.set_font('Arial', 'B', 9)
+                                pdf.cell(0, 4.5, "Web : www.ecocapitale.com", 0, 2, 'L')
+                                
+                                # Ligne 7: Email (en gras)
+                                pdf.set_font('Arial', 'B', 9)
+                                pdf.cell(0, 4.5, "mail : contacts@ecocapitale.com", 0, 2, 'L')
+                                
+                                # Ligne 8: Ville
+                                pdf.set_font('Arial', '', 9)
+                                pdf.cell(0, 4.5, "Brazzaville République du Congo", 0, 2, 'L')
+                                
+                                # ---- QR CODE ----
                                 try:
                                     qr_data = {
                                         "Référence": avi_data['reference'],
@@ -3746,7 +3807,7 @@ def show_admin_dashboard():
                                     img.save(img_bytes, format='PNG')
                                     img_bytes.seek(0)
                                     
-                                    pdf.image(img_bytes, x=150, y=pdf.get_y()-30, w=40)
+                                    pdf.image(img_bytes, x=160, y=pdf.get_y()-50, w=35)
                                 except Exception as e:
                                     pass
                                 
@@ -3790,7 +3851,6 @@ def show_admin_dashboard():
                                 st.error(f"❌ Erreur lors de la génération: {str(e)}")
                                 st.exception(e)
                                 
-                                # Vérifier si le PDF a quand même été créé
                                 if output_path and os.path.exists(output_path):
                                     st.warning("⚠️ Le PDF a été partiellement généré. Vous pouvez le télécharger ci-dessous :")
                                     with open(output_path, "rb") as f:
