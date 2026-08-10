@@ -3562,13 +3562,8 @@ def show_admin_dashboard():
                                 pdf.add_page()
                                 
                                 # ---- AJOUT D'UN FOND DE PAGE COLORÉ ----
-                                pdf.set_fill_color(245, 247, 250)
+                                pdf.set_fill_color(150, 201, 235)
                                 pdf.rect(0, 0, 210, 297, 'F')
-                                
-                                # ---- AJOUT D'UNE BORDURE DÉCORATIVE ----
-                                pdf.set_draw_color(74, 111, 165)
-                                pdf.set_line_width(1.5)
-                                pdf.rect(8, 8, 194, 281)
                                 
                                 # ---- MARGE ----
                                 pdf.set_left_margin(18)
@@ -3579,7 +3574,7 @@ def show_admin_dashboard():
                                     logo_path = "assets/logo.png"
                                     if os.path.exists(logo_path):
                                         # Logo normal (non flouté) en haut à gauche
-                                        pdf.image(logo_path, x=12, y=12, w=50, h=50)
+                                        pdf.image(logo_path, x=12, y=12, w=30, h=30)
                                 except Exception as e:
                                     pass
                                 
@@ -3591,19 +3586,19 @@ def show_admin_dashboard():
                                 title_height = 25
                                 
                                 # Fond de l'encadrement
-                                pdf.set_fill_color(74, 111, 165)  # Bleu institutionnel
+                                pdf.set_fill_color(255, 255, 255)  # Bleu institutionnel
                                 pdf.set_draw_color(74, 111, 165)
                                 pdf.set_line_width(1)
                                 pdf.rect(title_x, title_y, title_width, title_height, 'FD')
                                 
                                 # Texte du titre en blanc
-                                pdf.set_text_color(255, 255, 255)  # Blanc
+                                pdf.set_text_color(0, 0, 0)  # Blanc
                                 pdf.set_font('Arial', 'B', 14)
                                 pdf.set_xy(title_x + 10, title_y + 7)
                                 pdf.cell(title_width - 20, 10, 'ATTESTATION DE VIREMENT IRREVOCABLE', 0, 1, 'C')
                                 
                                 # ---- RÉFÉRENCE ----
-                                pdf.set_text_color(100, 100, 100)
+                                pdf.set_text_color(0, 0, 0)
                                 pdf.set_font('Arial', 'B', 10)
                                 pdf.set_xy(0, title_y + title_height + 5)
                                 pdf.cell(0, 0, f"DGF-EC / {avi_data['reference']}", 0, 1, 'C')
@@ -3627,7 +3622,7 @@ def show_admin_dashboard():
                                         temp_logo = BytesIO()
                                         img.save(temp_logo, format='PNG')
                                         temp_logo.seek(0)
-                                        for position in [(40, 60), (130, 220), (60, 310), (110, 130)]:
+                                        for position in [(30, 30), (120, 200), (50, 300), (100, 100)]:
                                             pdf.image(temp_logo, x=position[0], y=position[1], w=100)
                                 except Exception as e:
                                     pass
