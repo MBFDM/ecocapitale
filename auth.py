@@ -3519,8 +3519,6 @@ def show_admin_dashboard():
                     
                     reference = selected_avi.split(" - ")[0]
                     avi_data = db.get_avi_by_reference(reference)
-
-                    with st.expander("ℹ️ Informations de l'attestation", expanded=False):
                     
                     if st.button("Générer l'Attestation PDF", type="primary"):
                         with st.spinner("Génération en cours..."):
