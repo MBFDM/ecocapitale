@@ -3504,7 +3504,8 @@ def show_admin_dashboard():
                     st.info("Aucune attestation à modifier", icon="ℹ️")
             
             with tab4: 
-                st.subheader("Générer une Attestation")
+                st.subheader("🖨 Générer une Attestation")
+                
                 # Récupérer la liste des AVI
                 avis = db.get_all_avis()
                 
@@ -3520,122 +3521,244 @@ def show_admin_dashboard():
                     reference = selected_avi.split(" - ")[0]
                     avi_data = db.get_avi_by_reference(reference)
                     
-                    if st.button("Générer l'Attestation PDF", type="primary"):
+                    if st.button("🔄 Générer l'Attestation PDF", type="primary"):
                         with st.spinner("Génération en cours..."):
-                            try:                          
-                                # Création du PDF
-                                pdf = FPDF()
-                                pdf.add_page()
-
+                            try:
+                                # === FONCTION DE NETTOYAGE DE TEXTE ===
+                                def sanitize_text(text):
+                                    """Remplace les caractères Unicode problématiques par leurs équivalents ASCII"""
+                                    if not text:
+                                        return text
+                                    
+                                    # Dictionnaire de remplacement
+                                    replacements = {
+                                        '’': "'",      # Apostrophe courbe
+                                        '“': '"',      # Guillemet double courbe gauche
+                                        '”': '"',      # Guillemet double courbe droite
+                                        '–': '-',      # Tiret moyen
+                                        '—': '-',      # Tiret long
+                                        '…': '...',    # Points de suspension
+                                        '\u2018': "'", # Guillemet simple gauche
+                                        '\u2019': "'", # Guillemet simple droite
+                                        '\u201C': '"', # Guillemet double gauche
+                                        '\u201D': '"', # Guillemet double droite
+                                        '\u2013': '-', # Tiret demi-cadratin
+                                        '\u2014': '-', # Tiret cadratin
+                                        '\u2026': '...', # Ellipse horizontale
+                                        '\xa0': ' ',   # Espace insécable
+                                        'é': 'e',
+                                        'è': 'e',
+                                        'ê': 'e',
+                                        'ë': 'e',
+                                        'à': 'a',
+                                        'â': 'a',
+                                        'ä': 'a',
+                                        'ô': 'o',
+                                        'ö': 'o',
+                                        'î': 'i',
+                                        'ï': 'i',
+                                        'ù': 'u',
+                                        'û': 'u',
+                                        'ü': 'u',
+                                        'ç': 'c',
+                                        'Ç': 'C',
+                                        'É': 'E',
+                                        'È': 'E',
+                                        'Ê': 'E',
+                                        'Ë': 'E',
+                                        'À': 'A',
+                                        'Â': 'A',
+                                        'Ä': 'A',
+                                        'Ô': 'O',
+                                        'Ö': 'O',
+                                        'Î': 'I',
+                                        'Ï': 'I',
+                                        'Ù': 'U',
+                                        'Û': 'U',
+                                        'Ü': 'U',
+                                        'Œ': 'OE',
+                                        'œ': 'oe',
+                                    }
+                                    
+                                    for char, replacement in replacements.items():
+                                        text = text.replace(char, replacement)
+                                    
+                                    # Supprimer tout caractère non-ASCII restant
+                                    return ''.join(char if ord(char) < 128 else '?' for char in text)
+                                
+                                # === FONCTION DE CONVERSION MONTANT EN LETTRES ===
                                 def montant_en_lettres(montant):
                                     """Convertit un montant numérique en lettres françaises avec devise"""
-                                    from num2words import num2words
-                                    
-                                    partie_entiere = int(montant)
-                                    partie_decimale = int(round((montant - partie_entiere) * 100))
-                                    
-                                    texte = num2words(partie_entiere, lang='fr')
-                                    
-                                    # Ajout de la devise
-                                    if partie_entiere > 1:
-                                        texte += " francs CFA"
-                                    else:
-                                        texte += " franc CFA"
-                                    
-                                    # Gestion des décimales si nécessaire
-                                    if partie_decimale > 0:
-                                        texte += " et " + num2words(partie_decimale, lang='fr') + " centimes"
-                                    
-                                    return texte.capitalize()
+                                    try:
+                                        from num2words import num2words
+                                        
+                                        # Gestion des montants avec décimales
+                                        montant = float(montant)
+                                        partie_entiere = int(montant)
+                                        partie_decimale = int(round((montant - partie_entiere) * 100))
+                                        
+                                        if partie_entiere == 0 and partie_decimale == 0:
+                                            return "Zéro franc CFA"
+                                        
+                                        texte = ""
+                                        if partie_entiere > 0:
+                                            texte = num2words(partie_entiere, lang='fr')
+                                            if partie_entiere > 1:
+                                                texte += " francs CFA"
+                                            else:
+                                                texte += " franc CFA"
+                                        
+                                        if partie_decimale > 0:
+                                            if partie_entiere > 0:
+                                                texte += " et "
+                                            texte += num2words(partie_decimale, lang='fr')
+                                            if partie_decimale > 1:
+                                                texte += " centimes"
+                                            else:
+                                                texte += " centime"
+                                        
+                                        return texte.capitalize()
+                                    except Exception as e:
+                                        print(f"Erreur conversion montant: {e}")
+                                        return f"{montant:,.0f} francs CFA"
                                 
-                                # ---- Ajout des logos floutés en arrière-plan ----
+                                # === CLASSE PDF AVEC SUPPORT UTF-8 ===
+                                class PDF(FPDF):
+                                    def __init__(self):
+                                        super().__init__()
+                                        # Essayer d'utiliser une police Unicode si disponible
+                                        try:
+                                            # Vérifier si le fichier de police existe
+                                            font_dirs = ["fonts", "font", "assets/fonts"]
+                                            font_found = False
+                                            
+                                            for font_dir in font_dirs:
+                                                if os.path.exists(font_dir):
+                                                    font_path = os.path.join(font_dir, "DejaVuSans.ttf")
+                                                    if os.path.exists(font_path):
+                                                        self.add_font('DejaVu', '', font_path, uni=True)
+                                                        self.set_font('DejaVu', '', 12)
+                                                        font_found = True
+                                                        break
+                                            
+                                            if not font_found:
+                                                # Fallback: utiliser Helvetica mais nettoyer le texte
+                                                self.set_font('helvetica', '', 12)
+                                                self.use_unicode = False
+                                        except Exception:
+                                            self.set_font('helvetica', '', 12)
+                                            self.use_unicode = False
+                                    
+                                    def cell(self, w, h=0, txt='', border=0, ln=0, align='', fill=False, link=''):
+                                        """Override cell pour nettoyer le texte si nécessaire"""
+                                        if not hasattr(self, 'use_unicode') or not self.use_unicode:
+                                            txt = sanitize_text(txt)
+                                        return super().cell(w, h, txt, border, ln, align, fill, link)
+                                    
+                                    def multi_cell(self, w, h, txt, border=0, align='J', fill=False):
+                                        """Override multi_cell pour nettoyer le texte si nécessaire"""
+                                        if not hasattr(self, 'use_unicode') or not self.use_unicode:
+                                            txt = sanitize_text(txt)
+                                        return super().multi_cell(w, h, txt, border, align, fill)
+                                
+                                # === CRÉATION DU PDF ===
+                                pdf = PDF()
+                                pdf.add_page()
+                                
+                                # Dimensions de la page
+                                page_width = pdf.w
+                                page_height = pdf.h
+                                
+                                # === AJOUT DU LOGO EN FILIGRANE ===
                                 try:
                                     logo_path = "assets/logo.png"
-                                    img = Image.open(logo_path)
-                                    
-                                    # Créer une version avec opacité réduite
-                                    if img.mode != 'RGBA':
-                                        img = img.convert('RGBA')
-                                    
-                                    data = img.getdata()
-                                    new_data = []
-                                    for item in data:
-                                        new_data.append((item[0], item[1], item[2], int(item[3] * 0.2)))  # 30% opacity
-                                    img.putdata(new_data)
-                                    
-                                    # Convertir en format utilisable par FPDF
-                                    temp_logo = BytesIO()
-                                    img.save(temp_logo, format='PNG')
-                                    temp_logo.seek(0)
-                                    
-                                    for position in [(30, 30), (120, 200), (50, 300), (100, 100)]:
-                                        pdf.image(temp_logo, x=position[0], y=position[1], w=100)
+                                    if os.path.exists(logo_path):
+                                        # Charger et traiter l'image
+                                        img = Image.open(logo_path)
                                         
+                                        # Créer une version avec opacité réduite
+                                        if img.mode != 'RGBA':
+                                            img = img.convert('RGBA')
+                                        
+                                        data = img.getdata()
+                                        new_data = []
+                                        for item in data:
+                                            new_data.append((item[0], item[1], item[2], int(item[3] * 0.15)))  # 15% d'opacité
+                                        img.putdata(new_data)
+                                        
+                                        # Sauvegarder dans un buffer
+                                        temp_logo = BytesIO()
+                                        img.save(temp_logo, format='PNG')
+                                        temp_logo.seek(0)
+                                        
+                                        # Positions du filigrane
+                                        positions = [
+                                            (30, 30), (120, 200), (50, 300), 
+                                            (100, 100), (150, 350), (30, 150)
+                                        ]
+                                        for pos in positions:
+                                            try:
+                                                pdf.image(temp_logo, x=pos[0], y=pos[1], w=80)
+                                            except:
+                                                pass
                                 except Exception as e:
-                                    st.warning(f"Logo non trouvé ou erreur de traitement: {str(e)}")
+                                    print(f"Erreur logo filigrane: {e}")
                                 
-                                # ---- En-tête ----
-                                pdf.set_font('Arial', 'B', 16)
-                                pdf.cell(0, 30, 'ATTESTATION DE VIREMENT IRREVOCABLE', 0, 1, 'C')
+                                # === EN-TÊTE ===
+                                pdf.set_font('helvetica', 'B', 16)
+                                pdf.cell(0, 25, 'ATTESTATION DE VIREMENT IRREVOCABLE', 0, 1, 'C')
                                 
-                                # Référence du document
-                                pdf.set_font('Arial', 'B', 10)
-                                pdf.cell(0, 0, f"DGF-EC / {avi_data['reference']}", 0, 1, 'C')
+                                pdf.set_font('helvetica', 'B', 10)
+                                pdf.cell(0, 0, f"DGF-EC / {sanitize_text(avi_data['reference'])}", 0, 1, 'C')
                                 pdf.ln(10)
                                 
-                                # ---- Logo et entête ----
+                                # === LOGO PRINCIPAL ===
                                 try:
-                                    pdf.image("assets/logo.png", x=10, y=10, w=30)
+                                    if os.path.exists("assets/logo.png"):
+                                        pdf.image("assets/logo.png", x=10, y=10, w=35)
                                 except:
-                                    pass  # Continue sans logo si non trouvé
+                                    pass
                                 
-                                # Fonction pour texte justifié
-                                def justified_text(text, line_height=5):
-                                    lines = text.split('\n')
-                                    for line in lines:
-                                        if line.strip() == "":
-                                            pdf.ln(line_height)
-                                        else:
-                                            pdf.multi_cell(0, line_height, line, 0, 'J')
-
-                                # ---- Corps du document ----
-                                pdf.set_font('Arial', '', 12)
-                                intro = [
+                                # === TEXTE D'INTRODUCTION ===
+                                intro_lines = [
                                     "Nous, soussignés, Eco Capital (E.C), Société à Responsabilité Limitée (SARL), constituée conformément au",
                                     "droit OHADA, ayant pour siège social sis au n°1636, Boulevard Denis Sassou Nguesso Batignolles",
-                                    "Brazzaville , disposons d’un capital social de 60 000 000 Xaf, soit 91 469,94 euros. Immatriculée au Registre",
+                                    "Brazzaville, disposons d'un capital social de 60 000 000 Xaf, soit 91 469,94 euros. Immatriculée au Registre",
                                     "du Commerce et du Crédit Mobilier sous le numéro RCCM/BZV/B12/00320-NIUM24000000665934H, et",
                                     "agréée par les autorités monétaires sous le numéro n°078/MFBPP/ARTF/DR-SAR-BOTC, conformément aux",
                                     "dispositions légales en vigueur du règlement COBAC EMF R-2017/01.",
-                                    f"Nous certifions par la présente que Monsieur/Madame {avi_data['nom_complet']}",
+                                    f"Nous certifions par la présente que Monsieur/Madame {sanitize_text(avi_data['nom_complet'])}",
                                     "détient un compte courant enregistré dans nos livres avec les caractéristiques suivantes :",
                                     ""
                                 ]
                                 
-                                for line in intro:
-                                    pdf.cell(0, 5, line, 0, 2)
+                                pdf.set_font('helvetica', '', 11)
+                                for line in intro_lines:
+                                    clean_line = sanitize_text(line)
+                                    pdf.cell(0, 5.5, clean_line, 0, 2, 'L')
                                 
-                                # Informations bancaires en gras
-                                pdf.set_font('Arial', 'B', 12)
-                                pdf.cell(40, 5, "CODE BANQUE :", 0, 0)
-                                pdf.set_font('Arial', 'B', 12)
-                                pdf.cell(0, 5, avi_data['code_banque'], 0, 1)
+                                # === INFORMATIONS BANCAIRES ===
+                                bank_info = [
+                                    ("CODE BANQUE :", sanitize_text(avi_data['code_banque'])),
+                                    ("NUMERO COMPTE : ", sanitize_text(avi_data['numero_compte'])),
+                                    ("Devise :", sanitize_text(avi_data.get('devise', 'XAF')))
+                                ]
                                 
-                                pdf.set_font('Arial', 'B', 12)
-                                pdf.cell(45, 5, "NUMERO COMPTE : ", 0, 0)
-                                pdf.set_font('Arial', 'B', 12)
-                                pdf.cell(0, 5, avi_data['numero_compte'], 0, 1)
+                                for label, value in bank_info:
+                                    pdf.set_font('helvetica', 'B', 11)
+                                    pdf.cell(45, 5.5, sanitize_text(label), 0, 0, 'L')
+                                    pdf.set_font('helvetica', '', 11)
+                                    pdf.cell(0, 5.5, value, 0, 1, 'L')
                                 
-                                pdf.set_font('Arial', 'B', 12)
-                                pdf.cell(20, 5, "Devise :", 0, 0)
-                                pdf.set_font('Arial', 'B', 12)
-                                pdf.cell(0, 5, avi_data['devise'], 0, 1)
-                                pdf.ln(5)
+                                pdf.ln(4)
                                 
-                                # ---- Détails du virement ----
-                                details = [
-                                    f"Il est l'ordonnateur d'un virement irrévocable et permanent d'un montant total de {avi_data['montant']} FCFA",
-                                    f"({montant_en_lettres(avi_data['montant'])}), équivalant actuellement à {avi_data['montant']/650} euros,",
+                                # === DÉTAILS DU VIREMENT ===
+                                montant_formate = f"{avi_data['montant']:,.0f}".replace(',', ' ')
+                                montant_lettres = montant_en_lettres(avi_data['montant'])
+                                
+                                details_lines = [
+                                    f"Il est l'ordonnateur d'un virement irrévocable et permanent d'un montant total de {montant_formate} FCFA",
+                                    f"({montant_lettres}), équivalant actuellement à {avi_data['montant']/650:.2f} euros,",
                                     "destiné à couvrir les frais liés à ses études en France.",
                                     "",
                                     "Il est précisé que ce compte demeurera bloqué jusqu'à la présentation, par le donneur",
@@ -3647,149 +3770,121 @@ def show_admin_dashboard():
                                     ""
                                 ]
                                 
-                                for line in details:
-                                    pdf.cell(0, 5, line, 0, 1)
+                                pdf.set_font('helvetica', '', 11)
+                                for line in details_lines:
+                                    clean_line = sanitize_text(line)
+                                    pdf.cell(0, 5.5, clean_line, 0, 1, 'L')
                                 
-                                # ---- Coordonnées bancaires ----
-                                pdf.set_font('Arial', 'B', 12)
-                                pdf.cell(16, 5, "IBAN :", 0, 0)
-                                pdf.set_font('Arial', 'B', 12)
-                                pdf.cell(0, 5, avi_data['iban'], 0, 1)
+                                # === IBAN ET BIC ===
+                                iban_info = [
+                                    ("IBAN :", sanitize_text(avi_data['iban'])),
+                                    ("BIC :", sanitize_text(avi_data['bic']))
+                                ]
                                 
-                                pdf.set_font('Arial', 'B', 12)
-                                pdf.cell(16, 5, "BIC :", 0, 0)
-                                pdf.set_font('Arial', 'B', 12)
-                                pdf.cell(0, 5, avi_data['bic'], 0, 1)
-                                #pdf.ln(10)
+                                for label, value in iban_info:
+                                    pdf.set_font('helvetica', 'B', 11)
+                                    pdf.cell(20, 5.5, label, 0, 0, 'L')
+                                    pdf.set_font('helvetica', '', 11)
+                                    pdf.cell(0, 5.5, value, 0, 1, 'L')
                                 
-                                # ---- Clause de validation ----
-                                pdf.cell(0, 5, "En foi de quoi, cette attestation lui est délivrée pour servir et valoir ce que de droit.", 0, 1)
-                                pdf.ln(10)
-                                
-                                # ---- Date et signature ----
-                                pdf.cell(0, 5, f"Fait à Brazzaville, le {datetime.now().strftime('%d %B %Y')}", 0, 1, 'R')
                                 pdf.ln(5)
                                 
-                                pdf.cell(0, 5, "Rubain MOUNGALA", 0, 1)
-                                pdf.set_font('Arial', 'B', 12)
-                                pdf.cell(0, 5, "Directeur de la Gestion Financière", 0, 1)
+                                # === CLAUSE DE VALIDATION ===
+                                pdf.cell(0, 5.5, "En foi de quoi, cette attestation lui est délivrée pour servir et valoir ce que de droit.", 0, 1, 'L')
+                                pdf.ln(10)
+                                
+                                # === DATE ET SIGNATURE ===
+                                date_str = datetime.now().strftime('%d %B %Y')
+                                pdf.cell(0, 5.5, f"Fait à Brazzaville, le {sanitize_text(date_str)}", 0, 1, 'R')
+                                pdf.ln(5)
+                                
+                                pdf.set_font('helvetica', '', 11)
+                                pdf.cell(0, 5.5, "Rubain MOUNGALA", 0, 1, 'R')
+                                pdf.set_font('helvetica', 'B', 11)
+                                pdf.cell(0, 5.5, "Directeur de la Gestion Financière", 0, 1, 'R')
                                 pdf.ln(15)
                                 
-                                # ---- Pied de page ----
-                                footer = [
+                                # === PIED DE PAGE ===
+                                footer_lines = [
                                     "Eco capital Sarl",
-                                    "Société a responsabilité limité au capital de 60.000.000 XAF",
+                                    "Société à responsabilité limitée au capital de 60.000.000 XAF",
                                     "Siège social : 1636 Boulevard Denis Sassou Nguesso Brazzaville",
-                                    "Contact: 00242 06 931 31 06 /04 001 79 40",
+                                    "Contact: 00242 06 931 31 06 / 04 001 79 40",
                                     "Web : www.ecocapitale.com mail : contacts@ecocapitale.com",
                                     "RCCM N°CG/BZV/B12-00320NIU N°M24000000665934H",
                                     "Brazzaville République du Congo"
                                 ]
                                 
-                                pdf.set_font('Arial', '', 10)
-                                for line in footer:
-                                    pdf.cell(1, 4.5, line, 0, 2, 'L')
-
-                                # ---- Pied de page ----
-                                fin = [
-                                    "The purpose of this AVI is to confirm the existence of an account in our records. The undersigned assumes no obligation or commitment of any kind. This document cannot be considered as a guarantee,",
-                                    "endorsement, surety, or any other similar form of commitment. The signatory disclaims all liability for any damage resulting from the improper, exaggerated, or abusive use of this AVI.",
-                                ]
+                                pdf.set_font('helvetica', 'I', 9)
+                                for line in footer_lines:
+                                    clean_line = sanitize_text(line)
+                                    pdf.cell(1, 4.5, clean_line, 0, 2, 'L')
                                 
-                                pdf.set_font('Arial', '', 4)
-                                for line in fin:
-                                    pdf.cell(1, 4.5, line, 0, 2, 'L')
-
-                                # In the AVI generation code in tab4, add sanitization:
-
-                                # Define the sanitization function outside
-                                def sanitize_text(text):
-                                    """Replace problematic Unicode characters with ASCII equivalents"""
-                                    replacements = {
-                                        '’': "'",
-                                        '“': '"',
-                                        '”': '"',
-                                        '–': '-',
-                                        '—': '-',
-                                        '…': '...',
-                                        '\u2018': "'",
-                                        '\u2019': "'",
-                                        '\u201C': '"',
-                                        '\u201D': '"',
-                                        '\u2013': '-',
-                                        '\u2014': '-',
-                                        '\u2026': '...',
-                                    }
-                                    for char, replacement in replacements.items():
-                                        text = text.replace(char, replacement)
-                                    return text
+                                pdf.ln(2)
                                 
-                                # Then in the PDF generation:
-                                for line in intro:
-                                    line = sanitize_text(line)  # Add this line
-                                    pdf.cell(0, 5, line, 0, 2)
-
-                                for line in fin:
-                                    line = sanitize_text(line)  # Add this fin
-                                    pdf.cell(0, 5, line, 0, 2)
-                                
-                                # Also sanitize other text:
-                                details_sanitized = [sanitize_text(line) for line in details]
-                                for line in details_sanitized:
-                                    pdf.cell(0, 5, line, 0, 1)
-                                
-                                # ---- QR Code ----
-                                qr_data = {
-                                    "Référence": avi_data['reference'],
-                                    "Nom": avi_data['nom_complet'],
-                                    "Code Banque": avi_data['code_banque'],
-                                    "Numéro Compte": avi_data['numero_compte'],
-                                    #"IBAN": avi_data['iban'],
-                                    "BIC": avi_data['bic'],
-                                    "Montant": f"{avi_data['montant']:,.2f} FCFA",
-                                    "Date Création": avi_data['date_creation']
-                                }
-                                
-                                qr = qrcode.QRCode(
-                                    version=1,
-                                    error_correction=qrcode.constants.ERROR_CORRECT_L,
-                                    box_size=3,
-                                    border=2,
+                                # === AVERTISSEMENT LÉGAL ===
+                                legal_text = (
+                                    "The purpose of this AVI is to confirm the existence of an account in our records. "
+                                    "The undersigned assumes no obligation or commitment of any kind. This document cannot "
+                                    "be considered as a guarantee, endorsement, surety, or any other similar form of commitment. "
+                                    "The signatory disclaims all liability for any damage resulting from the improper, exaggerated, "
+                                    "or abusive use of this AVI."
                                 )
+                                pdf.set_font('helvetica', '', 6)
+                                pdf.multi_cell(0, 3.5, sanitize_text(legal_text), 0, 'L')
                                 
-                                qr.add_data(qr_data)
-                                qr.make(fit=True)
+                                # === QR CODE ===
+                                try:
+                                    qr_data = {
+                                        "Référence": avi_data['reference'],
+                                        "Nom": avi_data['nom_complet'],
+                                        "Code Banque": avi_data['code_banque'],
+                                        "Numéro Compte": avi_data['numero_compte'],
+                                        "BIC": avi_data['bic'],
+                                        "Montant": f"{avi_data['montant']:,.0f} FCFA",
+                                        "Date Création": str(avi_data['date_creation'])
+                                    }
+                                    
+                                    qr = qrcode.QRCode(
+                                        version=1,
+                                        error_correction=qrcode.constants.ERROR_CORRECT_L,
+                                        box_size=3,
+                                        border=2,
+                                    )
+                                    
+                                    qr.add_data(str(qr_data))
+                                    qr.make(fit=True)
+                                    
+                                    img_qr = qr.make_image(fill_color="black", back_color="white")
+                                    img_bytes = BytesIO()
+                                    img_qr.save(img_bytes, format='PNG')
+                                    img_bytes.seek(0)
+                                    
+                                    pdf.image(img_bytes, x=150, y=pdf.get_y()-35, w=40)
+                                except Exception as e:
+                                    print(f"Erreur génération QR Code: {e}")
                                 
-                                img = qr.make_image(fill_color="black", back_color="white")
-                                img_bytes = BytesIO()
-                                img.save(img_bytes, format='PNG')
-                                img_bytes.seek(0)
-                                
-                                pdf.image(img_bytes, x=150, y=pdf.get_y()-40, w=40)
-                                pdf.ln(20)
-                                
-                                # ---- Sauvegarde du fichier ----
+                                # === SAUVEGARDE DU FICHIER ===
                                 os.makedirs("avi_documents", exist_ok=True)
                                 output_path = f"avi_documents/AVI_{avi_data['reference']}.pdf"
                                 pdf.output(output_path)
                                 
-                                # ---- Affichage et téléchargement ----
+                                # === AFFICHAGE DU SUCCÈS ===
                                 st.success("✅ Attestation générée avec succès!")
                                 
-                                # Colonnes pour les boutons et la prévisualisation
+                                # === BOUTON DE TÉLÉCHARGEMENT ===
                                 col1, col2 = st.columns([1, 3])
-                                
                                 with col1:
-                                    # Bouton de téléchargement
                                     with open(output_path, "rb") as f:
                                         st.download_button(
                                             "⬇️ Télécharger l'AVI",
                                             data=f,
-                                            file_name=f"AVI_{avi_data['reference']}.pdf",
+                                            file_name=f"AVI_{sanitize_text(avi_data['reference'])}.pdf",
                                             mime="application/pdf",
                                             use_container_width=True
                                         )
-
+                                
+                                # === FONCTION D'AFFICHAGE DU PDF ===
                                 def show_pdf(file_path):
                                     try:
                                         with st.spinner("Chargement du document..."):
@@ -3814,7 +3909,6 @@ def show_admin_dashboard():
                                                 """, unsafe_allow_html=True)
                                     except Exception as e:
                                         st.error(f"Erreur lors du chargement du PDF: {str(e)}")
-                                        st.error("Solution alternative :")
                                         with open(file_path, "rb") as f:
                                             st.download_button(
                                                 "⬇️ Télécharger le document PDF",
@@ -3823,6 +3917,7 @@ def show_admin_dashboard():
                                                 mime="application/pdf"
                                             )
                                 
+                                # === AFFICHAGE DU PDF ===
                                 show_pdf(output_path)
                                 
                             except Exception as e:
