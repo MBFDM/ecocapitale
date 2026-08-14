@@ -3509,346 +3509,292 @@ def show_admin_dashboard():
             # ============================================================
             
             with tab4:
+                st.subheader("📄 Générer une Attestation de Virement Irrévocable")
             
-                st.subheader(
-                    "🖨 Générer une Attestation de Virement Irrévocable (AVI)"
-                )
-            
-                # ========================================================
-                # 1. RÉCUPÉRATION DES AVI
-                # ========================================================
-            
+                # ============================================================
+                # RÉCUPÉRATION DES AVI
+                # ============================================================
                 avis = db.get_all_avis()
             
                 if not avis:
-            
-                    st.warning(
-                        "Aucune attestation disponible à générer."
-                    )
-            
+                    st.warning("Aucune attestation disponible à générer.")
                 else:
-            
-                    # ====================================================
-                    # 2. LISTE DES AVI
-                    # ====================================================
-            
-                    avi_options = [
-                        f"{avi.get('reference', '')} - "
-                        f"{avi.get('nom_complet', '')}"
-                        for avi in avis
-                    ]
             
                     selected_avi = st.selectbox(
                         "Choisir une attestation à générer",
-                        options=avi_options,
+                        options=[
+                            f"{a['reference']} - {a['nom_complet']}"
+                            for a in avis
+                        ],
                         index=0
                     )
             
-                    # ====================================================
-                    # 3. RÉCUPÉRATION DE L'AVI
-                    # ====================================================
-            
-                    reference = selected_avi.split(" - ", 1)[0]
-            
-                    avi_data = db.get_avi_by_reference(
-                        reference
-                    )
+                    reference = selected_avi.split(" - ")[0]
+                    avi_data = db.get_avi_by_reference(reference)
             
                     if not avi_data:
-            
-                        st.error(
-                            "Impossible de récupérer les données de "
-                            "l'attestation sélectionnée."
-                        )
-            
+                        st.error("Impossible de récupérer les informations de cette attestation.")
                     else:
             
-                        # =================================================
-                        # 4. APERÇU DES INFORMATIONS
-                        # =================================================
-            
-                        with st.expander(
-                            "Informations de l'attestation",
-                            expanded=False
-                        ):
-            
-                            col1, col2 = st.columns(2)
-            
-                            with col1:
-            
-                                st.write(
-                                    f"**Référence :** "
-                                    f"{avi_data.get('reference', '')}"
-                                )
-            
-                                st.write(
-                                    f"**Nom complet :** "
-                                    f"{avi_data.get('nom_complet', '')}"
-                                )
-            
-                                st.write(
-                                    f"**Code banque :** "
-                                    f"{avi_data.get('code_banque', '')}"
-                                )
-            
-                                st.write(
-                                    f"**Numéro de compte :** "
-                                    f"{avi_data.get('numero_compte', '')}"
-                                )
-            
-                            with col2:
-            
-                                st.write(
-                                    f"**Devise :** "
-                                    f"{avi_data.get('devise', 'XAF')}"
-                                )
-            
-                                st.write(
-                                    f"**Montant :** "
-                                    f"{avi_data.get('montant', 0)} FCFA"
-                                )
-            
-                                st.write(
-                                    f"**IBAN :** "
-                                    f"{avi_data.get('iban', '')}"
-                                )
-            
-                                st.write(
-                                    f"**BIC :** "
-                                    f"{avi_data.get('bic', '')}"
-                                )
-            
-                        # =================================================
-                        # 5. BOUTON DE GENERATION
-                        # =================================================
-            
+                        # ========================================================
+                        # BOUTON DE GÉNÉRATION
+                        # ========================================================
                         if st.button(
-                            "Générer l'Attestation PDF",
+                            "📄 Générer l'Attestation PDF",
                             type="primary",
                             use_container_width=True
                         ):
             
-                            output_path = None
-            
-                            with st.spinner(
-                                "Génération du document PDF en cours..."
-                            ):
+                            with st.spinner("Génération du document en cours..."):
             
                                 try:
-            
-                                    # =====================================
+                                    # ====================================================
                                     # IMPORTS
-                                    # =====================================
-
-                                    import unicodedata
-                                    from num2words import num2words
+                                    # ====================================================
+                                    #import os
+                                    #import base64
+                                    #import math
+                                    #from io import BytesIO
+                                    #from datetime import datetime
             
-                                    # =====================================
-                                    # FONCTION DE NETTOYAGE UNICODE
-                                    # =====================================
+                                    #import qrcode
+                                    #from PIL import Image, ImageEnhance
             
-                                    def nettoyer_texte_pdf(texte):
+                                    #from fpdf import FPDF
             
-                                        if texte is None:
+                                    # ====================================================
+                                    # DOSSIER DE SORTIE
+                                    # ====================================================
+                                    os.makedirs("avi_documents", exist_ok=True)
+            
+                                    output_path = os.path.join(
+                                        "avi_documents",
+                                        f"AVI_{avi_data['reference']}.pdf"
+                                    )
+            
+                                    # ====================================================
+                                    # FONCTION : MONTANT EN LETTRES
+                                    # ====================================================
+                                    def montant_en_lettres(montant):
+            
+                                        try:
+                                            from num2words import num2words
+            
+                                            partie_entiere = int(montant)
+            
+                                            partie_decimale = int(
+                                                round(
+                                                    (float(montant) - partie_entiere) * 100
+                                                )
+                                            )
+            
+                                            texte = num2words(
+                                                partie_entiere,
+                                                lang="fr"
+                                            )
+            
+                                            if partie_entiere > 1:
+                                                texte += " francs CFA"
+                                            else:
+                                                texte += " franc CFA"
+            
+                                            if partie_decimale > 0:
+                                                texte += (
+                                                    " et "
+                                                    + num2words(
+                                                        partie_decimale,
+                                                        lang="fr"
+                                                    )
+                                                    + " centimes"
+                                                )
+            
+                                            return texte.capitalize()
+            
+                                        except Exception:
+                                            return f"{montant:,.0f} francs CFA"
+            
+                                    # ====================================================
+                                    # FONCTION : FORMATAGE DU MONTANT
+                                    # ====================================================
+                                    def format_fcfa(montant):
+                                        try:
+                                            return f"{float(montant):,.0f}".replace(
+                                                ",", " "
+                                            )
+                                        except Exception:
+                                            return str(montant)
+            
+                                    # ====================================================
+                                    # FONCTION : TEXTE SÛR POUR FPDF
+                                    # ====================================================
+                                    def clean_text(text):
+                                        if text is None:
                                             return ""
             
-                                        texte = str(texte)
+                                        text = str(text)
             
-                                        # Caractères typographiques
-                                        remplacements = {
-            
-                                            "—": "-",
-                                            "–": "-",
-                                            "-": "-",
-            
-                                            "’": "'",
-                                            "‘": "'",
-            
-                                            "“": '"',
-                                            "”": '"',
-            
-                                            "…": "...",
-            
-                                            "œ": "oe",
-                                            "Œ": "OE",
-            
+                                        replacements = {
+                                            "\u2014": "-",   # em dash
+                                            "\u2013": "-",   # en dash
+                                            "\u2018": "'",
+                                            "\u2019": "'",
+                                            "\u201c": '"',
+                                            "\u201d": '"',
                                             "\u00a0": " ",
                                         }
             
-                                        for ancien, nouveau in remplacements.items():
+                                        for old, new in replacements.items():
+                                            text = text.replace(old, new)
             
-                                            texte = texte.replace(
-                                                ancien,
-                                                nouveau
+                                        return text
+            
+                                    # ====================================================
+                                    # CLASSE PDF
+                                    # ====================================================
+                                    class AVIPDF(FPDF):
+            
+                                        def header(self):
+                                            pass
+            
+                                        def footer(self):
+                                            pass
+            
+                                        def watermark(self):
+            
+                                            self.set_font(
+                                                "DejaVu",
+                                                "B",
+                                                42
                                             )
             
-                                        # Suppression des accents
-                                        texte = unicodedata.normalize(
-                                            "NFKD",
-                                            texte
-                                        )
-            
-                                        texte = "".join(
-                                            caractere
-                                            for caractere in texte
-                                            if not unicodedata.combining(
-                                                caractere
-                                            )
-                                        )
-            
-                                        return texte
-            
-                                    # =====================================
-                                    # FONCTION MONTANT EN LETTRES
-                                    # =====================================
-            
-                                    def montant_en_lettres(
-                                        montant
-                                    ):
-            
-                                        montant_float = float(
-                                            montant
-                                        )
-            
-                                        partie_entiere = int(
-                                            montant_float
-                                        )
-            
-                                        partie_decimale = int(
-                                            round(
-                                                (
-                                                    montant_float
-                                                    - partie_entiere
-                                                ) * 100
-                                            )
-                                        )
-            
-                                        texte = num2words(
-                                            partie_entiere,
-                                            lang="fr"
-                                        )
-            
-                                        if partie_entiere > 1:
-            
-                                            texte += (
-                                                " francs CFA"
+                                            self.set_text_color(
+                                                220,
+                                                220,
+                                                220
                                             )
             
-                                        else:
+                                            # Filigrane central
+                                            self.rotate(35, 105, 150)
             
-                                            texte += (
-                                                " franc CFA"
+                                            self.set_xy(
+                                                20,
+                                                140
                                             )
             
-                                        if partie_decimale > 0:
-            
-                                            texte += (
-                                                " et "
-                                                + num2words(
-                                                    partie_decimale,
-                                                    lang="fr"
-                                                )
-                                                + " centimes"
+                                            self.cell(
+                                                170,
+                                                20,
+                                                "SPECIMEN - NON OFFICIEL",
+                                                align="C"
                                             )
             
-                                        return nettoyer_texte_pdf(
-                                            texte.capitalize()
-                                        )
+                                            self.rotate(0)
             
-                                    # =====================================
-                                    # RECUPERATION DES DONNEES
-                                    # =====================================
+                                            self.set_text_color(
+                                                0,
+                                                0,
+                                                0
+                                            )
             
-                                    reference = nettoyer_texte_pdf(
-                                        avi_data.get(
-                                            "reference",
-                                            ""
-                                        )
-                                    )
-            
-                                    nom_complet = nettoyer_texte_pdf(
-                                        avi_data.get(
-                                            "nom_complet",
-                                            ""
-                                        )
-                                    )
-            
-                                    code_banque = nettoyer_texte_pdf(
-                                        avi_data.get(
-                                            "code_banque",
-                                            ""
-                                        )
-                                    )
-            
-                                    numero_compte = nettoyer_texte_pdf(
-                                        avi_data.get(
-                                            "numero_compte",
-                                            ""
-                                        )
-                                    )
-            
-                                    devise = nettoyer_texte_pdf(
-                                        avi_data.get(
-                                            "devise",
-                                            "XAF"
-                                        )
-                                    )
-            
-                                    iban = nettoyer_texte_pdf(
-                                        avi_data.get(
-                                            "iban",
-                                            ""
-                                        )
-                                    )
-            
-                                    bic = nettoyer_texte_pdf(
-                                        avi_data.get(
-                                            "bic",
-                                            ""
-                                        )
-                                    )
-            
-                                    montant = float(
-                                        avi_data.get(
-                                            "montant",
-                                            0
-                                        )
-                                    )
-            
-                                    montant_lettres = (
-                                        montant_en_lettres(
-                                            montant
-                                        )
-                                    )
-            
-                                    montant_euros = (
-                                        montant / 655.957
-                                    )
-            
-                                    # =====================================
-                                    # CREATION PDF
-                                    # =====================================
-            
-                                    pdf = FPDF(
+                                    # ====================================================
+                                    # CRÉATION DU PDF
+                                    # ====================================================
+                                    pdf = AVIPDF(
                                         orientation="P",
                                         unit="mm",
                                         format="A4"
                                     )
             
                                     pdf.set_auto_page_break(
-                                        auto=False
+                                        auto=True,
+                                        margin=18
+                                    )
+            
+                                    pdf.set_margins(
+                                        15,
+                                        12,
+                                        15
                                     )
             
                                     pdf.add_page()
             
-                                    # =====================================
-                                    # FOND
-                                    # =====================================
+                                    # ====================================================
+                                    # POLICE UNICODE
+                                    # ====================================================
+                                    font_regular = None
+                                    font_bold = None
             
+                                    possible_fonts = [
+                                        (
+                                            "C:/Windows/Fonts/DejaVuSans.ttf",
+                                            "C:/Windows/Fonts/DejaVuSans-Bold.ttf"
+                                        ),
+                                        (
+                                            "/usr/share/fonts/truetype/dejavu/"
+                                            "DejaVuSans.ttf",
+                                            "/usr/share/fonts/truetype/dejavu/"
+                                            "DejaVuSans-Bold.ttf"
+                                        ),
+                                    ]
+            
+                                    for regular, bold in possible_fonts:
+            
+                                        if (
+                                            os.path.exists(regular)
+                                            and os.path.exists(bold)
+                                        ):
+                                            font_regular = regular
+                                            font_bold = bold
+                                            break
+            
+                                    if font_regular and font_bold:
+            
+                                        pdf.add_font(
+                                            "DejaVu",
+                                            "",
+                                            font_regular
+                                        )
+            
+                                        pdf.add_font(
+                                            "DejaVu",
+                                            "B",
+                                            font_bold
+                                        )
+            
+                                    else:
+            
+                                        # Fallback
+                                        font_regular = None
+                                        font_bold = None
+            
+                                    # ====================================================
+                                    # FONCTION POLICE
+                                    # ====================================================
+                                    def set_font(size=11, bold=False):
+            
+                                        if font_regular:
+            
+                                            pdf.set_font(
+                                                "DejaVu",
+                                                "B" if bold else "",
+                                                size
+                                            )
+            
+                                        else:
+            
+                                            pdf.set_font(
+                                                "Helvetica",
+                                                "B" if bold else "",
+                                                size
+                                            )
+            
+                                    # ====================================================
+                                    # FOND DU DOCUMENT
+                                    # ====================================================
                                     pdf.set_fill_color(
-                                        248,
-                                        249,
-                                        251
+                                        255,
+                                        255,
+                                        255
                                     )
             
                                     pdf.rect(
@@ -3859,1200 +3805,687 @@ def show_admin_dashboard():
                                         "F"
                                     )
             
-                                    # =====================================
-                                    # MARGES
-                                    # =====================================
-            
-                                    pdf.set_left_margin(
-                                        18
-                                    )
-            
-                                    pdf.set_right_margin(
-                                        18
-                                    )
-            
-                                    # =====================================
+                                    # ====================================================
                                     # FILIGRANE
-                                    # =====================================
+                                    # ====================================================
+                                    pdf.watermark()
             
-                                    pdf.set_text_color(
-                                        225,
-                                        225,
-                                        225
-                                    )
-            
-                                    pdf.set_font(
-                                        "Arial",
-                                        "B",
-                                        24
-                                    )
-            
-                                    pdf.set_xy(
-                                        20,
-                                        140
-                                    )
-            
-                                    pdf.cell(
-                                        170,
-                                        10,
-                                        nettoyer_texte_pdf(
-                                            "DOCUMENT DE DEMONSTRATION"
-                                        ),
-                                        0,
-                                        1,
-                                        "C"
-                                    )
-            
-                                    pdf.set_font(
-                                        "Arial",
-                                        "B",
-                                        9
-                                    )
-            
-                                    pdf.set_xy(
-                                        20,
-                                        151
-                                    )
-            
-                                    pdf.cell(
-                                        170,
-                                        6,
-                                        nettoyer_texte_pdf(
-                                            "NON VALABLE COMME DOCUMENT OFFICIEL"
-                                        ),
-                                        0,
-                                        1,
-                                        "C"
-                                    )
-            
-                                    pdf.set_text_color(
-                                        0,
-                                        0,
-                                        0
-                                    )
-            
-                                    # =====================================
+                                    # ====================================================
                                     # LOGO
-                                    # =====================================
+                                    # ====================================================
+                                    logo_path = "assets/logo.png"
             
-                                    logo_path = (
-                                        "assets/logo.png"
-                                    )
+                                    if os.path.exists(logo_path):
             
-                                    try:
-            
-                                        if os.path.exists(
-                                            logo_path
-                                        ):
+                                        try:
             
                                             pdf.image(
                                                 logo_path,
-                                                x=18,
+                                                x=15,
                                                 y=10,
-                                                w=30,
-                                                h=30
+                                                w=32
                                             )
             
-                                    except Exception:
+                                        except Exception:
+                                            pass
             
-                                        pass
-            
-                                    # =====================================
-                                    # TITRE
-                                    # =====================================
-            
-                                    pdf.set_fill_color(
-                                        255,
-                                        255,
-                                        255
+                                    # ====================================================
+                                    # EN-TÊTE
+                                    # ====================================================
+                                    pdf.set_xy(
+                                        50,
+                                        12
                                     )
             
-                                    pdf.set_draw_color(
-                                        74,
-                                        111,
-                                        165
-                                    )
-            
-                                    pdf.set_line_width(
-                                        1.2
-                                    )
-            
-                                    pdf.rect(
-                                        45,
-                                        8,
-                                        125,
-                                        32,
-                                        "DF"
+                                    set_font(
+                                        15,
+                                        True
                                     )
             
                                     pdf.set_text_color(
-                                        74,
-                                        111,
-                                        165
-                                    )
-            
-                                    pdf.set_font(
-                                        "Arial",
-                                        "B",
-                                        13
-                                    )
-            
-                                    pdf.set_xy(
-                                        45,
-                                        13
+                                        30,
+                                        70,
+                                        110
                                     )
             
                                     pdf.cell(
-                                        125,
+                                        145,
                                         8,
-                                        nettoyer_texte_pdf(
-                                            "ATTESTATION DE"
+                                        clean_text(
+                                            "ATTESTATION DE VIREMENT IRREVOCABLE"
                                         ),
-                                        0,
-                                        1,
-                                        "C"
+                                        align="C"
                                     )
             
-                                    pdf.set_xy(
-                                        45,
-                                        21
+                                    pdf.ln(10)
+            
+                                    # ====================================================
+                                    # RÉFÉRENCE
+                                    # ====================================================
+                                    set_font(
+                                        9,
+                                        True
                                     )
-            
-                                    pdf.cell(
-                                        125,
-                                        8,
-                                        nettoyer_texte_pdf(
-                                            "VIREMENT IRREVOCABLE"
-                                        ),
-                                        0,
-                                        1,
-                                        "C"
-                                    )
-            
-                                    # =====================================
-                                    # REFERENCE
-                                    # =====================================
-            
-                                    pdf.set_text_color(
-                                        90,
-                                        90,
-                                        90
-                                    )
-            
-                                    pdf.set_font(
-                                        "Arial",
-                                        "B",
-                                        8
-                                    )
-            
-                                    pdf.set_xy(
-                                        45,
-                                        31
-                                    )
-            
-                                    pdf.cell(
-                                        125,
-                                        5,
-                                        f"DGF-EC / {reference}",
-                                        0,
-                                        1,
-                                        "C"
-                                    )
-            
-                                    # =====================================
-                                    # LOGOS EN FILIGRANE
-                                    # =====================================
-            
-                                    try:
-            
-                                        if os.path.exists(
-                                            logo_path
-                                        ):
-            
-                                            img = Image.open(
-                                                logo_path
-                                            ).convert(
-                                                "RGBA"
-                                            )
-            
-                                            data = img.getdata()
-            
-                                            new_data = []
-            
-                                            for item in data:
-            
-                                                new_data.append(
-                                                    (
-                                                        item[0],
-                                                        item[1],
-                                                        item[2],
-                                                        int(
-                                                            item[3] * 0.10
-                                                        )
-                                                    )
-                                                )
-            
-                                            img.putdata(
-                                                new_data
-                                            )
-            
-                                            temp_logo = (
-                                                BytesIO()
-                                            )
-            
-                                            img.save(
-                                                temp_logo,
-                                                format="PNG"
-                                            )
-            
-                                            positions = [
-                                                (35, 80),
-                                                (130, 200),
-                                                (60, 250),
-                                                (110, 140)
-                                            ]
-            
-                                            for x, y in positions:
-            
-                                                temp_logo.seek(
-                                                    0
-                                                )
-            
-                                                pdf.image(
-                                                    temp_logo,
-                                                    x=x,
-                                                    y=y,
-                                                    w=55
-                                                )
-            
-                                    except Exception:
-            
-                                        pass
-            
-                                    # =====================================
-                                    # DEBUT DU CORPS
-                                    # =====================================
             
                                     pdf.set_text_color(
                                         0,
                                         0,
                                         0
-                                    )
-            
-                                    pdf.set_font(
-                                        "Arial",
-                                        "",
-                                        10
-                                    )
-            
-                                    pdf.set_xy(
-                                        18,
-                                        53
-                                    )
-            
-                                    # =====================================
-                                    # INTRODUCTION
-                                    # =====================================
-            
-                                    pdf.cell(
-                                        35,
-                                        5.5,
-                                        "Nous soussignes,",
-                                        0,
-                                        0
-                                    )
-            
-                                    pdf.set_font(
-                                        "Arial",
-                                        "B",
-                                        10
-                                    )
-            
-                                    pdf.cell(
-                                        40,
-                                        5.5,
-                                        "Eco Capital (E.C)",
-                                        0,
-                                        0
-                                    )
-            
-                                    pdf.set_font(
-                                        "Arial",
-                                        "",
-                                        10
-                                    )
-            
-                                    pdf.cell(
-                                        0,
-                                        5.5,
-                                        ", Societe a Responsabilite Limitee (SARL),",
-                                        0,
-                                        1
-                                    )
-            
-                                    pdf.cell(
-                                        0,
-                                        5.5,
-                                        "constituee conformement au droit OHADA, ayant pour siege social sis au",
-                                        0,
-                                        1
-                                    )
-            
-                                    pdf.set_font(
-                                        "Arial",
-                                        "B",
-                                        10
-                                    )
-            
-                                    pdf.cell(
-                                        0,
-                                        5.5,
-                                        "n°1636, Boulevard Denis Sassou Nguesso Batignolles, Brazzaville",
-                                        0,
-                                        1
-                                    )
-            
-                                    pdf.set_font(
-                                        "Arial",
-                                        "",
-                                        10
-                                    )
-            
-                                    pdf.cell(
-                                        0,
-                                        5.5,
-                                        "disposons d'un capital social de 60 000 000 XAF, soit 91 469,94 euros.",
-                                        0,
-                                        1
-                                    )
-            
-                                    pdf.cell(
-                                        0,
-                                        5.5,
-                                        "Immatriculee au Registre du Commerce et du Credit Mobilier sous le numero",
-                                        0,
-                                        1
-                                    )
-            
-                                    pdf.cell(
-                                        0,
-                                        5.5,
-                                        "RCCM/BZV/B12/00320-NIUM24000000665934H, et agreee par les autorites monetaires",
-                                        0,
-                                        1
-                                    )
-            
-                                    pdf.cell(
-                                        0,
-                                        5.5,
-                                        "sous le numero n°078/MFBPP/ARTF/DR-SAR-BOTC, conformement aux dispositions",
-                                        0,
-                                        1
-                                    )
-            
-                                    pdf.cell(
-                                        0,
-                                        5.5,
-                                        "legales en vigueur du reglement COBAC EMF R-2017/01.",
-                                        0,
-                                        1
-                                    )
-            
-                                    pdf.ln(
-                                        3
-                                    )
-            
-                                    # =====================================
-                                    # CERTIFICATION
-                                    # =====================================
-            
-                                    pdf.cell(
-                                        0,
-                                        5.5,
-                                        "Nous certifions par la presente que Monsieur/Madame",
-                                        0,
-                                        1
-                                    )
-            
-                                    pdf.set_font(
-                                        "Arial",
-                                        "B",
-                                        10
-                                    )
-            
-                                    pdf.cell(
-                                        0,
-                                        5.5,
-                                        nom_complet,
-                                        0,
-                                        1
-                                    )
-            
-                                    pdf.set_font(
-                                        "Arial",
-                                        "",
-                                        10
-                                    )
-            
-                                    pdf.cell(
-                                        0,
-                                        5.5,
-                                        "detient un compte courant enregistre dans nos livres avec les caracteristiques suivantes :",
-                                        0,
-                                        1
-                                    )
-            
-                                    pdf.ln(
-                                        2
-                                    )
-            
-                                    # =====================================
-                                    # FONCTION LIGNE INFORMATION
-                                    # =====================================
-            
-                                    def ligne_information(
-                                        label,
-                                        valeur
-                                    ):
-            
-                                        pdf.set_font(
-                                            "Arial",
-                                            "B",
-                                            10
-                                        )
-            
-                                        pdf.cell(
-                                            45,
-                                            6,
-                                            nettoyer_texte_pdf(
-                                                label
-                                            ),
-                                            0,
-                                            0
-                                        )
-            
-                                        pdf.set_font(
-                                            "Arial",
-                                            "",
-                                            10
-                                        )
-            
-                                        pdf.cell(
-                                            0,
-                                            6,
-                                            nettoyer_texte_pdf(
-                                                valeur
-                                            ),
-                                            0,
-                                            1
-                                        )
-            
-                                    # =====================================
-                                    # INFORMATIONS BANCAIRES
-                                    # =====================================
-            
-                                    ligne_information(
-                                        "CODE BANQUE :",
-                                        code_banque
-                                    )
-            
-                                    ligne_information(
-                                        "NUMERO DE COMPTE :",
-                                        numero_compte
-                                    )
-            
-                                    ligne_information(
-                                        "Devise :",
-                                        devise
-                                    )
-            
-                                    pdf.ln(
-                                        2
-                                    )
-            
-                                    # =====================================
-                                    # DETAILS DU VIREMENT
-                                    # =====================================
-            
-                                    pdf.set_font(
-                                        "Arial",
-                                        "",
-                                        10
-                                    )
-            
-                                    pdf.cell(
-                                        0,
-                                        5.5,
-                                        "il est l'ordonnateur d'un virement irrevocable et permanent d'un montant total de",
-                                        0,
-                                        1
-                                    )
-            
-                                    pdf.set_font(
-                                        "Arial",
-                                        "B",
-                                        10
-                                    )
-            
-                                    pdf.cell(
-                                        0,
-                                        5.5,
-                                        nettoyer_texte_pdf(
-                                            f"{montant:,.0f} FCFA "
-                                            f"({montant_lettres}),"
-                                        ),
-                                        0,
-                                        1
-                                    )
-            
-                                    pdf.set_font(
-                                        "Arial",
-                                        "",
-                                        10
-                                    )
-            
-                                    pdf.cell(
-                                        0,
-                                        5.5,
-                                        nettoyer_texte_pdf(
-                                            f"equivalant actuellement a "
-                                            f"{montant_euros:,.2f} euros, "
-                                            "cette somme est destinee a couvrir "
-                                            "les frais lies a"
-                                        ),
-                                        0,
-                                        1
-                                    )
-            
-                                    pdf.cell(
-                                        0,
-                                        5.5,
-                                        "ses etudes en France.",
-                                        0,
-                                        1
-                                    )
-            
-                                    pdf.ln(
-                                        3
-                                    )
-            
-                                    # =====================================
-                                    # BLOCAGE DU COMPTE
-                                    # =====================================
-            
-                                    pdf.cell(
-                                        0,
-                                        5.5,
-                                        "Il est precise que ce compte demeurera bloque jusqu'a la presentation, par le donneur",
-                                        0,
-                                        1
-                                    )
-            
-                                    pdf.cell(
-                                        0,
-                                        5.5,
-                                        "d'ordre, de ses nouvelles coordonnees bancaires ouvertes en France.",
-                                        0,
-                                        1
-                                    )
-            
-                                    pdf.ln(
-                                        3
-                                    )
-            
-                                    pdf.cell(
-                                        0,
-                                        5.5,
-                                        "A defaut, les fonds ne pourront etre remis a sa disposition qu'apres presentation de son",
-                                        0,
-                                        1
-                                    )
-            
-                                    pdf.cell(
-                                        0,
-                                        5.5,
-                                        "passeport attestant d'un refus de visa. Toutefois, nous autorisons le donneur d'ordre, a",
-                                        0,
-                                        1
-                                    )
-            
-                                    pdf.cell(
-                                        0,
-                                        5.5,
-                                        "toutes fins utiles, a utiliser notre compte ouvert aupres de United Bank for Africa (UBA).",
-                                        0,
-                                        1
-                                    )
-            
-                                    pdf.ln(
-                                        3
-                                    )
-            
-                                    # =====================================
-                                    # IBAN / BIC
-                                    # =====================================
-            
-                                    ligne_information(
-                                        "IBAN :",
-                                        iban
-                                    )
-            
-                                    ligne_information(
-                                        "BIC :",
-                                        bic
-                                    )
-            
-                                    pdf.ln(
-                                        5
-                                    )
-            
-                                    # =====================================
-                                    # CLAUSE FINALE
-                                    # =====================================
-            
-                                    pdf.set_font(
-                                        "Arial",
-                                        "",
-                                        10
                                     )
             
                                     pdf.cell(
                                         0,
                                         6,
-                                        "En foi de quoi, cette attestation lui est delivree pour servir et valoir ce que de droit.",
-                                        0,
-                                        1
+                                        clean_text(
+                                            f"DGF-EC / {avi_data['reference']}"
+                                        ),
+                                        align="C"
                                     )
             
-                                    pdf.ln(
-                                        6
-                                    )
+                                    pdf.ln(8)
             
-                                    # =====================================
-                                    # SIGNATURE - SPECIMEN
-                                    # =====================================
-            
-                                    signature_y = (
-                                        pdf.get_y()
-                                    )
-            
+                                    # ====================================================
+                                    # LIGNE DE SÉPARATION
+                                    # ====================================================
                                     pdf.set_draw_color(
-                                        160,
-                                        160,
-                                        160
+                                        40,
+                                        90,
+                                        130
                                     )
             
                                     pdf.set_line_width(
                                         0.5
                                     )
             
-                                    pdf.rect(
-                                        133,
-                                        signature_y,
-                                        58,
-                                        32
+                                    pdf.line(
+                                        15,
+                                        pdf.get_y(),
+                                        195,
+                                        pdf.get_y()
+                                    )
+            
+                                    pdf.ln(7)
+            
+                                    # ====================================================
+                                    # CORPS DU DOCUMENT
+                                    # ====================================================
+                                    set_font(
+                                        10.5,
+                                        False
                                     )
             
                                     pdf.set_text_color(
-                                        130,
-                                        130,
-                                        130
+                                        25,
+                                        25,
+                                        25
                                     )
             
-                                    pdf.set_font(
-                                        "Arial",
-                                        "B",
-                                        8
+                                    intro = (
+                                        "Nous, soussignés, Eco Capital (E.C), "
+                                        "Société à Responsabilité Limitée (SARL), "
+                                        "constituée conformément au droit OHADA, "
+                                        "ayant pour siège social sis au n°1636, "
+                                        "Boulevard Denis Sassou Nguesso Batignolles, "
+                                        "Brazzaville, disposons d'un capital social "
+                                        "de 60 000 000 XAF, soit 91 469,94 euros."
+                                    )
+            
+                                    pdf.multi_cell(
+                                        180,
+                                        5.5,
+                                        clean_text(intro),
+                                        align="J"
+                                    )
+            
+                                    pdf.ln(3)
+            
+                                    intro2 = (
+                                        "Immatriculée au Registre du Commerce et "
+                                        "du Crédit Mobilier sous le numéro "
+                                        "RCCM/BZV/B12/00320-NIUM24000000665934H."
+                                    )
+            
+                                    pdf.multi_cell(
+                                        180,
+                                        5.5,
+                                        clean_text(intro2),
+                                        align="J"
+                                    )
+            
+                                    pdf.ln(5)
+            
+                                    # ====================================================
+                                    # CERTIFICATION
+                                    # ====================================================
+                                    certif = (
+                                        "Nous certifions par la présente que "
+                                        f"{avi_data['nom_complet']} détient un compte "
+                                        "courant enregistré dans nos livres avec "
+                                        "les caractéristiques suivantes :"
+                                    )
+            
+                                    pdf.multi_cell(
+                                        180,
+                                        5.5,
+                                        clean_text(certif),
+                                        align="J"
+                                    )
+            
+                                    pdf.ln(5)
+            
+                                    # ====================================================
+                                    # INFORMATIONS DU COMPTE
+                                    # ====================================================
+                                    def info_ligne(label, valeur):
+            
+                                        set_font(
+                                            10.5,
+                                            True
+                                        )
+            
+                                        pdf.cell(
+                                            43,
+                                            6,
+                                            clean_text(label),
+                                            border=0
+                                        )
+            
+                                        set_font(
+                                            10.5,
+                                            False
+                                        )
+            
+                                        pdf.cell(
+                                            137,
+                                            6,
+                                            clean_text(valeur),
+                                            border=0
+                                        )
+            
+                                        pdf.ln(6)
+            
+                                    info_ligne(
+                                        "CODE BANQUE :",
+                                        avi_data.get(
+                                            "code_banque",
+                                            "30001"
+                                        )
+                                    )
+            
+                                    info_ligne(
+                                        "NUMERO DE COMPTE :",
+                                        avi_data.get(
+                                            "numero_compte",
+                                            "08690251363-78"
+                                        )
+                                    )
+            
+                                    info_ligne(
+                                        "DEVISE :",
+                                        avi_data.get(
+                                            "devise",
+                                            "XAF"
+                                        )
+                                    )
+            
+                                    pdf.ln(3)
+            
+                                    # ====================================================
+                                    # MONTANT
+                                    # ====================================================
+                                    montant = float(
+                                        avi_data.get(
+                                            "montant",
+                                            5000000
+                                        )
+                                    )
+            
+                                    montant_texte = montant_en_lettres(
+                                        montant
+                                    )
+            
+                                    montant_euros = montant / 650
+            
+                                    details = (
+                                        "Il est l'ordonnateur d'un virement "
+                                        "irrévocable et permanent d'un montant total "
+                                        f"de {format_fcfa(montant)} FCFA "
+                                        f"({montant_texte}), équivalant actuellement "
+                                        f"à {montant_euros:,.2f} euros, cette somme "
+                                        "est destinée à couvrir les frais liés à "
+                                        "ses études en France."
+                                    )
+            
+                                    pdf.multi_cell(
+                                        180,
+                                        5.5,
+                                        clean_text(details),
+                                        align="J"
+                                    )
+            
+                                    pdf.ln(4)
+            
+                                    blocage = (
+                                        "Il est précisé que ce compte demeurera "
+                                        "bloqué jusqu'à la présentation, par le "
+                                        "donneur d'ordre, de ses nouvelles "
+                                        "coordonnées bancaires ouvertes en France."
+                                    )
+            
+                                    pdf.multi_cell(
+                                        180,
+                                        5.5,
+                                        clean_text(blocage),
+                                        align="J"
+                                    )
+            
+                                    pdf.ln(4)
+            
+                                    defaut = (
+                                        "À défaut, les fonds ne pourront être remis "
+                                        "à sa disposition qu'après présentation de "
+                                        "son passeport attestant d'un refus de visa. "
+                                        "Toutefois, nous autorisons le donneur "
+                                        "d'ordre, à toutes fins utiles, à utiliser "
+                                        "notre compte ouvert auprès de United Bank "
+                                        "for Africa (UBA)."
+                                    )
+            
+                                    pdf.multi_cell(
+                                        180,
+                                        5.5,
+                                        clean_text(defaut),
+                                        align="J"
+                                    )
+            
+                                    pdf.ln(4)
+            
+                                    # ====================================================
+                                    # IBAN / BIC
+                                    # ====================================================
+                                    info_ligne(
+                                        "IBAN :",
+                                        avi_data.get(
+                                            "iban",
+                                            "CG39-30016-06910-91001100053-04"
+                                        )
+                                    )
+            
+                                    info_ligne(
+                                        "BIC :",
+                                        avi_data.get(
+                                            "bic",
+                                            "UNAFCGCG"
+                                        )
+                                    )
+            
+                                    pdf.ln(4)
+            
+                                    # ====================================================
+                                    # CLAUSE DE VALIDATION
+                                    # ====================================================
+                                    validation = (
+                                        "En foi de quoi, cette attestation lui est "
+                                        "délivrée pour servir et valoir ce que de droit."
+                                    )
+            
+                                    pdf.multi_cell(
+                                        180,
+                                        5.5,
+                                        clean_text(validation),
+                                        align="J"
+                                    )
+            
+                                    pdf.ln(4)
+            
+                                    # ====================================================
+                                    # DATE
+                                    # ====================================================
+                                    date_document = avi_data.get(
+                                        "date_creation",
+                                        datetime.now().strftime(
+                                            "%d/%m/%Y"
+                                        )
+                                    )
+            
+                                    pdf.cell(
+                                        180,
+                                        6,
+                                        clean_text(
+                                            f"Fait à Brazzaville, le {date_document}"
+                                        ),
+                                        align="R"
+                                    )
+            
+                                    pdf.ln(8)
+            
+                                    # ====================================================
+                                    # SIGNATURE - ZONE SPÉCIMEN
+                                    # ====================================================
+                                    pdf.set_draw_color(
+                                        120,
+                                        120,
+                                        120
+                                    )
+            
+                                    pdf.set_line_width(
+                                        0.3
+                                    )
+            
+                                    pdf.rect(
+                                        125,
+                                        pdf.get_y(),
+                                        60,
+                                        27
+                                    )
+            
+                                    set_font(
+                                        8,
+                                        True
                                     )
             
                                     pdf.set_xy(
-                                        135,
-                                        signature_y + 3
+                                        128,
+                                        pdf.get_y() + 3
                                     )
             
                                     pdf.cell(
                                         54,
                                         5,
-                                        "SIGNATURE - SPECIMEN",
-                                        0,
-                                        1,
-                                        "C"
+                                        "ZONE SIGNATURE",
+                                        align="C"
                                     )
             
-                                    pdf.set_font(
-                                        "Arial",
-                                        "",
-                                        8
+                                    set_font(
+                                        7,
+                                        False
                                     )
             
                                     pdf.set_xy(
-                                        135,
-                                        signature_y + 11
+                                        128,
+                                        pdf.get_y() + 8
                                     )
             
-                                    pdf.cell(
+                                    pdf.multi_cell(
                                         54,
-                                        5,
-                                        "Rubain OUNGALA",
-                                        0,
-                                        1,
-                                        "C"
+                                        4,
+                                        "SPÉCIMEN\nNON OFFICIEL",
+                                        align="C"
                                     )
+            
+                                    # ====================================================
+                                    # NOM DU RESPONSABLE
+                                    # ====================================================
+                                    y_signature = pdf.get_y()
             
                                     pdf.set_xy(
-                                        135,
-                                        signature_y + 17
+                                        15,
+                                        y_signature
+                                    )
+            
+                                    set_font(
+                                        10.5,
+                                        True
                                     )
             
                                     pdf.cell(
-                                        54,
-                                        5,
-                                        "Responsable des Operations",
-                                        0,
-                                        1,
-                                        "C"
+                                        90,
+                                        6,
+                                        "Rubain OUNGALA"
                                     )
             
+                                    pdf.ln(5)
+            
+                                    set_font(
+                                        10,
+                                        False
+                                    )
+            
+                                    pdf.cell(
+                                        90,
+                                        6,
+                                        "Responsable des Opérations"
+                                    )
+            
+                                    pdf.ln(12)
+            
+                                    # ====================================================
+                                    # CLAUSE ANGLAISE
+                                    # ====================================================
+                                    pdf.set_draw_color(
+                                        180,
+                                        180,
+                                        180
+                                    )
+            
+                                    pdf.line(
+                                        15,
+                                        pdf.get_y(),
+                                        195,
+                                        pdf.get_y()
+                                    )
+            
+                                    pdf.ln(5)
+            
+                                    set_font(
+                                        8.5,
+                                        False
+                                    )
+            
+                                    english_clause = (
+                                        "The purpose of this AVI is to confirm the "
+                                        "existence of an account in our records. "
+                                        "The undersigned assumes no obligation or "
+                                        "commitment of any kind. This document cannot "
+                                        "be considered as a guarantee, endorsement, "
+                                        "surety, or any other similar form of "
+                                        "commitment. The signatory disclaims all "
+                                        "liability for any damage resulting from the "
+                                        "improper, exaggerated, or abusive use of "
+                                        "this AVI."
+                                    )
+            
+                                    pdf.multi_cell(
+                                        180,
+                                        4.5,
+                                        clean_text(english_clause),
+                                        align="J"
+                                    )
+            
+                                    pdf.ln(4)
+            
+                                    # ====================================================
+                                    # PIED DE PAGE ECO CAPITAL
+                                    # ====================================================
+                                    set_font(
+                                        7.5,
+                                        False
+                                    )
+            
+                                    pdf.set_text_color(
+                                        70,
+                                        70,
+                                        70
+                                    )
+            
+                                    footer_lines = [
+                                        "Eco capital Sarl",
+                                        "Société à responsabilité limitée au capital de 60.000.000 XAF",
+                                        "Siège social : 1636 Bd Denis Sassou Nguesso Batignolles Brazzaville",
+                                        "RCCM N°CG/BZV/B12-00320 - NIU N°M24000000665934H",
+                                        "Contacts : 00242 06 113 56 12 / 06 113 56 05",
+                                        "Web : www.ecocapitale.com  |  mail : contacts@ecocapitale.com",
+                                        "Brazzaville République du Congo"
+                                    ]
+            
+                                    for line in footer_lines:
+            
+                                        pdf.cell(
+                                            180,
+                                            3.8,
+                                            clean_text(line),
+                                            align="C"
+                                        )
+            
+                                        pdf.ln(3.8)
+            
+                                    # ====================================================
+                                    # QR CODE
+                                    # ====================================================
+                                    qr_data = (
+                                        f"SPECIMEN NON OFFICIEL\n"
+                                        f"Référence: {avi_data['reference']}\n"
+                                        f"Nom: {avi_data['nom_complet']}\n"
+                                        f"Code Banque: {avi_data.get('code_banque', '')}\n"
+                                        f"Compte: {avi_data.get('numero_compte', '')}\n"
+                                        f"Devise: {avi_data.get('devise', 'XAF')}\n"
+                                        f"Montant: {format_fcfa(montant)} FCFA\n"
+                                        f"Date: {date_document}"
+                                    )
+            
+                                    qr = qrcode.QRCode(
+                                        version=2,
+                                        error_correction=qrcode.constants.ERROR_CORRECT_M,
+                                        box_size=3,
+                                        border=2
+                                    )
+            
+                                    qr.add_data(
+                                        qr_data
+                                    )
+            
+                                    qr.make(
+                                        fit=True
+                                    )
+            
+                                    qr_img = qr.make_image(
+                                        fill_color="black",
+                                        back_color="white"
+                                    ).convert("RGB")
+            
+                                    qr_bytes = BytesIO()
+            
+                                    qr_img.save(
+                                        qr_bytes,
+                                        format="PNG"
+                                    )
+            
+                                    qr_bytes.seek(0)
+            
+                                    pdf.image(
+                                        qr_bytes,
+                                        x=166,
+                                        y=248,
+                                        w=25,
+                                        h=25
+                                    )
+            
+                                    # ====================================================
+                                    # MENTION SPÉCIMEN
+                                    # ====================================================
                                     pdf.set_text_color(
                                         180,
                                         0,
                                         0
                                     )
             
-                                    pdf.set_font(
-                                        "Arial",
-                                        "B",
-                                        7
+                                    set_font(
+                                        8,
+                                        True
                                     )
             
                                     pdf.set_xy(
-                                        135,
-                                        signature_y + 25
+                                        15,
+                                        288
                                     )
             
                                     pdf.cell(
-                                        54,
+                                        180,
                                         5,
-                                        "DOCUMENT NON VALABLE",
-                                        0,
-                                        1,
-                                        "C"
+                                        "SPÉCIMEN - NON OFFICIEL - DOCUMENT DE PRÉSENTATION",
+                                        align="C"
                                     )
             
-                                    # =====================================
-                                    # DATE
-                                    # =====================================
-            
-                                    pdf.set_text_color(
-                                        0,
-                                        0,
-                                        0
-                                    )
-            
-                                    pdf.set_font(
-                                        "Arial",
-                                        "B",
-                                        10
-                                    )
-            
-                                    pdf.set_xy(
-                                        18,
-                                        signature_y + 38
-                                    )
-            
-                                    date_actuelle = (
-                                        datetime.now()
-                                        .strftime(
-                                            "%d/%m/%Y"
-                                        )
-                                    )
-            
-                                    pdf.cell(
-                                        173,
-                                        6,
-                                        f"Fait a Brazzaville, le {date_actuelle}",
-                                        0,
-                                        1,
-                                        "R"
-                                    )
-            
-                                    # =====================================
-                                    # PIED DE PAGE
-                                    # =====================================
-            
-                                    footer_y = 260
-            
-                                    pdf.set_xy(
-                                        18,
-                                        footer_y
-                                    )
-            
-                                    pdf.set_font(
-                                        "Arial",
-                                        "B",
-                                        9
-                                    )
-            
-                                    pdf.cell(
-                                        0,
-                                        5,
-                                        "Eco Capital Sarl",
-                                        0,
-                                        1
-                                    )
-            
-                                    pdf.set_font(
-                                        "Arial",
-                                        "I",
-                                        8
-                                    )
-            
-                                    pdf.cell(
-                                        0,
-                                        4.5,
-                                        "Societe a responsabilite limitee au capital de 60.000.000 XAF",
-                                        0,
-                                        1
-                                    )
-            
-                                    pdf.cell(
-                                        0,
-                                        4.5,
-                                        "Siege social : 1636 Bd Denis Sassou Nguesso Batignolles Brazzaville",
-                                        0,
-                                        1
-                                    )
-            
-                                    pdf.cell(
-                                        0,
-                                        4.5,
-                                        "RCCM N°CG/BZV/B12-00320 - NIU N°M24000000665934H",
-                                        0,
-                                        1
-                                    )
-            
-                                    pdf.cell(
-                                        0,
-                                        4.5,
-                                        "Contacts : 00242 06 113 56 12 / 06 113 56 05",
-                                        0,
-                                        1
-                                    )
-            
-                                    pdf.set_font(
-                                        "Arial",
-                                        "B",
-                                        8
-                                    )
-            
-                                    pdf.cell(
-                                        0,
-                                        4.5,
-                                        "Web : www.ecocapitale.com",
-                                        0,
-                                        1
-                                    )
-            
-                                    pdf.cell(
-                                        0,
-                                        4.5,
-                                        "Mail : contacts@ecocapitale.com",
-                                        0,
-                                        1
-                                    )
-            
-                                    pdf.set_font(
-                                        "Arial",
-                                        "I",
-                                        8
-                                    )
-            
-                                    pdf.cell(
-                                        0,
-                                        4.5,
-                                        "Brazzaville - Republique du Congo",
-                                        0,
-                                        1
-                                    )
-            
-                                    # =====================================
-                                    # QR CODE
-                                    # =====================================
-            
-                                    try:
-            
-                                        qr_data = {
-            
-                                            "Reference":
-                                                reference,
-            
-                                            "Nom":
-                                                nom_complet,
-            
-                                            "Code Banque":
-                                                code_banque,
-            
-                                            "Numero Compte":
-                                                numero_compte,
-            
-                                            "BIC":
-                                                bic,
-            
-                                            "Montant":
-                                                f"{montant:,.0f} FCFA",
-            
-                                            "Date":
-                                                avi_data.get(
-                                                    "date_creation",
-                                                    ""
-                                                )
-                                        }
-            
-                                        qr = qrcode.QRCode(
-                                            version=1,
-                                            error_correction=(
-                                                qrcode.constants
-                                                .ERROR_CORRECT_L
-                                            ),
-                                            box_size=3,
-                                            border=2
-                                        )
-            
-                                        qr.add_data(
-                                            str(qr_data)
-                                        )
-            
-                                        qr.make(
-                                            fit=True
-                                        )
-            
-                                        qr_img = (
-                                            qr.make_image(
-                                                fill_color="black",
-                                                back_color="white"
-                                            )
-                                        )
-            
-                                        qr_bytes = (
-                                            BytesIO()
-                                        )
-            
-                                        qr_img.save(
-                                            qr_bytes,
-                                            format="PNG"
-                                        )
-            
-                                        qr_bytes.seek(
-                                            0
-                                        )
-            
-                                        pdf.image(
-                                            qr_bytes,
-                                            x=155,
-                                            y=255,
-                                            w=35
-                                        )
-            
-                                    except Exception as qr_error:
-            
-                                        st.warning(
-                                            f"QR code non genere : "
-                                            f"{qr_error}"
-                                        )
-            
-                                    # =====================================
-                                    # BANDEAU FINAL
-                                    # =====================================
-            
-                                    pdf.set_fill_color(
-                                        245,
-                                        220,
-                                        220
-                                    )
-            
-                                    pdf.set_text_color(
-                                        150,
-                                        0,
-                                        0
-                                    )
-            
-                                    pdf.set_font(
-                                        "Arial",
-                                        "B",
-                                        6.5
-                                    )
-            
-                                    pdf.rect(
-                                        18,
-                                        289,
-                                        174,
-                                        5,
-                                        "F"
-                                    )
-            
-                                    pdf.set_xy(
-                                        18,
-                                        289.5
-                                    )
-            
-                                    pdf.cell(
-                                        174,
-                                        4,
-                                        nettoyer_texte_pdf(
-                                            "DOCUMENT DE DEMONSTRATION - "
-                                            "NE CONSTITUE PAS UNE ATTESTATION "
-                                            "BANCAIRE OFFICIELLE"
-                                        ),
-                                        0,
-                                        0,
-                                        "C"
-                                    )
-            
-                                    # =====================================
-                                    # GENERATION DU FICHIER
-                                    # =====================================
-            
-                                    os.makedirs(
-                                        "avi_documents",
-                                        exist_ok=True
-                                    )
-            
-                                    output_path = (
-                                        "avi_documents/"
-                                        f"AVI_{reference}_DEMO.pdf"
-                                    )
-            
+                                    # ====================================================
+                                    # SAUVEGARDE
+                                    # ====================================================
                                     pdf.output(
                                         output_path
                                     )
             
-                                    # =====================================
-                                    # SUCCES
-                                    # =====================================
-            
+                                    # ====================================================
+                                    # SUCCÈS
+                                    # ====================================================
                                     st.success(
-                                        "Document PDF genere avec succes."
+                                        "✅ Document PDF généré avec succès."
                                     )
             
-                                    # =====================================
-                                    # TELECHARGEMENT
-                                    # =====================================
-            
+                                    # ====================================================
+                                    # TÉLÉCHARGEMENT
+                                    # ====================================================
                                     with open(
                                         output_path,
                                         "rb"
                                     ) as pdf_file:
             
-                                        pdf_bytes = (
-                                            pdf_file.read()
-                                        )
+                                        pdf_bytes = pdf_file.read()
             
                                     st.download_button(
-                                        label=(
-                                            "Telecharger le PDF"
-                                        ),
+                                        label="⬇️ Télécharger le PDF",
                                         data=pdf_bytes,
                                         file_name=(
-                                            f"AVI_{reference}_DEMO.pdf"
+                                            f"AVI_{avi_data['reference']}.pdf"
                                         ),
                                         mime="application/pdf",
                                         use_container_width=True
                                     )
             
-                                    # =====================================
-                                    # APERCU
-                                    # =====================================
+                                    # ====================================================
+                                    # PRÉVISUALISATION
+                                    # ====================================================
+                                    st.markdown(
+                                        "### 👁️ Prévisualisation"
+                                    )
             
-                                    with st.expander(
-                                        "Apercu du document",
-                                        expanded=True
-                                    ):
+                                    base64_pdf = base64.b64encode(
+                                        pdf_bytes
+                                    ).decode(
+                                        "utf-8"
+                                    )
             
-                                        base64_pdf = (
-                                            base64.b64encode(
-                                                pdf_bytes
-                                            ).decode(
-                                                "utf-8"
-                                            )
-                                        )
+                                    pdf_display = f"""
+                                    <div
+                                        style="
+                                            width:100%;
+                                            height:750px;
+                                            border:1px solid #ddd;
+                                            border-radius:10px;
+                                            overflow:hidden;
+                                            background:#f5f5f5;
+                                        "
+                                    >
+                                        <iframe
+                                            src="data:application/pdf;base64,{base64_pdf}"
+                                            width="100%"
+                                            height="100%"
+                                            style="border:none;"
+                                        >
+                                        </iframe>
+                                    </div>
+                                    """
             
-                                        st.markdown(
-                                            f"""
-                                            <div style="
-                                                height: 700px;
-                                                overflow: hidden;
-                                                border: 1px solid #ddd;
-                                                border-radius: 8px;
-                                                background: white;
-                                            ">
-            
-                                                <object
-                                                    data="data:application/pdf;base64,{base64_pdf}"
-                                                    type="application/pdf"
-                                                    width="100%"
-                                                    height="100%"
-                                                    style="border:none;"
-                                                >
-            
-                                                    <p>
-                                                        Votre navigateur ne
-                                                        supporte pas l'affichage
-                                                        direct du PDF.
-                                                    </p>
-            
-                                                </object>
-            
-                                            </div>
-                                            """,
-                                            unsafe_allow_html=True
-                                        )
-            
-                                # =========================================
-                                # GESTION DES ERREURS
-                                # =========================================
+                                    st.markdown(
+                                        pdf_display,
+                                        unsafe_allow_html=True
+                                    )
             
                                 except Exception as e:
             
                                     st.error(
-                                        "Erreur lors de la generation : "
-                                        f"{str(e)}"
+                                        f"❌ Erreur lors de la génération : {str(e)}"
                                     )
             
-                                    st.exception(e)
-            
-                                    if (
-                                        output_path
-                                        and os.path.exists(
-                                            output_path
-                                        )
-                                    ):
-            
-                                        st.warning(
-                                            "Un fichier PDF partiel "
-                                            "a ete genere."
-                                        )
-            
-                                        with open(
-                                            output_path,
-                                            "rb"
-                                        ) as partial_file:
-            
-                                            st.download_button(
-                                                label=(
-                                                    "Telecharger le PDF partiel"
-                                                ),
-                                                data=(
-                                                    partial_file.read()
-                                                ),
-                                                file_name=(
-                                                    f"AVI_{reference}_DEMO.pdf"
-                                                ),
-                                                mime=(
-                                                    "application/pdf"
-                                                ),
-                                                use_container_width=True
-                                            )                       
-            # Fonctions utilitaires (à mettre AVANT le with tab5)
+                                    st.exception(e)            # Fonctions utilitaires (à mettre AVANT le with tab5)
             def extract_between(text, start, end):
                 """Extrait le texte entre deux chaînes"""
                 start_idx = text.find(start)
