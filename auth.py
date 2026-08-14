@@ -3527,40 +3527,6 @@ def show_admin_dashboard():
                                 pdf = FPDF()
                                 pdf.add_page()
 
-                                # In the AVI generation code in tab4, add sanitization:
-
-                                # Define the sanitization function outside
-                                def sanitize_text(text):
-                                    """Replace problematic Unicode characters with ASCII equivalents"""
-                                    replacements = {
-                                        '’': "'",
-                                        '“': '"',
-                                        '”': '"',
-                                        '–': '-',
-                                        '—': '-',
-                                        '…': '...',
-                                        '\u2018': "'",
-                                        '\u2019': "'",
-                                        '\u201C': '"',
-                                        '\u201D': '"',
-                                        '\u2013': '-',
-                                        '\u2014': '-',
-                                        '\u2026': '...',
-                                    }
-                                    for char, replacement in replacements.items():
-                                        text = text.replace(char, replacement)
-                                    return text
-                                
-                                # Then in the PDF generation:
-                                for line in intro:
-                                    line = sanitize_text(line)  # Add this line
-                                    pdf.cell(0, 5, line, 0, 2)
-                                
-                                # Also sanitize other text:
-                                details_sanitized = [sanitize_text(line) for line in details]
-                                for line in details_sanitized:
-                                    pdf.cell(0, 5, line, 0, 1)
-
                                 def montant_en_lettres(montant):
                                     """Convertit un montant numérique en lettres françaises avec devise"""
                                     from num2words import num2words
@@ -3733,6 +3699,44 @@ def show_admin_dashboard():
                                 pdf.set_font('Arial', '', 4)
                                 for line in fin:
                                     pdf.cell(1, 4.5, line, 0, 2, 'L')
+
+                                # In the AVI generation code in tab4, add sanitization:
+
+                                # Define the sanitization function outside
+                                def sanitize_text(text):
+                                    """Replace problematic Unicode characters with ASCII equivalents"""
+                                    replacements = {
+                                        '’': "'",
+                                        '“': '"',
+                                        '”': '"',
+                                        '–': '-',
+                                        '—': '-',
+                                        '…': '...',
+                                        '\u2018': "'",
+                                        '\u2019': "'",
+                                        '\u201C': '"',
+                                        '\u201D': '"',
+                                        '\u2013': '-',
+                                        '\u2014': '-',
+                                        '\u2026': '...',
+                                    }
+                                    for char, replacement in replacements.items():
+                                        text = text.replace(char, replacement)
+                                    return text
+                                
+                                # Then in the PDF generation:
+                                for line in intro:
+                                    line = sanitize_text(line)  # Add this line
+                                    pdf.cell(0, 5, line, 0, 2)
+
+                                for line in fin:
+                                    line = sanitize_text(line)  # Add this fin
+                                    pdf.cell(0, 5, line, 0, 2)
+                                
+                                # Also sanitize other text:
+                                details_sanitized = [sanitize_text(line) for line in details]
+                                for line in details_sanitized:
+                                    pdf.cell(0, 5, line, 0, 1)
                                 
                                 # ---- QR Code ----
                                 qr_data = {
