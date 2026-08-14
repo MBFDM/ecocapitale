@@ -3521,20 +3521,6 @@ def show_admin_dashboard():
                     avi_data = db.get_avi_by_reference(reference)
 
                     with st.expander("ℹ️ Informations de l'attestation", expanded=False):
-
-                    col1, col2 = st.columns(2)
-            
-                    with col1:
-                        st.write(f"**Référence :** {avi_data.get('reference', '')}")
-                        st.write(f"**Nom complet :** {avi_data.get('nom_complet', '')}")
-                        st.write(f"**Code banque :** {avi_data.get('code_banque', '')}")
-                        st.write(f"**Compte :** {avi_data.get('numero_compte', '')}")
-            
-                    with col2:
-                        st.write(f"**Devise :** {avi_data.get('devise', '')}")
-                        st.write(f"**Montant :** {avi_data.get('montant', '')} FCFA")
-                        st.write(f"**IBAN :** {avi_data.get('iban', '')}")
-                        st.write(f"**BIC :** {avi_data.get('bic', '')}")
                     
                     if st.button("Générer l'Attestation PDF", type="primary"):
                         with st.spinner("Génération en cours..."):
@@ -3702,7 +3688,7 @@ def show_admin_dashboard():
                                     "Brazzaville République du Congo"
                                 ]
                                 
-                                pdf.set_font('Arial', 'I', 10)
+                                pdf.set_font('Arial', '', 10)
                                 for line in footer:
                                     pdf.cell(1, 4.5, line, 0, 2, 'L')
 
