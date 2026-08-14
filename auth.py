@@ -3519,6 +3519,22 @@ def show_admin_dashboard():
                     
                     reference = selected_avi.split(" - ")[0]
                     avi_data = db.get_avi_by_reference(reference)
+
+                    with st.expander("ℹ️ Informations de l'attestation", expanded=False):
+
+                    col1, col2 = st.columns(2)
+            
+                    with col1:
+                        st.write(f"**Référence :** {avi_data.get('reference', '')}")
+                        st.write(f"**Nom complet :** {avi_data.get('nom_complet', '')}")
+                        st.write(f"**Code banque :** {avi_data.get('code_banque', '')}")
+                        st.write(f"**Compte :** {avi_data.get('numero_compte', '')}")
+            
+                    with col2:
+                        st.write(f"**Devise :** {avi_data.get('devise', '')}")
+                        st.write(f"**Montant :** {avi_data.get('montant', '')} FCFA")
+                        st.write(f"**IBAN :** {avi_data.get('iban', '')}")
+                        st.write(f"**BIC :** {avi_data.get('bic', '')}")
                     
                     if st.button("Générer l'Attestation PDF", type="primary"):
                         with st.spinner("Génération en cours..."):
@@ -3580,7 +3596,7 @@ def show_admin_dashboard():
                                 
                                 # Référence du document
                                 pdf.set_font('Arial', 'B', 10)
-                                pdf.cell(0, 0, f"DGF/EC-{avi_data['reference']}", 0, 1, 'C')
+                                pdf.cell(0, 0, f"DGF-EC / {avi_data['reference']}", 0, 1, 'C')
                                 pdf.ln(10)
                                 
                                 # ---- Logo et entête ----
@@ -3601,13 +3617,12 @@ def show_admin_dashboard():
                                 # ---- Corps du document ----
                                 pdf.set_font('Arial', '', 12)
                                 intro = [
-                                    "Nous soussignés, Eco Capital (E.C), établissement de microfinance agréé pour exercer des",
-                                    "activités bancaires en République du Congo conformément au décret n°7236/MEFB-CAB du",
-                                    "15 novembre 2007, après avis conforme de la COBAC D-2007/2018, déclarons avoir notre",
-                                    "siège au n°1636 Boulevard Denis Sassou Nguesso, Batignol Brazzaville.",
-                                    "",
-                                    "Représenté par son Directeur Général, Monsieur ILOKO Charmant.",
-                                    "",
+                                    "Nous, soussignés, Eco Capital (E.C), Société à Responsabilité Limitée (SARL), constituée conformément au",
+                                    "droit OHADA, ayant pour siège social sis au n°1636, Boulevard Denis Sassou Nguesso Batignolles",
+                                    "Brazzaville , disposons d’un capital social de 60 000 000 Xaf, soit 91 469,94 euros. Immatriculée au Registre",
+                                    "du Commerce et du Crédit Mobilier sous le numéro RCCM/BZV/B12/00320-NIUM24000000665934H, et",
+                                    "agréée par les autorités monétaires sous le numéro n°078/MFBPP/ARTF/DR-SAR-BOTC, conformément aux",
+                                    "dispositions légales en vigueur du règlement COBAC EMF R-2017/01.",
                                     f"Nous certifions par la présente que Monsieur/Madame {avi_data['nom_complet']}",
                                     "détient un compte courant enregistré dans nos livres avec les caractéristiques suivantes :",
                                     ""
@@ -3619,24 +3634,24 @@ def show_admin_dashboard():
                                 # Informations bancaires en gras
                                 pdf.set_font('Arial', 'B', 12)
                                 pdf.cell(40, 5, "CODE BANQUE :", 0, 0)
-                                pdf.set_font('Arial', '', 12)
+                                pdf.set_font('Arial', 'B', 12)
                                 pdf.cell(0, 5, avi_data['code_banque'], 0, 1)
                                 
                                 pdf.set_font('Arial', 'B', 12)
                                 pdf.cell(45, 5, "NUMERO COMPTE : ", 0, 0)
-                                pdf.set_font('Arial', '', 12)
+                                pdf.set_font('Arial', 'B', 12)
                                 pdf.cell(0, 5, avi_data['numero_compte'], 0, 1)
                                 
                                 pdf.set_font('Arial', 'B', 12)
                                 pdf.cell(20, 5, "Devise :", 0, 0)
-                                pdf.set_font('Arial', '', 12)
+                                pdf.set_font('Arial', 'B', 12)
                                 pdf.cell(0, 5, avi_data['devise'], 0, 1)
                                 pdf.ln(5)
                                 
                                 # ---- Détails du virement ----
                                 details = [
-                                    f"Il est l'ordonnateur d'un virement irrévocable et permanent d'un montant total de {avi_data['montant']:,.2f} FCFA",
-                                    f"({montant_en_lettres(avi_data['montant'])}), équivalant actuellement à {avi_data['montant']/650:,.2f} euros,",
+                                    f"Il est l'ordonnateur d'un virement irrévocable et permanent d'un montant total de {avi_data['montant']} FCFA",
+                                    f"({montant_en_lettres(avi_data['montant'])}), équivalant actuellement à {avi_data['montant']/650} euros,",
                                     "destiné à couvrir les frais liés à ses études en France.",
                                     "",
                                     "Il est précisé que ce compte demeurera bloqué jusqu'à la présentation, par le donneur",
@@ -3654,14 +3669,14 @@ def show_admin_dashboard():
                                 # ---- Coordonnées bancaires ----
                                 pdf.set_font('Arial', 'B', 12)
                                 pdf.cell(16, 5, "IBAN :", 0, 0)
-                                pdf.set_font('Arial', '', 12)
+                                pdf.set_font('Arial', 'B', 12)
                                 pdf.cell(0, 5, avi_data['iban'], 0, 1)
                                 
                                 pdf.set_font('Arial', 'B', 12)
                                 pdf.cell(16, 5, "BIC :", 0, 0)
-                                pdf.set_font('Arial', '', 12)
+                                pdf.set_font('Arial', 'B', 12)
                                 pdf.cell(0, 5, avi_data['bic'], 0, 1)
-                                pdf.ln(10)
+                                #pdf.ln(10)
                                 
                                 # ---- Clause de validation ----
                                 pdf.cell(0, 5, "En foi de quoi, cette attestation lui est délivrée pour servir et valoir ce que de droit.", 0, 1)
@@ -3689,6 +3704,16 @@ def show_admin_dashboard():
                                 
                                 pdf.set_font('Arial', 'I', 10)
                                 for line in footer:
+                                    pdf.cell(1, 4.5, line, 0, 2, 'L')
+
+                                # ---- Pied de page ----
+                                fin = [
+                                    "The purpose of this AVI is to confirm the existence of an account in our records. The undersigned assumes no obligation or commitment of any kind. This document cannot be considered as a guarantee,",
+                                    "endorsement, surety, or any other similar form of commitment. The signatory disclaims all liability for any damage resulting from the improper, exaggerated, or abusive use of this AVI.",
+                                ]
+                                
+                                pdf.set_font('Arial', '', 4)
+                                for line in fin:
                                     pdf.cell(1, 4.5, line, 0, 2, 'L')
                                 
                                 # ---- QR Code ----
