@@ -3607,8 +3607,8 @@ def show_admin_dashboard():
                                     "du Commerce et du Crédit Mobilier sous le numéro RCCM/BZV/B12/00320-NIUM24000000665934H, et",
                                     "agréée par les autorités monétaires sous le numéro n°078/MFBPP/ARTF/DR-SAR-BOTC, conformément aux",
                                     "dispositions légales en vigueur du règlement COBAC EMF R-2017/01.",
-                                    f"Nous certifions par la présente que Monsieur/Madame {avi_data['nom_complet']}",
-                                    "détient un compte courant enregistré dans nos livres avec les caractéristiques suivantes :",
+                                    f"Nous certifions par la présente que {avi_data['nom_complet']} détient un compte ",
+                                    "courant enregistré dans nos livres avec les caractéristiques suivantes :",
                                     ""
                                 ]
                                 
@@ -3644,7 +3644,6 @@ def show_admin_dashboard():
                                     "À défaut, les fonds ne pourront être remis à sa disposition qu'après présentation de son",
                                     "passeport attestant d'un refus de visa. Toutefois, nous autorisons le donneur d'ordre, à",
                                     "toutes fins utiles, à utiliser notre compte ouvert auprès de United Bank for Africa (UBA).",
-                                    ""
                                 ]
                                 
                                 for line in details:
