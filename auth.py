@@ -3575,11 +3575,11 @@ def show_admin_dashboard():
                                     st.warning(f"Logo non trouvé ou erreur de traitement: {str(e)}")
                                 
                                 # ---- En-tête ----
-                                pdf.set_font('helvetica', 'B', 16)
+                                pdf.set_font('Arial', 'B', 16)
                                 pdf.cell(0, 30, 'ATTESTATION DE VIREMENT IRREVOCABLE', 0, 1, 'C')
                                 
                                 # Référence du document
-                                pdf.set_font('helvetica', 'B', 10)
+                                pdf.set_font('Arial', 'B', 10)
                                 pdf.cell(0, 0, f"DGF-EC / {avi_data['reference']}", 0, 1, 'C')
                                 pdf.ln(10)
                                 
@@ -3599,7 +3599,7 @@ def show_admin_dashboard():
                                             pdf.multi_cell(0, line_height, line, 0, 'J')
 
                                 # ---- Corps du document ----
-                                pdf.set_font('helvetica', '', 12)
+                                pdf.set_font('Arial', '', 12)
                                 intro = [
                                     "Nous, soussignés, Eco Capital (E.C), Société à Responsabilité Limitée (SARL), constituée conformément au",
                                     "droit OHADA, ayant pour siège social sis au n°1636, Boulevard Denis Sassou Nguesso Batignolles",
@@ -3616,17 +3616,17 @@ def show_admin_dashboard():
                                     pdf.cell(0, 5, line, 0, 2)
                                 
                                 # Informations bancaires en gras
-                                pdf.set_font('helvetica', 'B', 12)
+                                pdf.set_font('Arial', 'B', 12)
                                 pdf.cell(40, 5, "CODE BANQUE :", 0, 0)
                                 pdf.set_font('Arial', 'B', 12)
                                 pdf.cell(0, 5, avi_data['code_banque'], 0, 1)
                                 
-                                pdf.set_font('helvetica', 'B', 12)
+                                pdf.set_font('Arial', 'B', 12)
                                 pdf.cell(45, 5, "NUMERO COMPTE : ", 0, 0)
                                 pdf.set_font('Arial', 'B', 12)
                                 pdf.cell(0, 5, avi_data['numero_compte'], 0, 1)
                                 
-                                pdf.set_font('helvetica', 'B', 12)
+                                pdf.set_font('Arial', 'B', 12)
                                 pdf.cell(20, 5, "Devise :", 0, 0)
                                 pdf.set_font('Arial', 'B', 12)
                                 pdf.cell(0, 5, avi_data['devise'], 0, 1)
@@ -3651,14 +3651,14 @@ def show_admin_dashboard():
                                     pdf.cell(0, 5, line, 0, 1)
                                 
                                 # ---- Coordonnées bancaires ----
-                                pdf.set_font('helvetica', 'B', 12)
+                                pdf.set_font('Arial', 'B', 12)
                                 pdf.cell(16, 5, "IBAN :", 0, 0)
-                                pdf.set_font('helvetica', 'B', 12)
+                                pdf.set_font('Arial', 'B', 12)
                                 pdf.cell(0, 5, avi_data['iban'], 0, 1)
                                 
-                                pdf.set_font('helvetica', 'B', 12)
+                                pdf.set_font('Arial', 'B', 12)
                                 pdf.cell(16, 5, "BIC :", 0, 0)
-                                pdf.set_font('helvetica', 'B', 12)
+                                pdf.set_font('Arial', 'B', 12)
                                 pdf.cell(0, 5, avi_data['bic'], 0, 1)
                                 #pdf.ln(10)
                                 
@@ -3686,7 +3686,7 @@ def show_admin_dashboard():
                                     "Brazzaville République du Congo"
                                 ]
                                 
-                                pdf.set_font('helvetica', '', 10)
+                                pdf.set_font('Arial', '', 10)
                                 for line in footer:
                                     pdf.cell(1, 4.5, line, 0, 2, 'L')
 
@@ -3696,7 +3696,7 @@ def show_admin_dashboard():
                                     "endorsement, surety, or any other similar form of commitment. The signatory disclaims all liability for any damage resulting from the improper, exaggerated, or abusive use of this AVI.",
                                 ]
                                 
-                                pdf.set_font('helvetica', '', 4)
+                                pdf.set_font('Arial', '', 4)
                                 for line in fin:
                                     pdf.cell(1, 4.5, line, 0, 2, 'L')
                                 
