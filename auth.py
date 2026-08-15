@@ -3622,13 +3622,13 @@ def show_admin_dashboard():
                                 pdf.cell(0, 5, avi_data['code_banque'], 0, 1)
                                 
                                 pdf.set_font('Arial', 'B', 11)
-                                pdf.cell(45, 5, "NUMERO COMPTE : ", 0, 0)
+                                pdf.cell(45, 5, "NUMERO DE COMPTE : ", 0, 0)
                                 pdf.set_font('Arial', 'B', 11)
                                 pdf.cell(0, 5, avi_data['numero_compte'], 0, 1)
                                 
                                 pdf.set_font('Arial', 'B', 11)
                                 pdf.cell(20, 5, "Devise :", 0, 0)
-                                pdf.set_font('Arial', 'B', 11)
+                                pdf.set_font('Arial', '', 11)
                                 pdf.cell(0, 5, avi_data['devise'], 0, 1)
                                 pdf.ln(5)
                                 
@@ -3648,7 +3648,7 @@ def show_admin_dashboard():
                                 ]
                                 
                                 for line in details:
-                                    pdf.cell(0, 5, line, 0, 1)
+                                    pdf.cell(0, 5, line, 0, 1, 'L')
                                 
                                 # ---- Coordonnées bancaires ----
                                 pdf.ln(5)
@@ -3661,11 +3661,11 @@ def show_admin_dashboard():
                                 pdf.cell(16, 5, "BIC :", 0, 0)
                                 pdf.set_font('Arial', 'B', 11)
                                 pdf.cell(0, 5, avi_data['bic'], 0, 1)
-                                pdf.ln(10)
+                                pdf.ln(5)
                                 
                                 # ---- Clause de validation ----
                                 pdf.cell(0, 5, "En foi de quoi, cette attestation lui est délivrée pour servir et valoir ce que de droit.", 0, 1)
-                                pdf.ln(10)
+                                pdf.ln(5)
                                 
                                 # ---- Date et signature ----
                                 pdf.cell(0, 5, f"Fait à Brazzaville, le {datetime.now().strftime('%d %B %Y')}", 0, 1, 'R')
@@ -3708,18 +3708,7 @@ def show_admin_dashboard():
                                     error_correction=qrcode.constants.ERROR_CORRECT_L,
                                     box_size=3,
                                     border=2,
-                                )
-
-                                # ---- Pied de page ----
-                                fin = [
-                                    "The purpose of this AVI is to confirm the existence of an account in our records. The undersigned assumes no obligation or commitment of any kind. This document connot be considered as a guarantee",
-                                    "endorsement, surety, or any other similar form of commitment. The signatory diclaims all liability for any damage resulting from the improper, exaggerated, or abusive use of this AVI.",
-                                ]
-                                
-                                pdf.set_font('Arial', '', 4)
-                                for line in fin:
-                                    pdf.cell(1, 4.5, line, 0, 2, 'L')
-                                    
+                                )   
                                 
                                 qr.add_data(qr_data)
                                 qr.make(fit=True)
@@ -3730,7 +3719,17 @@ def show_admin_dashboard():
                                 img_bytes.seek(0)
                                 
                                 pdf.image(img_bytes, x=150, y=pdf.get_y()-40, w=40)
-                                pdf.ln(20)
+                                pdf.ln(5)
+
+                                # ---- Pied de page ----
+                                fin = [
+                                    "The purpose of this AVI is to confirm the existence of an account in our records. The undersigned assumes no obligation or commitment of any kind. This document connot be considered as a guarantee",
+                                    "endorsement, surety, or any other similar form of commitment. The signatory diclaims all liability for any damage resulting from the improper, exaggerated, or abusive use of this AVI.",
+                                ]
+                                
+                                pdf.set_font('Arial', '', 4)
+                                for line in fin:
+                                    pdf.cell(1, 10, line, 0, 3, 'L')
                                 
                                 # ---- Sauvegarde du fichier ----
                                 os.makedirs("avi_documents", exist_ok=True)
