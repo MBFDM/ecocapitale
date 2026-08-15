@@ -3698,7 +3698,7 @@ def show_admin_dashboard():
                                 
                                 pdf.set_font('Arial', '', 4)
                                 for line in fin:
-                                    pdf.cell(1, 4.5, line, 0, 2, 'L')
+                                    pdf.cell(1, 4.5, line, 0, 2, 'C')
                                 
                                 # ---- QR Code ----
                                 qr_data = {
