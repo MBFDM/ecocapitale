@@ -3599,7 +3599,7 @@ def show_admin_dashboard():
                                             pdf.multi_cell(0, line_height, line, 0, 'J')
 
                                 # ---- Corps du document ----
-                                pdf.set_font('Arial', '', 10)
+                                pdf.set_font('Arial', '', 11)
                                 intro = [
                                     "Nous, soussignés, Eco Capital (E.C), Société à Responsabilité Limitée (SARL), constituée conformément au",
                                     "droit OHADA ayant pour siège social sis au n°1636, Boulevard Denis Sassou Nguesso Batignolles,",
@@ -3616,26 +3616,26 @@ def show_admin_dashboard():
                                     pdf.cell(0, 5, line, 0, 2)
                                 
                                 # Informations bancaires en gras
-                                pdf.set_font('Arial', 'B', 10)
+                                pdf.set_font('Arial', 'B', 11)
                                 pdf.cell(40, 5, "CODE BANQUE :", 0, 0)
-                                pdf.set_font('Arial', 'B', 10)
+                                pdf.set_font('Arial', 'B', 11)
                                 pdf.cell(0, 5, avi_data['code_banque'], 0, 1)
                                 
-                                pdf.set_font('Arial', 'B', 10)
+                                pdf.set_font('Arial', 'B', 11)
                                 pdf.cell(45, 5, "NUMERO COMPTE : ", 0, 0)
-                                pdf.set_font('Arial', 'B', 10)
+                                pdf.set_font('Arial', 'B', 11)
                                 pdf.cell(0, 5, avi_data['numero_compte'], 0, 1)
                                 
-                                pdf.set_font('Arial', 'B', 10)
+                                pdf.set_font('Arial', 'B', 11)
                                 pdf.cell(20, 5, "Devise :", 0, 0)
-                                pdf.set_font('Arial', 'B', 10)
+                                pdf.set_font('Arial', 'B', 11)
                                 pdf.cell(0, 5, avi_data['devise'], 0, 1)
                                 pdf.ln(5)
                                 
                                 # ---- Détails du virement ----
                                 details = [
                                     f"Il est l'ordonnateur d'un virement irrévocable et permanent d'un montant total de {avi_data['montant']} FCFA",
-                                    f"({montant_en_lettres(avi_data['montant'])}), équivalant actuellement à {avi_data['montant']/650} euros, cette somme est destinée à couvrir les frais liés",
+                                    f"({montant_en_lettres(avi_data['montant'])}), équivalant actuellement à {avi_data['montant']/650:,.2f} euros, cette somme est destinée à couvrir les frais liés",
                                     "à ses études en France.",
                                     "",
                                     "Il est précisé que ce compte demeurera bloqué jusqu'à la présentation, par le donneur d'ordre, de ses",
@@ -3644,20 +3644,22 @@ def show_admin_dashboard():
                                     "À défaut, les fonds ne pourront être remis à sa disposition qu'après présentation de son",
                                     "passeport attestant d'un refus de visa. Toutefois, nous autorisons le donneur d'ordre, à",
                                     "toutes fins utiles, à utiliser notre compte ouvert auprès de United Bank for Africa (UBA).",
+                                    ""
                                 ]
                                 
                                 for line in details:
                                     pdf.cell(0, 5, line, 0, 1)
                                 
                                 # ---- Coordonnées bancaires ----
-                                pdf.set_font('Arial', 'B', 10)
+                                pdf.ln(5)
+                                pdf.set_font('Arial', 'B', 11)
                                 pdf.cell(16, 5, "IBAN :", 0, 0)
-                                pdf.set_font('Arial', 'B', 10)
+                                pdf.set_font('Arial', 'B', 11)
                                 pdf.cell(0, 5, avi_data['iban'], 0, 1)
                                 
-                                pdf.set_font('Arial', 'B', 10)
+                                pdf.set_font('Arial', 'B', 11)
                                 pdf.cell(16, 5, "BIC :", 0, 0)
-                                pdf.set_font('Arial', 'B', 10)
+                                pdf.set_font('Arial', 'B', 11)
                                 pdf.cell(0, 5, avi_data['bic'], 0, 1)
                                 pdf.ln(10)
                                 
@@ -3685,7 +3687,7 @@ def show_admin_dashboard():
                                     "Brazzaville République du Congo"
                                 ]
                                 
-                                pdf.set_font('Arial', '', 10)
+                                pdf.set_font('Arial', '', 11)
                                 for line in footer:
                                     pdf.cell(1, 4.5, line, 0, 2, 'L')
                                 
@@ -3707,17 +3709,6 @@ def show_admin_dashboard():
                                     box_size=3,
                                     border=2,
                                 )
-                                
-                                qr.add_data(qr_data)
-                                qr.make(fit=True)
-                                
-                                img = qr.make_image(fill_color="black", back_color="white")
-                                img_bytes = BytesIO()
-                                img.save(img_bytes, format='PNG')
-                                img_bytes.seek(0)
-                                
-                                pdf.image(img_bytes, x=150, y=pdf.get_y()-40, w=40)
-                                pdf.ln(20)
 
                                 # ---- Pied de page ----
                                 fin = [
@@ -3729,6 +3720,18 @@ def show_admin_dashboard():
                                 for line in fin:
                                     pdf.cell(1, 4.5, line, 0, 2, 'L')
                                     
+                                
+                                qr.add_data(qr_data)
+                                qr.make(fit=True)
+                                
+                                img = qr.make_image(fill_color="black", back_color="white")
+                                img_bytes = BytesIO()
+                                img.save(img_bytes, format='PNG')
+                                img_bytes.seek(0)
+                                
+                                pdf.image(img_bytes, x=150, y=pdf.get_y()-40, w=40)
+                                pdf.ln(20)
+                                
                                 # ---- Sauvegarde du fichier ----
                                 os.makedirs("avi_documents", exist_ok=True)
                                 output_path = f"avi_documents/AVI_{avi_data['reference']}.pdf"
