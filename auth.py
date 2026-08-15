@@ -3613,7 +3613,7 @@ def show_admin_dashboard():
                                 ]
                                 
                                 for line in intro:
-                                    pdf.cell(0, 5, line, 0, 2, 'L')
+                                    pdf.multi_cell(0, 5, line, 0, 2, 'L')
                                 
                                 # Informations bancaires en gras
                                 pdf.set_font('Arial', 'B', 12)
@@ -3647,7 +3647,7 @@ def show_admin_dashboard():
                                 ]
                                 
                                 for line in details:
-                                    pdf.cell(0, 5, line, 0, 1, 'L')
+                                    pdf.multi_cell(0, 5, line, 0, 1, 'L')
                                 
                                 # ---- Coordonnées bancaires ----
                                 pdf.set_font('Arial', 'B', 12)
@@ -3687,7 +3687,7 @@ def show_admin_dashboard():
                                 
                                 pdf.set_font('Arial', '', 10)
                                 for line in footer:
-                                    pdf.cell(1, 4.5, line, 0, 2, 'L')
+                                    pdf.multi_cell(1, 4.5, line, 0, 2, 'L')
 
                                 # ---- Pied de page ----
                                 fin = [
@@ -3697,7 +3697,7 @@ def show_admin_dashboard():
                                 
                                 pdf.set_font('Arial', '', 4)
                                 for line in fin:
-                                    pdf.cell(1, 4.5, line, 0, 2, 'C')
+                                    pdf.multi_cell(1, 4.5, line, 0, 2, 'C')
                                 
                                 # ---- QR Code ----
                                 qr_data = {
@@ -4243,7 +4243,7 @@ def show_admin_dashboard():
                                         "",
                                         "Représenté par son Directeur Général, Monsieur ILOKO Charmant.",
                                         "",
-                                        f"Nous certifions par la présente que Monsieur/Madame {selected_avi['nom_complet']}",
+                                        f"Nous certifions par la présente que {selected_avi['nom_complet']}",
                                         "détient un compte courant enregistré dans nos livres avec les caractéristiques suivantes :",
                                         ""
                                     ]
@@ -4362,17 +4362,17 @@ def show_admin_dashboard():
                                             # Envoyer le message avec le PDF en pièce jointe
                                             message = f"""📄 **Attestation de Virement Irrévocable**
 
-            Bonjour,
-
-            Veuillez trouver ci-joint votre attestation AVI.
-
-            **Référence:** {selected_avi['reference']}
-            **Bénéficiaire:** {selected_avi['nom_complet']}
-            **Montant:** {selected_avi['montant']:,.2f} FCFA
-
-            Cordialement,
-            Eco Capital Service Client
-            """
+                                                Bonjour,
+                                    
+                                                Veuillez trouver ci-joint votre attestation AVI.
+                                    
+                                                **Référence:** {selected_avi['reference']}
+                                                **Bénéficiaire:** {selected_avi['nom_complet']}
+                                                **Montant:** {selected_avi['montant']:,.2f} FCFA
+                                    
+                                                Cordialement,
+                                                Eco Capital Service Client
+                                                """
                                             
                                             if db.send_message_to_user_with_attachment(user_id, 'support', message, pdf_bytes, f"AVI_{selected_avi['reference']}.pdf"):
                                                 success_count += 1
