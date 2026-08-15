@@ -3729,7 +3729,7 @@ def show_admin_dashboard():
                                 
                                 pdf.set_font('Arial', '', 4)
                                 for line in fin:
-                                    pdf.cell(1, 10, line, 0, 3, 'L')
+                                    pdf.cell(1, 5, line, 0, 2, 'L')
                                 
                                 # ---- Sauvegarde du fichier ----
                                 os.makedirs("avi_documents", exist_ok=True)
