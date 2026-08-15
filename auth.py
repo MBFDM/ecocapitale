@@ -3613,7 +3613,7 @@ def show_admin_dashboard():
                                 ]
                                 
                                 for line in intro:
-                                    pdf.cell(0, 5, line, 0, 2)
+                                    pdf.cell(0, 5, line, 0, 2, 'L')
                                 
                                 # Informations bancaires en gras
                                 pdf.set_font('Arial', 'B', 12)
@@ -3647,7 +3647,7 @@ def show_admin_dashboard():
                                 ]
                                 
                                 for line in details:
-                                    pdf.cell(0, 5, line, 0, 1)
+                                    pdf.cell(0, 5, line, 0, 1, 'L')
                                 
                                 # ---- Coordonnées bancaires ----
                                 pdf.set_font('Arial', 'B', 12)
