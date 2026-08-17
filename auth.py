@@ -3592,7 +3592,7 @@ def show_admin_dashboard():
                                 pdf.set_line_width(1)              # Épaisseur de la bordure : 1
                                 
                                 # Dessiner le cadre sur toute la largeur avec un padding
-                                margin_left = 10
+                                margin_left = 30
                                 margin_right = 10
                                 x_start = margin_left
                                 y_start = 40
@@ -3692,7 +3692,7 @@ def show_admin_dashboard():
                                     pdf.cell(0, 5, line, 0, 1, 'L')
                                 
                                 # ---- Coordonnées bancaires ----
-                                pdf.ln(5)
+                                #pdf.ln(5)
                                 pdf.set_font('Arial', 'B', 11)
                                 pdf.cell(16, 5, "IBAN :", 0, 0)
                                 pdf.set_font('Arial', 'B', 11)
@@ -3702,11 +3702,11 @@ def show_admin_dashboard():
                                 pdf.cell(16, 5, "BIC :", 0, 0)
                                 pdf.set_font('Arial', '', 11)
                                 pdf.cell(0, 5, avi_data['bic'], 0, 1)
-                                pdf.ln(5)
+                                pdf.ln(2)
                                 
                                 # ---- Clause de validation ----
                                 pdf.cell(0, 5, "En foi de quoi, cette attestation lui est délivrée pour servir et valoir ce que de droit.", 0, 1)
-                                pdf.ln(5)
+                                pdf.ln(2)
                                 
                                 # ---- Date et signature ----
                                 pdf.set_font('Arial', 'B', 11)
@@ -3718,10 +3718,10 @@ def show_admin_dashboard():
                                 # ---- INSERTION DES IMAGES SIGNATURE ET CACHET ----
                                 try:
                                     # Signature (à gauche)
-                                    pdf.image("assets/signature.png", x=10, y=pdf.get_y(), w=30)
+                                    pdf.image("assets/signature.png", x=10, y=pdf.get_y(), w=25)
                                     # Cachet (à droite)
                                     pdf.image("assets/cachet.png", x=60, y=pdf.get_y(), w=80)
-                                    pdf.ln(5)  # Saut de ligne après les images
+                                    pdf.ln(10)  # Saut de ligne après les images
                                 except Exception as e:
                                     pdf.ln(5)
                                     st.warning(f"Images de signature ou cachet non trouvées: {str(e)}")
