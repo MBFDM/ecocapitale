@@ -3581,7 +3581,7 @@ def show_admin_dashboard():
                                 # Référence du document
                                 pdf.set_font('Arial', 'B', 10)
                                 pdf.cell(0, 0, f"DGF-EC / {avi_data['reference']}", 0, 1, 'C')
-                                pdf.ln(10)
+                                pdf.ln(5)
                                 
                                 # ---- Logo et entête ----
                                 try:
@@ -3633,7 +3633,7 @@ def show_admin_dashboard():
                                 pdf.ln(5)
                                 
                                 # ---- Détails du virement ----
-                                pdf.set_font('Arial', '', 10)
+                                pdf.set_font('Arial', '', 10.5)
                                 details = [
                                     f"Il est l'ordonnateur d'un virement irrévocable et permanent d'un montant total de {avi_data['montant']} FCFA",
                                     f"({montant_en_lettres(avi_data['montant'])}), équivalant actuellement à {avi_data['montant']/650:,.2f} euros, cette somme est destinée à couvrir les frais liés",
@@ -3649,9 +3649,9 @@ def show_admin_dashboard():
 
                                 pdf.set_font('Arial', '', 11)
                                 detail = [
-                                    "À défaut, les fonds ne pourront être remis à sa disposition qu'après présentation de son",
-                                    "passeport attestant d'un refus de visa. Toutefois, nous autorisons le donneur d'ordre, à",
-                                    "toutes fins utiles, à utiliser notre compte ouvert auprès de United Bank for Africa (UBA).",
+                                    "À défaut, les fonds ne pourront être remis à sa disposition qu'après présentation de son passeport",
+                                    "attestant d'un refus de visa. Toutefois, nous autorisons le donneur d'ordre, à toutes fins utiles, à utiliser",
+                                    "notre compte ouvert auprès de United Bank for Africa (UBA).",
                                     ""
                                 ]
                                 
