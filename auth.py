@@ -3580,7 +3580,7 @@ def show_admin_dashboard():
 
                                 # ---- Logo et entête ----
                                 try:
-                                    pdf.image("assets/logo.png", x=20, y=5, w=50)
+                                    pdf.image("assets/logo.png", x=3, y=5, w=50)
                                 except:
                                     pass  # Continue sans logo si non trouvé
                                 
@@ -3595,8 +3595,8 @@ def show_admin_dashboard():
                                 margin_left = 10
                                 margin_right = 10
                                 x_start = margin_left
-                                y_start = 30
-                                frame_width = 200 - (margin_left + margin_right)  # Largeur du cadre
+                                y_start = 40
+                                frame_width = 150 - (margin_left + margin_right)  # Largeur du cadre
                                 frame_height = 12  # Hauteur du cadre
                                 
                                 # Dessiner le cadre rectangulaire avec fond blanc
@@ -3713,7 +3713,7 @@ def show_admin_dashboard():
                                 pdf.cell(0, 5, f"Fait à Brazzaville, le {datetime.now().strftime('%d %B %Y')}", 0, 1, 'R')
                                 pdf.cell(0, 5, "Rubain MOUNGALA", 0, 1)
                                 pdf.cell(0, 5, "Responsable des Opérations", 0, 1)
-                                pdf.ln(10)
+                                pdf.ln(1)
 
                                 # ---- INSERTION DES IMAGES SIGNATURE ET CACHET ----
                                 try:
@@ -3721,9 +3721,9 @@ def show_admin_dashboard():
                                     pdf.image("assets/signature.png", x=10, y=pdf.get_y(), w=30)
                                     # Cachet (à droite)
                                     pdf.image("assets/cachet.png", x=60, y=pdf.get_y(), w=80)
-                                    pdf.ln(1)  # Saut de ligne après les images
+                                    pdf.ln(5)  # Saut de ligne après les images
                                 except Exception as e:
-                                    pdf.ln(1)
+                                    pdf.ln(5)
                                     st.warning(f"Images de signature ou cachet non trouvées: {str(e)}")
 
                                 # ---- Pied de page ----
