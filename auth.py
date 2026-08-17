@@ -3599,7 +3599,7 @@ def show_admin_dashboard():
                                             pdf.multi_cell(0, line_height, line, 0, 'J')
 
                                 # ---- Corps du document ----
-                                pdf.set_font('Arial', '', 11)
+                                pdf.set_font('Arial', '', 11.5)
                                 intro = [
                                     "Nous, soussignés, Eco Capital (E.C), Société à Responsabilité Limitée (SARL), constituée conformément au",
                                     "droit OHADA ayant pour siège social sis au n°1636, Boulevard Denis Sassou Nguesso Batignolles,",
@@ -3676,12 +3676,11 @@ def show_admin_dashboard():
                                 pdf.ln(5)
                                 
                                 # ---- Date et signature ----
+                                pdf.set_font('Arial', 'B', 11)
                                 pdf.cell(0, 5, f"Fait à Brazzaville, le {datetime.now().strftime('%d %B %Y')}", 0, 1, 'R')
-                                pdf.set_font('Arial', 'B', 10)
                                 pdf.cell(0, 5, "Rubain MOUNGALA", 0, 1)
-                                pdf.set_font('Arial', 'B', 10)
-                                pdf.cell(0, 5, "Directeur de la Gestion Financière", 0, 1)
-                                pdf.ln(10)
+                                pdf.cell(0, 5, "Responsable des Opérations", 0, 1)
+                                pdf.ln(15)
                                 
                                 # ---- Pied de page ----
                                 footer = [
@@ -3734,7 +3733,7 @@ def show_admin_dashboard():
                                     "endorsement, surety, or any other similar form of commitment. The signatory diclaims all liability for any damage resulting from the improper, exaggerated, or abusive use of this AVI.",
                                 ]
                                 
-                                pdf.set_font('Arial', '', 6)
+                                pdf.set_font('Arial', '', 5)
                                 for line in fin:
                                     pdf.cell(0, 5, line, 0, 2, 'C')
                                 
