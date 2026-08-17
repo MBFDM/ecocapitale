@@ -3578,9 +3578,28 @@ def show_admin_dashboard():
                                 except Exception as e:
                                     st.warning(f"Logo non trouvé ou erreur de traitement: {str(e)}")
                                 
-                                # ---- En-tête ----
+                                                                # ---- En-tête avec cadre ----
+                                # Définir la couleur de fond blanc et bordure noire
+                                pdf.set_fill_color(255, 255, 255)  # Fond blanc
+                                pdf.set_draw_color(0, 0, 0)        # Bordure noire
+                                pdf.set_line_width(1)              # Épaisseur de la bordure : 1
+                                
+                                # Dessiner le cadre sur toute la largeur avec un padding
+                                margin_left = 20
+                                margin_right = 20
+                                x_start = margin_left
+                                y_start = 18
+                                frame_width = 210 - (margin_left + margin_right)  # Largeur du cadre
+                                frame_height = 30  # Hauteur du cadre
+                                
+                                # Dessiner le cadre rectangulaire avec fond blanc
+                                pdf.rect(x_start, y_start, frame_width, frame_height, 'FD')
+                                
+                                # Ajouter le texte à l'intérieur du cadre
+                                pdf.set_y(y_start + 8)  # Ajuster la position Y pour centrer le texte
                                 pdf.set_font('Arial', 'B', 16)
-                                pdf.cell(0, 30, 'ATTESTATION DE VIREMENT IRREVOCABLE', 0, 1, 'C')
+                                pdf.set_text_color(0, 0, 0)  # Noir
+                                pdf.cell(frame_width, 10, 'ATTESTATION DE VIREMENT IRREVOCABLE', 0, 1, 'C')
                                 
                                 # Référence du document
                                 pdf.set_font('Arial', 'B', 10)
@@ -3700,9 +3719,9 @@ def show_admin_dashboard():
                                 
                                 try:
                                     # Signature (à gauche)
-                                    pdf.image("assets/signature.png", x=10, y=y_position + 2, w=30)
+                                    pdf.image("assets/signature.png", x=10, y=y_position - 2, w=30)
                                     # Cachet (à droite de la signature)
-                                    pdf.image("assets/cachet.png", x=65, y=y_position + 2, w=60)
+                                    pdf.image("assets/cachet.png", x=65, y=y_position - 2, w=80)
                                 except Exception as e:
                                     st.warning(f"Erreur lors de l'insertion des images: {str(e)}")
                                     
@@ -3750,7 +3769,7 @@ def show_admin_dashboard():
                                 img_bytes.seek(0)
                                 
                                 pdf.image(img_bytes, x=150, y=pdf.get_y()-40, w=40)
-                                pdf.ln(5)
+                                #pdf.ln(5)
 
                                 # ---- Pied de page ----
                                 fin = [
@@ -3758,7 +3777,7 @@ def show_admin_dashboard():
                                     "endorsement, surety, or any other similar form of commitment. The signatory diclaims all liability for any damage resulting from the improper, exaggerated, or abusive use of this AVI.",
                                 ]
                                 
-                                pdf.set_font('Arial', '', 5)
+                                pdf.set_font('Arial', '', 5.5)
                                 for line in fin:
                                     pdf.cell(0, 5, line, 0, 2, 'C')
                                 
