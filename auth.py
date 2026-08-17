@@ -3528,7 +3528,7 @@ def show_admin_dashboard():
                                 pdf.add_page()
 
                                 # ---- Ajout d'une couleur de fond sur la page ----
-                                pdf.set_fill_color(150, 201, 235)  # Gris très clair
+                                pdf.set_fill_color(241, 248, 252)  # Gris très clair 150, 201, 235
                                 pdf.rect(0, 0, 210, 297, 'F')
 
                                 def montant_en_lettres(montant):
@@ -3700,9 +3700,9 @@ def show_admin_dashboard():
                                 
                                 try:
                                     # Signature (à gauche)
-                                    pdf.image("assets/signature.png", x=10, y=y_position + 5, w=50)
+                                    pdf.image("assets/signature.png", x=10, y=y_position + 15, w=30)
                                     # Cachet (à droite de la signature)
-                                    pdf.image("assets/cachet.png", x=65, y=y_position + 5, w=50)
+                                    pdf.image("assets/cachet.png", x=65, y=y_position + 15, w=100)
                                 except Exception as e:
                                     st.warning(f"Erreur lors de l'insertion des images: {str(e)}")
                                 
@@ -3783,40 +3783,96 @@ def show_admin_dashboard():
                                             use_container_width=True
                                         )
 
-                                def show_pdf(file_path):
+                                # ---- Fonction de prévisualisation améliorée ----
+                                def show_pdf_preview(file_path):
+                                    """Affiche un aperçu du PDF avec plusieurs méthodes de fallback"""
                                     try:
-                                        with st.spinner("Chargement du document..."):
-                                            with open(file_path, "rb") as f:
-                                                base64_pdf = base64.b64encode(f.read()).decode('utf-8')
-                                            
-                                            container = st.container(border=True)
-                                            with container:
-                                                st.markdown(f"""
-                                                <div style="height: 600px; overflow: auto;">
-                                                    <object 
-                                                        data="data:application/pdf;base64,{base64_pdf}"
-                                                        type="application/pdf"
-                                                        width="100%" 
-                                                        height="100%"
-                                                        style="border: none;"
-                                                    >
-                                                        <p>Votre navigateur ne supporte pas l'affichage direct de PDF. 
-                                                        <a href="data:application/pdf;base64,{base64_pdf}" download="document.pdf">Télécharger le PDF</a></p>
-                                                    </object>
-                                                </div>
-                                                """, unsafe_allow_html=True)
-                                    except Exception as e:
-                                        st.error(f"Erreur lors du chargement du PDF: {str(e)}")
-                                        st.error("Solution alternative :")
+                                        # Méthode 1: Affichage direct avec object (fonctionne sur la plupart des navigateurs)
                                         with open(file_path, "rb") as f:
-                                            st.download_button(
-                                                "⬇️ Télécharger le document PDF",
-                                                data=f,
-                                                file_name="document.pdf",
-                                                mime="application/pdf"
-                                            )
+                                            pdf_bytes = f.read()
+                                            base64_pdf = base64.b64encode(pdf_bytes).decode('utf-8')
+                                        
+                                        # Créer un conteneur pour l'aperçu
+                                        preview_container = st.container(border=True)
+                                        
+                                        with preview_container:
+                                            # Ajouter un en-tête pour l'aperçu
+                                            st.markdown("### 📄 Aperçu du document")
+                                            
+                                            # Affichage direct du PDF avec object
+                                            st.markdown(f"""
+                                            <div style="height: 700px; width: 100%; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;">
+                                                <object 
+                                                    data="data:application/pdf;base64,{base64_pdf}"
+                                                    type="application/pdf"
+                                                    width="100%" 
+                                                    height="100%"
+                                                    style="border: none;"
+                                                >
+                                                    <div style="text-align: center; padding: 50px 20px; background: #f8f9fa; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                                                        <p style="font-size: 18px; margin-bottom: 20px;">📄 Votre navigateur ne supporte pas l'affichage direct des PDF</p>
+                                                        <p style="color: #666; margin-bottom: 20px;">Vous pouvez utiliser les options ci-dessous :</p>
+                                                        <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                                                            <a href="data:application/pdf;base64,{base64_pdf}" download="AVI_{avi_data['reference']}.pdf" 
+                                                               style="background: #0066cc; color: white; padding: 10px 20px; border-radius: 5px; text-decoration: none; display: inline-block;">
+                                                                ⬇️ Télécharger le PDF
+                                                            </a>
+                                                            <a href="data:application/pdf;base64,{base64_pdf}" target="_blank"
+                                                               style="background: #28a745; color: white; padding: 10px 20px; border-radius: 5px; text-decoration: none; display: inline-block;">
+                                                                🔗 Ouvrir dans un nouvel onglet
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                </object>
+                                            </div>
+                                            """, unsafe_allow_html=True)
+                                            
+                                            # Ajouter des informations sur le document
+                                            with st.expander("📋 Informations sur le document"):
+                                                col_info1, col_info2 = st.columns(2)
+                                                with col_info1:
+                                                    st.write(f"**Référence:** {avi_data['reference']}")
+                                                    st.write(f"**Bénéficiaire:** {avi_data['nom_complet']}")
+                                                with col_info2:
+                                                    st.write(f"**Montant:** {avi_data['montant']:,} FCFA")
+                                                    st.write(f"**Date:** {datetime.now().strftime('%d/%m/%Y')}")
+                                            
+                                    except Exception as e:
+                                        # Méthode 2: Fallback avec iframe
+                                        try:
+                                            st.warning("⚠️ Affichage alternatif du PDF")
+                                            
+                                            with open(file_path, "rb") as f:
+                                                pdf_bytes = f.read()
+                                                base64_pdf = base64.b64encode(pdf_bytes).decode('utf-8')
+                                            
+                                            # Utiliser iframe comme alternative
+                                            st.markdown(f"""
+                                            <iframe src="data:application/pdf;base64,{base64_pdf}" 
+                                                    style="width:100%; height:700px; border:1px solid #ddd; border-radius:8px;">
+                                            </iframe>
+                                            """, unsafe_allow_html=True)
+                                            
+                                        except Exception as e2:
+                                            # Méthode 3: Simple lien de téléchargement
+                                            st.error("❌ Impossible d'afficher l'aperçu du PDF")
+                                            st.info("💡 Vous pouvez télécharger le document avec le bouton ci-dessus")
+                                            
+                                            # Afficher un aperçu textuel des informations
+                                            with st.expander("📋 Aperçu des données du document"):
+                                                st.json({
+                                                    "Référence": avi_data['reference'],
+                                                    "Bénéficiaire": avi_data['nom_complet'],
+                                                    "Code Banque": avi_data['code_banque'],
+                                                    "Numéro Compte": avi_data['numero_compte'],
+                                                    "Montant": f"{avi_data['montant']:,} FCFA",
+                                                    "IBAN": avi_data['iban'],
+                                                    "BIC": avi_data['bic'],
+                                                    "Date": datetime.now().strftime('%d/%m/%Y')
+                                                })
                                 
-                                show_pdf(output_path)
+                                # Appeler la fonction de prévisualisation
+                                show_pdf_preview(output_path)
                                 
                             except Exception as e:
                                 st.error(f"❌ Erreur lors de la génération: {str(e)}")
