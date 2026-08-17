@@ -3633,7 +3633,7 @@ def show_admin_dashboard():
                                 pdf.ln(5)
                                 
                                 # ---- Détails du virement ----
-                                pdf.set_font('Arial', '', 10)
+                                pdf.set_font('Arial', '', 9.5)
                                 details = [
                                     f"Il est l'ordonnateur d'un virement irrévocable et permanent d'un montant total de {avi_data['montant']} FCFA",
                                     f"({montant_en_lettres(avi_data['montant'])}), équivalant actuellement à {avi_data['montant']/650:,.2f} euros, cette somme est destinée à couvrir les frais liés",
