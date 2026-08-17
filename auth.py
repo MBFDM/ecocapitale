@@ -3572,8 +3572,18 @@ def show_admin_dashboard():
                                     img.save(temp_logo, format='PNG')
                                     temp_logo.seek(0)
                                     
-                                    for position in [(30, 30), (120, 200), (50, 300), (100, 100)]:
-                                        pdf.image(temp_logo, x=position[0], y=position[1], w=100)
+                                    # Images en arrière-plan / filigranes
+                                    for position, width in [
+                                        ((272, 103), 329),   # Filigrane supérieur / central
+                                        ((49, 276), 349),    # Filigrane milieu gauche
+                                        ((330, 499), 259),   # Filigrane inférieur droit
+                                    ]:
+                                        pdf.image(
+                                            temp_logo,
+                                            x=position[0],
+                                            y=position[1],
+                                            w=width
+                                        )
                                         
                                 except Exception as e:
                                     st.warning(f"Logo non trouvé ou erreur de traitement: {str(e)}")
@@ -3589,11 +3599,11 @@ def show_admin_dashboard():
                                 pdf.ln(20)
                                 pdf.set_fill_color(255, 255, 255)  # Fond blanc
                                 pdf.set_draw_color(0, 0, 0)        # Bordure noire
-                                pdf.set_line_width(1)              # Épaisseur de la bordure : 1
+                                #pdf.set_line_width(1)              # Épaisseur de la bordure : 1
                                 
                                 # Dessiner le cadre sur toute la largeur avec un padding
                                 margin_left = 50
-                                margin_right = 10
+                                margin_right = 20
                                 x_start = margin_left
                                 y_start = 40
                                 frame_width = 150 - (margin_left + margin_right)  # Largeur du cadre
@@ -3606,8 +3616,8 @@ def show_admin_dashboard():
                                 pdf.set_y(y_start + 8)  # Ajuster la position Y pour centrer le texte
                                 pdf.set_font('Arial', 'B', 16)
                                 pdf.set_text_color(0, 0, 0)  # Noir
-                                pdf.cell(frame_width, 10, 'ATTESTATION DE VIREMENT IRREVOCABLE', 0, 1, 'C')
-                                pdf.ln(5)
+                                pdf.cell(frame_width, 20, 'ATTESTATION DE VIREMENT IRREVOCABLE', 0, 1, 'C')
+                                pdf.ln(3)
                                 
                                 # Référence du document
                                 pdf.set_font('Arial', 'B', 10)
