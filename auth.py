@@ -3589,8 +3589,8 @@ def show_admin_dashboard():
                                 margin_right = 20
                                 x_start = margin_left
                                 y_start = 18
-                                frame_width = 210 - (margin_left + margin_right)  # Largeur du cadre
-                                frame_height = 30  # Hauteur du cadre
+                                frame_width = 120 - (margin_left + margin_right)  # Largeur du cadre
+                                frame_height = 12  # Hauteur du cadre
                                 
                                 # Dessiner le cadre rectangulaire avec fond blanc
                                 pdf.rect(x_start, y_start, frame_width, frame_height, 'FD')
@@ -3711,7 +3711,7 @@ def show_admin_dashboard():
                                 pdf.cell(0, 5, f"Fait à Brazzaville, le {datetime.now().strftime('%d %B %Y')}", 0, 1, 'R')
                                 pdf.cell(0, 5, "Rubain MOUNGALA", 0, 1)
                                 pdf.cell(0, 5, "Responsable des Opérations", 0, 1)
-                                pdf.ln(20)
+                                pdf.ln(10)
 
                                  # ---- Insertion des images signature et cachet ----
                                 # Positionner après "Responsable des Opérations"
@@ -3719,9 +3719,9 @@ def show_admin_dashboard():
                                 
                                 try:
                                     # Signature (à gauche)
-                                    pdf.image("assets/signature.png", x=10, y=y_position - 2, w=30)
+                                    pdf.image("assets/signature.png", x=10, y=y_position, w=30)
                                     # Cachet (à droite de la signature)
-                                    pdf.image("assets/cachet.png", x=65, y=y_position - 2, w=80)
+                                    pdf.image("assets/cachet.png", x=65, y=y_position, w=80)
                                 except Exception as e:
                                     st.warning(f"Erreur lors de l'insertion des images: {str(e)}")
                                     
