@@ -3599,7 +3599,7 @@ def show_admin_dashboard():
                                             pdf.multi_cell(0, line_height, line, 0, 'J')
 
                                 # ---- Corps du document ----
-                                pdf.set_font('Arial', '', 11.5)
+                                pdf.set_font('Arial', '', 11.25)
                                 intro = [
                                     "Nous, soussignés, Eco Capital (E.C), Société à Responsabilité Limitée (SARL), constituée conformément au",
                                     "droit OHADA ayant pour siège social sis au n°1636, Boulevard Denis Sassou Nguesso Batignolles,",
@@ -3638,7 +3638,15 @@ def show_admin_dashboard():
                                     f"Il est l'ordonnateur d'un virement irrévocable et permanent d'un montant total de {avi_data['montant']} FCFA",
                                     f"({montant_en_lettres(avi_data['montant'])}), équivalant actuellement à {avi_data['montant']/650:,.2f} euros, cette somme est destinée à couvrir les frais liés",
                                     "à ses études en France.",
-                                    "",
+                                    ""
+                                ]
+
+                                for line in details:
+                                    pdf.cell(0, 5, line, 0, 1)
+
+                                # ---- Détails du virement ----
+                                pdf.set_font('Arial', '', 12)
+                                details = [
                                     "Il est précisé que ce compte demeurera bloqué jusqu'à la présentation, par le donneur d'ordre, de ses",
                                     "nouvelles coordonnées bancaires ouvertes en France.",
                                     ""
@@ -3647,7 +3655,7 @@ def show_admin_dashboard():
                                 for line in details:
                                     pdf.cell(0, 5, line, 0, 1)
 
-                                pdf.set_font('Arial', '', 11)
+                                pdf.set_font('Arial', '', 12)
                                 detail = [
                                     "À défaut, les fonds ne pourront être remis à sa disposition qu'après présentation de son passeport",
                                     "attestant d'un refus de visa. Toutefois, nous autorisons le donneur d'ordre, à toutes fins utiles, à utiliser",
@@ -3680,7 +3688,7 @@ def show_admin_dashboard():
                                 pdf.cell(0, 5, f"Fait à Brazzaville, le {datetime.now().strftime('%d %B %Y')}", 0, 1, 'R')
                                 pdf.cell(0, 5, "Rubain MOUNGALA", 0, 1)
                                 pdf.cell(0, 5, "Responsable des Opérations", 0, 1)
-                                pdf.ln(15)
+                                pdf.ln(20)
                                 
                                 # ---- Pied de page ----
                                 footer = [
