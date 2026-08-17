@@ -3633,6 +3633,7 @@ def show_admin_dashboard():
                                 pdf.ln(5)
                                 
                                 # ---- Détails du virement ----
+                                pdf.set_font('Arial', '', 10)
                                 details = [
                                     f"Il est l'ordonnateur d'un virement irrévocable et permanent d'un montant total de {avi_data['montant']} FCFA",
                                     f"({montant_en_lettres(avi_data['montant'])}), équivalant actuellement à {avi_data['montant']/650:,.2f} euros, cette somme est destinée à couvrir les frais liés",
@@ -3659,7 +3660,7 @@ def show_admin_dashboard():
                                 
                                 pdf.set_font('Arial', 'B', 11)
                                 pdf.cell(16, 5, "BIC :", 0, 0)
-                                pdf.set_font('Arial', 'B', 11)
+                                pdf.set_font('Arial', '', 11)
                                 pdf.cell(0, 5, avi_data['bic'], 0, 1)
                                 pdf.ln(5)
                                 
@@ -3674,7 +3675,7 @@ def show_admin_dashboard():
                                 pdf.cell(0, 5, "Rubain MOUNGALA", 0, 1)
                                 pdf.set_font('Arial', 'B', 10)
                                 pdf.cell(0, 5, "Directeur de la Gestion Financière", 0, 1)
-                                pdf.ln(15)
+                                pdf.ln(5)
                                 
                                 # ---- Pied de page ----
                                 footer = [
@@ -3687,7 +3688,7 @@ def show_admin_dashboard():
                                     "Brazzaville République du Congo"
                                 ]
                                 
-                                pdf.set_font('Arial', '', 11)
+                                pdf.set_font('Arial', '', 10)
                                 for line in footer:
                                     pdf.cell(1, 4.5, line, 0, 2, 'L')
                                 
@@ -3727,9 +3728,9 @@ def show_admin_dashboard():
                                     "endorsement, surety, or any other similar form of commitment. The signatory diclaims all liability for any damage resulting from the improper, exaggerated, or abusive use of this AVI.",
                                 ]
                                 
-                                pdf.set_font('Arial', '', 4)
+                                pdf.set_font('Arial', '', 5)
                                 for line in fin:
-                                    pdf.cell(1, 5, line, 0, 2, 'L')
+                                    pdf.cell(1, 5, line, 0, 2, 'C')
                                 
                                 # ---- Sauvegarde du fichier ----
                                 os.makedirs("avi_documents", exist_ok=True)
