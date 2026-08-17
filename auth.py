@@ -3677,13 +3677,11 @@ def show_admin_dashboard():
                                 
                                 # ---- Date et signature ----
                                 pdf.cell(0, 5, f"Fait à Brazzaville, le {datetime.now().strftime('%d %B %Y')}", 0, 1, 'R')
-                                pdf.ln(20)
-
                                 pdf.set_font('Arial', 'B', 10)
                                 pdf.cell(0, 5, "Rubain MOUNGALA", 0, 1)
                                 pdf.set_font('Arial', 'B', 10)
                                 pdf.cell(0, 5, "Directeur de la Gestion Financière", 0, 1)
-                                pdf.ln(20)
+                                pdf.ln(10)
                                 
                                 # ---- Pied de page ----
                                 footer = [
