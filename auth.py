@@ -3573,30 +3573,21 @@ def show_admin_dashboard():
                                     temp_logo.seek(0)
                                     
                                     # Images en arrière-plan / filigranes
-                                    for position, width in [
-                                        ((272, 103), 329),   # Filigrane supérieur / central
-                                        ((49, 276), 349),    # Filigrane milieu gauche
-                                        ((330, 499), 259),   # Filigrane inférieur droit
-                                    ]:
-                                        pdf.image(
-                                            temp_logo,
-                                            x=position[0],
-                                            y=position[1],
-                                            w=width
-                                        )
+                                    for position in [(272, 103), (49, 276), (330, 499), (100, 100)]: 
+                                        pdf.image(temp_logo, x=position[0], y=position[1], w=100)
                                         
                                 except Exception as e:
                                     st.warning(f"Logo non trouvé ou erreur de traitement: {str(e)}")
 
                                 # ---- Logo et entête ----
                                 try:
-                                    pdf.image("assets/logo.png", x=3, y=5, w=50)
+                                    pdf.image("assets/logo.png", x=3, y=5, w=40)
                                 except:
                                     pass  # Continue sans logo si non trouvé
                                 
                                                                 # ---- En-tête avec cadre ----
                                 # Définir la couleur de fond blanc et bordure noire
-                                pdf.ln(20)
+                                pdf.ln(10)
                                 pdf.set_fill_color(255, 255, 255)  # Fond blanc
                                 pdf.set_draw_color(0, 0, 0)        # Bordure noire
                                 #pdf.set_line_width(1)              # Épaisseur de la bordure : 1
@@ -3605,7 +3596,7 @@ def show_admin_dashboard():
                                 margin_left = 50
                                 margin_right = 20
                                 x_start = margin_left
-                                y_start = 40
+                                y_start = 10
                                 frame_width = 150 - (margin_left + margin_right)  # Largeur du cadre
                                 frame_height = 12  # Hauteur du cadre
                                 
