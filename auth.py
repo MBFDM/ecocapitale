@@ -3596,7 +3596,7 @@ def show_admin_dashboard():
                                 margin_left = 50
                                 margin_right = 20
                                 x_start = margin_left
-                                y_start = 10
+                                y_start = 20
                                 frame_width = 200 - (margin_left + margin_right)  # Largeur du cadre
                                 frame_height = 12  # Hauteur du cadre
                                 
@@ -3607,7 +3607,7 @@ def show_admin_dashboard():
                                 pdf.set_y(y_start + 8)  # Ajuster la position Y pour centrer le texte
                                 pdf.set_font('Arial', 'B', 16)
                                 pdf.set_text_color(0, 0, 0)  # Noir
-                                pdf.cell(frame_width, 20, 'ATTESTATION DE VIREMENT IRREVOCABLE', 0, 1, 'C')
+                                pdf.cell(frame_width, 10, 'ATTESTATION DE VIREMENT IRREVOCABLE', 0, 1, 'C')
                                 pdf.ln(3)
                                 
                                 # Référence du document
