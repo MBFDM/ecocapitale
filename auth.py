@@ -3641,14 +3641,21 @@ def show_admin_dashboard():
                                     "",
                                     "Il est précisé que ce compte demeurera bloqué jusqu'à la présentation, par le donneur d'ordre, de ses",
                                     "nouvelles coordonnées bancaires ouvertes en France.",
-                                    "",
+                                    ""
+                                ]
+
+                                for line in details:
+                                    pdf.cell(0, 5, line, 0, 1)
+
+                                pdf.set_font('Arial', '', 11)
+                                detail = [
                                     "À défaut, les fonds ne pourront être remis à sa disposition qu'après présentation de son",
                                     "passeport attestant d'un refus de visa. Toutefois, nous autorisons le donneur d'ordre, à",
                                     "toutes fins utiles, à utiliser notre compte ouvert auprès de United Bank for Africa (UBA).",
                                     ""
                                 ]
                                 
-                                for line in details:
+                                for line in detail:
                                     pdf.cell(0, 5, line, 0, 1, 'L')
                                 
                                 # ---- Coordonnées bancaires ----
