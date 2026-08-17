@@ -3605,7 +3605,7 @@ def show_admin_dashboard():
                                 
                                 # Ajouter le texte à l'intérieur du cadre
                                 pdf.set_y(y_start + 8)  # Ajuster la position Y pour centrer le texte
-                                pdf.set_font('Arial', 'B', 16)
+                                pdf.set_font('Arial', 'B', 12)
                                 pdf.set_text_color(0, 0, 0)  # Noir
                                 pdf.cell(frame_width, 10, 'ATTESTATION DE VIREMENT IRREVOCABLE', 0, 1, 'C')
                                 pdf.ln(3)
