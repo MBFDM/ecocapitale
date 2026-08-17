@@ -3572,7 +3572,7 @@ def show_admin_dashboard():
                                     img.save(temp_logo, format='PNG')
                                     temp_logo.seek(0)
                                     
-                                    for position in [(30, 30), (120, 200), (50, 300), (100, 100)]:
+                                    for position in [(50, 50), (120, 200), (50, 300), (100, 100)]:
                                         pdf.image(temp_logo, x=position[0], y=position[1], w=100)
                                         
                                 except Exception as e:
@@ -3585,11 +3585,11 @@ def show_admin_dashboard():
                                 pdf.set_line_width(1)              # Épaisseur de la bordure : 1
                                 
                                 # Dessiner le cadre sur toute la largeur avec un padding
-                                margin_left = 20
-                                margin_right = 20
+                                margin_left = 10
+                                margin_right = 10
                                 x_start = margin_left
-                                y_start = 18
-                                frame_width = 120 - (margin_left + margin_right)  # Largeur du cadre
+                                y_start = 8
+                                frame_width = 200 - (margin_left + margin_right)  # Largeur du cadre
                                 frame_height = 12  # Hauteur du cadre
                                 
                                 # Dessiner le cadre rectangulaire avec fond blanc
@@ -3725,22 +3725,8 @@ def show_admin_dashboard():
                                 except Exception as e:
                                     st.warning(f"Erreur lors de l'insertion des images: {str(e)}")
                                     
-                                pdf.ln(10)
-                                # ---- Pied de page ----
-                                footer = [
-                                    "Eco capital Sarl",
-                                    "Société a responsabilité limité au capital de 60.000.000 XAF",
-                                    "Siège social : 1636 Boulevard Denis Sassou Nguesso Brazzaville",
-                                    "Contact: 00242 06 931 31 06 /04 001 79 40",
-                                    "Web : www.ecocapitale.com mail : contacts@ecocapitale.com",
-                                    "RCCM N°CG/BZV/B12-00320NIU N°M24000000665934H",
-                                    "Brazzaville République du Congo"
-                                ]
-                                
-                                pdf.set_font('Arial', '', 11)
-                                for line in footer:
-                                    pdf.cell(1, 4.5, line, 0, 2, 'L')
-                                
+                                pdf.ln(20)
+
                                 # ---- QR Code ----
                                 qr_data = {
                                     "Référence": avi_data['reference'],
@@ -3772,12 +3758,27 @@ def show_admin_dashboard():
                                 #pdf.ln(5)
 
                                 # ---- Pied de page ----
+                                footer = [
+                                    "Eco capital Sarl",
+                                    "Société a responsabilité limité au capital de 60.000.000 XAF",
+                                    "Siège social : 1636 Bd Denis Sassou Nguesso Batignolles Brazzaville",
+                                    "RCCM N°CG/BZV/B12-00320NIU N°M24000000665934H",
+                                    "Contacts : 00242 06 113 56 12 /06 113 56 05",
+                                    "Web : www.ecocapitale.com mail : contacts@ecocapitale.com",
+                                    "Brazzaville République du Congo"
+                                ]
+                                
+                                pdf.set_font('Arial', '', 10)
+                                for line in footer:
+                                    pdf.cell(1, 4.5, line, 0, 2, 'L')
+                                
+                                # ---- Pied de page ----
                                 fin = [
                                     "The purpose of this AVI is to confirm the existence of an account in our records. The undersigned assumes no obligation or commitment of any kind. This document connot be considered as a guarantee",
                                     "endorsement, surety, or any other similar form of commitment. The signatory diclaims all liability for any damage resulting from the improper, exaggerated, or abusive use of this AVI.",
                                 ]
                                 
-                                pdf.set_font('Arial', '', 5.5)
+                                pdf.set_font('Arial', '', 6)
                                 for line in fin:
                                     pdf.cell(0, 5, line, 0, 2, 'C')
                                 
