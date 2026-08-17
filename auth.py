@@ -3589,7 +3589,7 @@ def show_admin_dashboard():
                                 margin_left = 10
                                 margin_right = 10
                                 x_start = margin_left
-                                y_start = 8
+                                y_start = 30
                                 frame_width = 200 - (margin_left + margin_right)  # Largeur du cadre
                                 frame_height = 12  # Hauteur du cadre
                                 
@@ -3610,7 +3610,7 @@ def show_admin_dashboard():
                                 
                                 # ---- Logo et entête ----
                                 try:
-                                    pdf.image("assets/logo.png", x=10, y=10, w=30)
+                                    pdf.image("assets/logo.png", x=9, y=10, w=50)
                                 except:
                                     pass  # Continue sans logo si non trouvé
                                 
@@ -3715,19 +3715,16 @@ def show_admin_dashboard():
                                 pdf.cell(0, 5, "Responsable des Opérations", 0, 1)
                                 pdf.ln(10)
 
-                                 # ---- Insertion des images signature et cachet ----
-                                # Positionner après "Responsable des Opérations"
-                                y_position = pdf.get_y()
-                                
+                                # ---- INSERTION DES IMAGES SIGNATURE ET CACHET ----
                                 try:
                                     # Signature (à gauche)
-                                    pdf.image("assets/signature.png", x=10, y=y_position, w=30)
-                                    # Cachet (à droite de la signature)
-                                    pdf.image("assets/cachet.png", x=65, y=y_position, w=80)
+                                    pdf.image("assets/signature.png", x=10, y=pdf.get_y(), w=30)
+                                    # Cachet (à droite)
+                                    pdf.image("assets/cachet.png", x=150, y=pdf.get_y(), w=80)
+                                    pdf.ln(30)  # Saut de ligne après les images
                                 except Exception as e:
-                                    st.warning(f"Erreur lors de l'insertion des images: {str(e)}")
-                                    
-                                pdf.ln(20)
+                                    pdf.ln(5)
+                                    st.warning(f"Images de signature ou cachet non trouvées: {str(e)}")
 
                                 # ---- Pied de page ----
                                 footer = [
