@@ -3633,7 +3633,7 @@ def show_admin_dashboard():
                                 pdf.ln(5)
                                 
                                 # ---- Détails du virement ----
-                                pdf.set_font('Arial', '', 10.5)
+                                pdf.set_font('Arial', '', 10.75)
                                 details = [
                                     f"Il est l'ordonnateur d'un virement irrévocable et permanent d'un montant total de {avi_data['montant']} FCFA",
                                     f"({montant_en_lettres(avi_data['montant'])}), équivalant actuellement à {avi_data['montant']/650:,.2f} euros, cette somme est destinée à couvrir les frais liés",
@@ -3677,13 +3677,13 @@ def show_admin_dashboard():
                                 
                                 # ---- Date et signature ----
                                 pdf.cell(0, 5, f"Fait à Brazzaville, le {datetime.now().strftime('%d %B %Y')}", 0, 1, 'R')
-                                pdf.ln(10)
+                                pdf.ln(20)
 
                                 pdf.set_font('Arial', 'B', 10)
                                 pdf.cell(0, 5, "Rubain MOUNGALA", 0, 1)
                                 pdf.set_font('Arial', 'B', 10)
                                 pdf.cell(0, 5, "Directeur de la Gestion Financière", 0, 1)
-                                pdf.ln(10)
+                                pdf.ln(20)
                                 
                                 # ---- Pied de page ----
                                 footer = [
@@ -3738,7 +3738,7 @@ def show_admin_dashboard():
                                 
                                 pdf.set_font('Arial', '', 6)
                                 for line in fin:
-                                    pdf.cell(1, 5, line, 0, 2, 'C')
+                                    pdf.cell(0, 5, line, 0, 2, 'C')
                                 
                                 # ---- Sauvegarde du fichier ----
                                 os.makedirs("avi_documents", exist_ok=True)
