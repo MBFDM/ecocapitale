@@ -3700,12 +3700,13 @@ def show_admin_dashboard():
                                 
                                 try:
                                     # Signature (à gauche)
-                                    pdf.image("assets/signature.png", x=10, y=y_position + 15, w=30)
+                                    pdf.image("assets/signature.png", x=10, y=y_position + 2, w=30)
                                     # Cachet (à droite de la signature)
-                                    pdf.image("assets/cachet.png", x=65, y=y_position + 15, w=100)
+                                    pdf.image("assets/cachet.png", x=65, y=y_position + 2, w=60)
                                 except Exception as e:
                                     st.warning(f"Erreur lors de l'insertion des images: {str(e)}")
-                                
+                                    
+                                pdf.ln(10)
                                 # ---- Pied de page ----
                                 footer = [
                                     "Eco capital Sarl",
