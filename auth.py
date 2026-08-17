@@ -3572,7 +3572,7 @@ def show_admin_dashboard():
                                     img.save(temp_logo, format='PNG')
                                     temp_logo.seek(0)
                                     
-                                    for position in [(50, 50), (120, 200), (50, 300), (100, 100)]:
+                                    for position in [(130, 130), (120, 200), (50, 300), (100, 100)]:
                                         pdf.image(temp_logo, x=position[0], y=position[1], w=100)
                                         
                                 except Exception as e:
@@ -3580,6 +3580,7 @@ def show_admin_dashboard():
                                 
                                                                 # ---- En-tête avec cadre ----
                                 # Définir la couleur de fond blanc et bordure noire
+                                pdf.ln(20)
                                 pdf.set_fill_color(255, 255, 255)  # Fond blanc
                                 pdf.set_draw_color(0, 0, 0)        # Bordure noire
                                 pdf.set_line_width(1)              # Épaisseur de la bordure : 1
@@ -3600,6 +3601,7 @@ def show_admin_dashboard():
                                 pdf.set_font('Arial', 'B', 16)
                                 pdf.set_text_color(0, 0, 0)  # Noir
                                 pdf.cell(frame_width, 10, 'ATTESTATION DE VIREMENT IRREVOCABLE', 0, 1, 'C')
+                                pdf.ln(5)
                                 
                                 # Référence du document
                                 pdf.set_font('Arial', 'B', 10)
@@ -3727,6 +3729,21 @@ def show_admin_dashboard():
                                     
                                 pdf.ln(20)
 
+                                # ---- Pied de page ----
+                                footer = [
+                                    "Eco capital Sarl",
+                                    "Société a responsabilité limité au capital de 60.000.000 XAF",
+                                    "Siège social : 1636 Bd Denis Sassou Nguesso Batignolles Brazzaville",
+                                    "RCCM N°CG/BZV/B12-00320NIU N°M24000000665934H",
+                                    "Contacts : 00242 06 113 56 12 /06 113 56 05",
+                                    "Web : www.ecocapitale.com mail : contacts@ecocapitale.com",
+                                    "Brazzaville République du Congo"
+                                ]
+                                
+                                pdf.set_font('Arial', '', 10)
+                                for line in footer:
+                                    pdf.cell(1, 4.5, line, 0, 2, 'L')
+
                                 # ---- QR Code ----
                                 qr_data = {
                                     "Référence": avi_data['reference'],
@@ -3756,21 +3773,6 @@ def show_admin_dashboard():
                                 
                                 pdf.image(img_bytes, x=150, y=pdf.get_y()-40, w=40)
                                 #pdf.ln(5)
-
-                                # ---- Pied de page ----
-                                footer = [
-                                    "Eco capital Sarl",
-                                    "Société a responsabilité limité au capital de 60.000.000 XAF",
-                                    "Siège social : 1636 Bd Denis Sassou Nguesso Batignolles Brazzaville",
-                                    "RCCM N°CG/BZV/B12-00320NIU N°M24000000665934H",
-                                    "Contacts : 00242 06 113 56 12 /06 113 56 05",
-                                    "Web : www.ecocapitale.com mail : contacts@ecocapitale.com",
-                                    "Brazzaville République du Congo"
-                                ]
-                                
-                                pdf.set_font('Arial', '', 10)
-                                for line in footer:
-                                    pdf.cell(1, 4.5, line, 0, 2, 'L')
                                 
                                 # ---- Pied de page ----
                                 fin = [
