@@ -3581,7 +3581,7 @@ def show_admin_dashboard():
 
                                 # ---- Logo et entête ----
                                 try:
-                                    pdf.image("assets/logo.png", x=3, y=5, w=40)
+                                    pdf.image("assets/logo.png", x=3, y=5, w=45)
                                 except:
                                     pass  # Continue sans logo si non trouvé
                                 
@@ -3596,8 +3596,8 @@ def show_admin_dashboard():
                                 margin_left = 50
                                 margin_right = 20
                                 x_start = margin_left
-                                y_start = 10
-                                frame_width = 150 - (margin_left + margin_right)  # Largeur du cadre
+                                y_start = 5
+                                frame_width = 200 - (margin_left + margin_right)  # Largeur du cadre
                                 frame_height = 12  # Hauteur du cadre
                                 
                                 # Dessiner le cadre rectangulaire avec fond blanc
