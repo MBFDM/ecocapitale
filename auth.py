@@ -3527,6 +3527,10 @@ def show_admin_dashboard():
                                 pdf = FPDF()
                                 pdf.add_page()
 
+                                # ---- Ajout d'une couleur de fond sur la page ----
+                                pdf.set_fill_color(150, 201, 235)  # Gris très clair
+                                pdf.rect(0, 0, 210, 297, 'F')
+
                                 def montant_en_lettres(montant):
                                     """Convertit un montant numérique en lettres françaises avec devise"""
                                     from num2words import num2words
@@ -3689,6 +3693,18 @@ def show_admin_dashboard():
                                 pdf.cell(0, 5, "Rubain MOUNGALA", 0, 1)
                                 pdf.cell(0, 5, "Responsable des Opérations", 0, 1)
                                 pdf.ln(20)
+
+                                 # ---- Insertion des images signature et cachet ----
+                                # Positionner après "Responsable des Opérations"
+                                y_position = pdf.get_y()
+                                
+                                try:
+                                    # Signature (à gauche)
+                                    pdf.image("assets/signature.png", x=10, y=y_position + 5, w=50)
+                                    # Cachet (à droite de la signature)
+                                    pdf.image("assets/cachet.png", x=65, y=y_position + 5, w=50)
+                                except Exception as e:
+                                    st.warning(f"Erreur lors de l'insertion des images: {str(e)}")
                                 
                                 # ---- Pied de page ----
                                 footer = [
