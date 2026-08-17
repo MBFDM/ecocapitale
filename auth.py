@@ -3577,6 +3577,12 @@ def show_admin_dashboard():
                                         
                                 except Exception as e:
                                     st.warning(f"Logo non trouvé ou erreur de traitement: {str(e)}")
+
+                                # ---- Logo et entête ----
+                                try:
+                                    pdf.image("assets/logo.png", x=20, y=5, w=50)
+                                except:
+                                    pass  # Continue sans logo si non trouvé
                                 
                                                                 # ---- En-tête avec cadre ----
                                 # Définir la couleur de fond blanc et bordure noire
@@ -3607,12 +3613,6 @@ def show_admin_dashboard():
                                 pdf.set_font('Arial', 'B', 10)
                                 pdf.cell(0, 0, f"DGF-EC / {avi_data['reference']}", 0, 1, 'C')
                                 pdf.ln(5)
-                                
-                                # ---- Logo et entête ----
-                                try:
-                                    pdf.image("assets/logo.png", x=9, y=10, w=50)
-                                except:
-                                    pass  # Continue sans logo si non trouvé
                                 
                                 # Fonction pour texte justifié
                                 def justified_text(text, line_height=5):
@@ -3720,10 +3720,10 @@ def show_admin_dashboard():
                                     # Signature (à gauche)
                                     pdf.image("assets/signature.png", x=10, y=pdf.get_y(), w=30)
                                     # Cachet (à droite)
-                                    pdf.image("assets/cachet.png", x=50, y=pdf.get_y(), w=80)
-                                    pdf.ln(10)  # Saut de ligne après les images
+                                    pdf.image("assets/cachet.png", x=60, y=pdf.get_y(), w=80)
+                                    pdf.ln(1)  # Saut de ligne après les images
                                 except Exception as e:
-                                    pdf.ln(5)
+                                    pdf.ln(1)
                                     st.warning(f"Images de signature ou cachet non trouvées: {str(e)}")
 
                                 # ---- Pied de page ----
@@ -3737,7 +3737,7 @@ def show_admin_dashboard():
                                     "Brazzaville République du Congo"
                                 ]
                                 
-                                pdf.set_font('Arial', '', 10)
+                                pdf.set_font('Arial', '', 9)
                                 for line in footer:
                                     pdf.cell(1, 4.5, line, 0, 2, 'L')
 
