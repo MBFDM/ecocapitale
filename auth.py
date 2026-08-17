@@ -3572,7 +3572,7 @@ def show_admin_dashboard():
                                     img.save(temp_logo, format='PNG')
                                     temp_logo.seek(0)
                                     
-                                    for position in [(130, 130), (120, 200), (50, 300), (100, 100)]:
+                                    for position in [(30, 30), (120, 200), (50, 300), (100, 100)]:
                                         pdf.image(temp_logo, x=position[0], y=position[1], w=100)
                                         
                                 except Exception as e:
@@ -3592,7 +3592,7 @@ def show_admin_dashboard():
                                 pdf.set_line_width(1)              # Épaisseur de la bordure : 1
                                 
                                 # Dessiner le cadre sur toute la largeur avec un padding
-                                margin_left = 30
+                                margin_left = 50
                                 margin_right = 10
                                 x_start = margin_left
                                 y_start = 40
@@ -3718,10 +3718,10 @@ def show_admin_dashboard():
                                 # ---- INSERTION DES IMAGES SIGNATURE ET CACHET ----
                                 try:
                                     # Signature (à gauche)
-                                    pdf.image("assets/signature.png", x=10, y=pdf.get_y(), w=25)
+                                    pdf.image("assets/signature.png", x=10, y=pdf.get_y(), w=30)
                                     # Cachet (à droite)
                                     pdf.image("assets/cachet.png", x=60, y=pdf.get_y(), w=80)
-                                    pdf.ln(10)  # Saut de ligne après les images
+                                    pdf.ln(20)  # Saut de ligne après les images
                                 except Exception as e:
                                     pdf.ln(5)
                                     st.warning(f"Images de signature ou cachet non trouvées: {str(e)}")
