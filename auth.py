@@ -3594,9 +3594,9 @@ def show_admin_dashboard():
                                 
                                 # Dessiner le cadre sur toute la largeur avec un padding
                                 margin_left = 50
-                                margin_right = 20
+                                margin_right = 35
                                 x_start = margin_left
-                                y_start = 20
+                                y_start = 30
                                 frame_width = 200 - (margin_left + margin_right)  # Largeur du cadre
                                 frame_height = 12  # Hauteur du cadre
                                 
