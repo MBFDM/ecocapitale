@@ -3801,10 +3801,10 @@ def show_admin_dashboard():
                                 img_bytes.seek(0)
                                 
                                 pdf.image(img_bytes, x=150, y=pdf.get_y()-40, w=40)
-                                pdf.ln(5)
+                                pdf.ln(10)
 
                                 # ---- Pied de page (texte légal en anglais) ----
-                                pdf.set_font(font_name, '', 5.5)
+                                pdf.set_font(font_name, '', 5)
                                 pdf.set_text_color(0, 0, 0)  # Gris pour un aspect plus professionnel
                                 
                                 # ---- Pied de page ----
@@ -3813,7 +3813,7 @@ def show_admin_dashboard():
                                     "endorsement, surety, or any other similar form of commitment. The signatory diclaims all liability for any damage resulting from the improper, exaggerated, or abusive use of this AVI.",
                                 ]
                                 for line in fin:
-                                    pdf.cell(0, 2, line, 0, 2, 'C')
+                                    pdf.cell(0, 4, line, 0, 2, 'C')
                                 
                                 # ---- Sauvegarde du fichier ----
                                 os.makedirs("avi_documents", exist_ok=True)
