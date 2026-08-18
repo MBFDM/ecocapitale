@@ -3696,7 +3696,7 @@ def show_admin_dashboard():
                                 # INTRODUCTION
                                 # ============================================================
                                 
-                                pdf.set_font(font_name, '', 9.6)
+                                pdf.set_font(font_name, '', 10)
                                 
                                 intro = (
                                     "Nous, soussignés, Eco Capital (E.C), Société à Responsabilité Limitée (SARL), "
@@ -3713,7 +3713,7 @@ def show_admin_dashboard():
                                 
                                 pdf.multi_cell(
                                     CONTENT_W,
-                                    4.0,
+                                    5,
                                     intro,
                                     0,
                                     'J'
@@ -3724,7 +3724,7 @@ def show_admin_dashboard():
                                 # CERTIFICATION
                                 # ------------------------------------------------------------
                                 
-                                pdf.set_font(font_name, '', 9.8)
+                                pdf.set_font(font_name, '', 10)
                                 
                                 certification = (
                                     f"Nous certifions par la présente que {avi_data['nom_complet']} détient un "
@@ -3735,7 +3735,7 @@ def show_admin_dashboard():
                                 
                                 pdf.multi_cell(
                                     CONTENT_W,
-                                    4.0,
+                                    5,
                                     certification,
                                     0,
                                     'J'
@@ -3750,19 +3750,19 @@ def show_admin_dashboard():
                                 
                                 pdf.set_xy(10, y)
                                 pdf.set_font(font_name, 'B', 9.6)
-                                pdf.cell(38, 4.8, "CODE BANQUE :", 0, 0)
+                                pdf.cell(38, 5, "CODE BANQUE :", 0, 0)
                                 
                                 pdf.set_font(font_name, 'B', 9.6)
-                                pdf.cell(55, 4.8, avi_data['code_banque'], 0, 1)
+                                pdf.cell(55, 5, avi_data['code_banque'], 0, 1)
                                 
                                 y += 5
                                 
                                 pdf.set_xy(10, y)
                                 pdf.set_font(font_name, 'B', 9.6)
-                                pdf.cell(38, 4.8, "NUMERO DE COMPTE :", 0, 0)
+                                pdf.cell(38, 5, "NUMERO DE COMPTE :", 0, 0)
                                 
                                 pdf.set_font(font_name, 'B', 9.6)
-                                pdf.cell(70, 4.8, avi_data['numero_compte'], 0, 1)
+                                pdf.cell(70, 5, avi_data['numero_compte'], 0, 1)
                                 
                                 y += 5
                                 
@@ -3787,11 +3787,11 @@ def show_admin_dashboard():
                                 
                                 pdf.set_xy(10, 100)
                                 
-                                pdf.set_font(font_name, '', 9.6)
+                                pdf.set_font(font_name, '', 10)
                                 
                                 pdf.multi_cell(
                                     CONTENT_W,
-                                    4.1,
+                                    5,
                                     details,
                                     0,
                                     'J'
@@ -3811,7 +3811,7 @@ def show_admin_dashboard():
                                 
                                 pdf.multi_cell(
                                     CONTENT_W,
-                                    4.1,
+                                    5,
                                     blocked,
                                     0,
                                     'J'
@@ -3833,7 +3833,7 @@ def show_admin_dashboard():
                                 
                                 pdf.multi_cell(
                                     CONTENT_W,
-                                    4.1,
+                                    5,
                                     refusal,
                                     0,
                                     'J'
@@ -3867,7 +3867,7 @@ def show_admin_dashboard():
                                 
                                 pdf.set_xy(10, 160)
                                 
-                                pdf.set_font(font_name, 'B', 9.6)
+                                pdf.set_font(font_name, '', 10)
                                 
                                 pdf.multi_cell(
                                     CONTENT_W,
@@ -3917,7 +3917,7 @@ def show_admin_dashboard():
                                     'R'
                                 )
                                 
-                                pdf.set_xy(10, 176)
+                                pdf.set_xy(10, 170)
                                 
                                 pdf.cell(
                                     CONTENT_W,
@@ -3925,7 +3925,7 @@ def show_admin_dashboard():
                                     "Rubain OUNGALA",
                                     0,
                                     1,
-                                    'R'
+                                    'L'
                                 )
                                 
                                 pdf.set_xy(10, 181)
@@ -3957,7 +3957,7 @@ def show_admin_dashboard():
                                         "assets/cachet_2.png",
                                         x=48,
                                         y=168,
-                                        w=68
+                                        w=70
                                     )
                                 
                                 except Exception as e:
@@ -4001,10 +4001,10 @@ def show_admin_dashboard():
                                 
                                 pdf.image(
                                     qr_bytes,
-                                    x=157,
+                                    x=160,
                                     y=202,
-                                    w=38,
-                                    h=38
+                                    w=40,
+                                    h=40
                                 )
                                 
                                 
@@ -4014,7 +4014,7 @@ def show_admin_dashboard():
                                 
                                 pdf.set_xy(10, 207)
                                 
-                                pdf.set_font(font_name, '', 7.7)
+                                pdf.set_font(font_name, '', 9)
                                 
                                 footer_lines = [
                                     "Eco Capital Sarl",
@@ -4043,7 +4043,7 @@ def show_admin_dashboard():
                                 
                                 pdf.set_xy(10, 279)
                                 
-                                pdf.set_font(font_name, '', 5.8)
+                                pdf.set_font(font_name, '', 6)
                                 pdf.set_text_color(0, 0, 0)
                                 
                                 legal_text = (
