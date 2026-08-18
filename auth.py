@@ -3601,14 +3601,14 @@ def show_admin_dashboard():
                                 x_start = (210 - text_width - (padding * 2)) / 2  # Centré horizontalement
                                 y_start = pdf.get_y() + 5
                                 frame_width = text_width + (padding * 2)
-                                frame_height = 18  # Hauteur suffisante
+                                frame_height = 16  # Hauteur suffisante
                                 
                                 # Dessiner le cadre avec fond blanc
                                 pdf.rect(x_start, y_start, frame_width, frame_height, 'FD')
                                 
                                 # Ajouter le texte centré dans le cadre
                                 pdf.set_xy(x_start, y_start + 3)
-                                pdf.set_font('Arial', 'B', 16)
+                                pdf.set_font('Arial', 'B', 15)
                                 pdf.set_text_color(0, 0, 0)
                                 pdf.cell(frame_width, 12, 'ATTESTATION DE VIREMENT IRREVOCABLE', 0, 1, 'C')
                                 
@@ -3727,9 +3727,9 @@ def show_admin_dashboard():
                                     pdf.image("assets/signature.png", x=10, y=pdf.get_y(), w=30)
                                     # Cachet (à droite)
                                     pdf.image("assets/cachet.png", x=40, y=pdf.get_y(), w=80)
-                                    pdf.ln(20)  # Saut de ligne après les images
+                                    pdf.ln(25)  # Saut de ligne après les images
                                 except Exception as e:
-                                    pdf.ln(5)
+                                    pdf.ln(10)
                                     st.warning(f"Images de signature ou cachet non trouvées: {str(e)}")
 
                                 # ---- Pied de page ----
