@@ -3785,7 +3785,7 @@ def show_admin_dashboard():
                                     pdf.image("assets/signature.png", x=10, y=pdf.get_y(), w=30)
                                     # Cachet (à droite)
                                     pdf.image("assets/cachet_2.png", x=50, y=pdf.get_y()-7, w=70)
-                                    pdf.ln(18)  # Saut de ligne après les images
+                                    pdf.ln(25)  # Saut de ligne après les images
                                 except Exception as e:
                                     pdf.ln(3)
                                     st.warning(f"Images de signature ou cachet non trouvées: {str(e)}")
