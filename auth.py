@@ -3732,7 +3732,8 @@ def show_admin_dashboard():
                                     pdf.ln(10)
                                     st.warning(f"Images de signature ou cachet non trouvées: {str(e)}")
 
-                                # ---- Pied de page ----
+                                
+                                pdf.set_font('Arial', '', 8)
                                 footer = [
                                     "Eco capital Sarl",
                                     "Société a responsabilité limité au capital de 60.000.000 XAF",
@@ -3742,10 +3743,8 @@ def show_admin_dashboard():
                                     "Web : www.ecocapitale.com mail : contacts@ecocapitale.com",
                                     "Brazzaville République du Congo"
                                 ]
-                                
-                                pdf.set_font('Arial', '', 9)
                                 for line in footer:
-                                    pdf.cell(1, 4.5, line, 0, 2, 'L')
+                                    pdf.cell(1, 4, line, 0, 2, 'L')
 
                                 # ---- QR Code ----
                                 qr_data = {
@@ -3776,16 +3775,19 @@ def show_admin_dashboard():
                                 
                                 pdf.image(img_bytes, x=150, y=pdf.get_y()-40, w=40)
                                 #pdf.ln(5)
+
+                                # ---- Pied de page (texte légal en anglais) ----
+                                pdf.set_font('Arial', '', 6)
+                                pdf.set_text_color(0, 0, 0)  # Gris pour un aspect plus professionnel
                                 
                                 # ---- Pied de page ----
                                 fin = [
                                     "The purpose of this AVI is to confirm the existence of an account in our records. The undersigned assumes no obligation or commitment of any kind. This document connot be considered as a guarantee",
                                     "endorsement, surety, or any other similar form of commitment. The signatory diclaims all liability for any damage resulting from the improper, exaggerated, or abusive use of this AVI.",
                                 ]
-                                
-                                pdf.set_font('Arial', '', 6)
                                 for line in fin:
-                                    pdf.cell(0, 5, line, 0, 2, 'C')
+                                    pdf.cell(0, 3, line, 0, 2, 'C')
+                                pdf.ln(5)
                                 
                                 # ---- Sauvegarde du fichier ----
                                 os.makedirs("avi_documents", exist_ok=True)
