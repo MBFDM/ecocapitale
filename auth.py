@@ -3598,8 +3598,8 @@ def show_admin_dashboard():
                                 x_start = margin_left
                                 # Utiliser la position Y actuelle au lieu d'une valeur fixe
                                 y_start = pdf.get_y() + 5
-                                frame_width = 210 - (margin_left + margin_right)
-                                frame_height = 22  # Hauteur suffisante pour le texte (taille 12 + marge)
+                                frame_width = 150 - (margin_left + margin_right)
+                                frame_height = 12  # Hauteur suffisante pour le texte (taille 12 + marge)
                                 
                                 # Dessiner le cadre rectangulaire avec fond blanc
                                 pdf.rect(x_start, y_start, frame_width, frame_height, 'FD')
@@ -3608,7 +3608,7 @@ def show_admin_dashboard():
                                 pdf.set_xy(x_start, y_start + 4)  # Centrer verticalement dans le cadre
                                 pdf.set_font('Arial', 'B', 12)
                                 pdf.set_text_color(0, 0, 0)  # Noir
-                                pdf.cell(frame_width, 14, 'ATTESTATION DE VIREMENT IRREVOCABLE', 0, 1, 'C')
+                                pdf.cell(frame_width, 16, 'ATTESTATION DE VIREMENT IRREVOCABLE', 0, 1, 'C')
                                 
                                 # Positionner le curseur après le cadre
                                 pdf.set_y(y_start + frame_height + 5)
