@@ -3593,7 +3593,7 @@ def show_admin_dashboard():
                                 #pdf.set_line_width(1)              # Épaisseur de la bordure : 1
                                 
                                 # Calculer la largeur du texte
-                                pdf.set_font('Arial', 'B', 11)
+                                pdf.set_font('Arial', 'B', 10)
                                 text_width = pdf.get_string_width('ATTESTATION DE VIREMENT IRREVOCABLE')
                                 padding = 20  # Marge intérieure
                                 
@@ -3601,14 +3601,14 @@ def show_admin_dashboard():
                                 x_start = (210 - text_width - (padding * 2)) / 2  # Centré horizontalement
                                 y_start = pdf.get_y() + 5
                                 frame_width = text_width + (padding * 2)
-                                frame_height = 14  # Hauteur suffisante
+                                frame_height = 12  # Hauteur suffisante
                                 
                                 # Dessiner le cadre avec fond blanc
                                 pdf.rect(x_start, y_start, frame_width, frame_height, 'FD')
                                 
                                 # Ajouter le texte centré dans le cadre
                                 pdf.set_xy(x_start, y_start + 3)
-                                pdf.set_font('Arial', 'B', 15)
+                                pdf.set_font('Arial', 'B', 14.5)
                                 pdf.set_text_color(0, 0, 0)
                                 pdf.cell(frame_width, 10, 'ATTESTATION DE VIREMENT IRREVOCABLE', 0, 1, 'C')
                                 
@@ -3616,7 +3616,7 @@ def show_admin_dashboard():
                                 pdf.set_y(y_start + frame_height + 5)
                                 
                                 # Référence du document
-                                pdf.set_font('Arial', 'B', 12)
+                                pdf.set_font('Arial', 'B', 11)
                                 pdf.cell(0, 0, f"DGF-EC / {avi_data['reference']}", 0, 1, 'C')
                                 pdf.ln(5)
                                 
