@@ -3801,7 +3801,16 @@ def show_admin_dashboard():
                                 img_bytes.seek(0)
                                 
                                 pdf.image(img_bytes, x=160, y=pdf.get_y()-40, w=40)
-                                pdf.ln(25) 
+                                
+                                # ---- Pied de page (texte légal en anglais) en bas de page ----
+                                # Calculer la position Y pour être en bas de page
+                                page_height = 297  # Hauteur A4 en mm
+                                margin_bottom = 15  # Marge depuis le bas
+                                y_position = page_height - margin_bottom - 10  # 10mm pour les 2 lignes de texte
+                                
+                                # Positionner le curseur en bas de page
+                                pdf.set_y(y_position)
+                                 
 
                                 # ---- Pied de page (texte légal en anglais) ----
                                 pdf.set_font(font_name, '', 6)
