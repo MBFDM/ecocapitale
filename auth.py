@@ -3593,7 +3593,7 @@ def show_admin_dashboard():
                                 #pdf.set_line_width(1)              # Épaisseur de la bordure : 1
                                 
                                 # Calculer la largeur du texte
-                                pdf.set_font('Arial', 'B', 11)
+                                pdf.set_font('Calibri', 'B', 11)
                                 text_width = pdf.get_string_width('ATTESTATION DE VIREMENT IRREVOCABLE')
                                 padding = 20  # Marge intérieure
                                 
@@ -3608,7 +3608,7 @@ def show_admin_dashboard():
                                 
                                 # Ajouter le texte centré dans le cadre
                                 pdf.set_xy(x_start, y_start + 3)
-                                pdf.set_font('Arial', 'B', 14)
+                                pdf.set_font('Calibri', 'B', 14)
                                 pdf.set_text_color(0, 0, 0)
                                 pdf.cell(frame_width, 10, 'ATTESTATION DE VIREMENT IRREVOCABLE', 0, 1, 'C')
                                 
@@ -3616,7 +3616,7 @@ def show_admin_dashboard():
                                 pdf.set_y(y_start + frame_height + 5)
                                 
                                 # Référence du document
-                                pdf.set_font('Arial', 'B', 10.5)
+                                pdf.set_font('Calibri', 'B', 10.5)
                                 pdf.cell(0, 0, f"DGF-EC / {avi_data['reference']}", 0, 1, 'C')
                                 pdf.ln(5)
                                 
@@ -3630,7 +3630,7 @@ def show_admin_dashboard():
                                             pdf.multi_cell(0, line_height, line, 0, 'J')
 
                                 # ---- Corps du document ----
-                                pdf.set_font('Arial', '', 11.25)
+                                pdf.set_font('Calibri', '', 11.25)
                                 intro = [
                                     "Nous, soussignés, Eco Capital (E.C), Société à Responsabilité Limitée (SARL), constituée conformément au",
                                     "droit OHADA ayant pour siège social sis au n°1636, Boulevard Denis Sassou Nguesso Batignolles,",
@@ -3647,24 +3647,24 @@ def show_admin_dashboard():
                                     pdf.cell(0, 5, line, 0, 2)
                                 
                                 # Informations bancaires en gras
-                                pdf.set_font('Arial', 'B', 11)
+                                pdf.set_font('Calibri', 'B', 11)
                                 pdf.cell(40, 5, "CODE BANQUE :", 0, 0)
-                                pdf.set_font('Arial', 'B', 11)
+                                pdf.set_font('Calibri', 'B', 11)
                                 pdf.cell(0, 5, avi_data['code_banque'], 0, 1)
                                 
-                                pdf.set_font('Arial', 'B', 11)
+                                pdf.set_font('Calibri', 'B', 11)
                                 pdf.cell(45, 5, "NUMERO DE COMPTE : ", 0, 0)
-                                pdf.set_font('Arial', 'B', 11)
+                                pdf.set_font('Calibri', 'B', 11)
                                 pdf.cell(0, 5, avi_data['numero_compte'], 0, 1)
                                 
-                                pdf.set_font('Arial', 'B', 11)
+                                pdf.set_font('Calibri', 'B', 11)
                                 pdf.cell(20, 5, "Devise :", 0, 0)
-                                pdf.set_font('Arial', '', 11)
+                                pdf.set_font('Calibri', '', 11)
                                 pdf.cell(0, 5, avi_data['devise'], 0, 1)
                                 pdf.ln(5)
                                 
                                 # ---- Détails du virement ----
-                                pdf.set_font('Arial', '', 10.75)
+                                pdf.set_font('Calibri', '', 10.75)
                                 details = [
                                     f"Il est l'ordonnateur d'un virement irrévocable et permanent d'un montant total de {avi_data['montant']} FCFA",
                                     f"({montant_en_lettres(avi_data['montant'])}), équivalant actuellement à {avi_data['montant']/650:,.2f} euros, cette somme est destinée à couvrir les frais liés",
@@ -3676,7 +3676,7 @@ def show_admin_dashboard():
                                     pdf.cell(0, 5, line, 0, 1)
 
                                 # ---- Détails du virement ----
-                                pdf.set_font('Arial', '', 12)
+                                pdf.set_font('Calibri', '', 12)
                                 details = [
                                     "Il est précisé que ce compte demeurera bloqué jusqu'à la présentation, par le donneur d'ordre, de ses",
                                     "nouvelles coordonnées bancaires ouvertes en France.",
@@ -3686,7 +3686,7 @@ def show_admin_dashboard():
                                 for line in details:
                                     pdf.cell(0, 5, line, 0, 1)
 
-                                pdf.set_font('Arial', '', 12)
+                                pdf.set_font('Calibri', '', 12)
                                 detail = [
                                     "À défaut, les fonds ne pourront être remis à sa disposition qu'après présentation de son passeport",
                                     "attestant d'un refus de visa. Toutefois, nous autorisons le donneur d'ordre, à toutes fins utiles, à utiliser",
@@ -3699,23 +3699,24 @@ def show_admin_dashboard():
                                 
                                 # ---- Coordonnées bancaires ----
                                 #pdf.ln(5)
-                                pdf.set_font('Arial', 'B', 11)
+                                pdf.set_font('Calibri', 'B', 11)
                                 pdf.cell(16, 5, "IBAN :", 0, 0)
-                                pdf.set_font('Arial', 'B', 11)
+                                pdf.set_font('Calibri', 'B', 11)
                                 pdf.cell(0, 5, avi_data['iban'], 0, 1)
                                 
-                                pdf.set_font('Arial', 'B', 11)
+                                pdf.set_font('Calibri', 'B', 11)
                                 pdf.cell(16, 5, "BIC :", 0, 0)
-                                pdf.set_font('Arial', '', 11)
+                                pdf.set_font('Calibri', '', 11)
                                 pdf.cell(0, 5, avi_data['bic'], 0, 1)
                                 pdf.ln(2)
                                 
                                 # ---- Clause de validation ----
+                                pdf.set_font('Calibri', 'B', 11)
                                 pdf.cell(0, 5, "En foi de quoi, cette attestation lui est délivrée pour servir et valoir ce que de droit.", 0, 1)
                                 pdf.ln(3)
                                 
                                 # ---- Date et signature ----
-                                pdf.set_font('Arial', 'B', 9.5)
+                                pdf.set_font('Calibri', 'B', 10)
                                 pdf.cell(0, 4, f"Fait à Brazzaville, le {datetime.now().strftime('%d %B %Y')}", 0, 1, 'R')
                                 pdf.cell(0, 4, "Rubain MOUNGALA", 0, 1)
                                 pdf.cell(0, 4, "Responsable des Opérations", 0, 1)
@@ -3733,7 +3734,7 @@ def show_admin_dashboard():
                                     st.warning(f"Images de signature ou cachet non trouvées: {str(e)}")
 
                                 
-                                pdf.set_font('Arial', '', 9)
+                                pdf.set_font('Calibri', '', 9)
                                 footer = [
                                     "Eco capital Sarl",
                                     "Société a responsabilité limité au capital de 60.000.000 XAF",
@@ -3777,7 +3778,7 @@ def show_admin_dashboard():
                                 pdf.ln(5)
 
                                 # ---- Pied de page (texte légal en anglais) ----
-                                pdf.set_font('Arial', '', 6)
+                                pdf.set_font('Calibri', '', 5.5)
                                 pdf.set_text_color(0, 0, 0)  # Gris pour un aspect plus professionnel
                                 
                                 # ---- Pied de page ----
@@ -4333,11 +4334,11 @@ def show_admin_dashboard():
                                         return texte.capitalize()
                                     
                                     # En-tête
-                                    pdf.set_font('Arial', 'B', 16)
+                                    pdf.set_font('Calibri', 'B', 16)
                                     pdf.cell(0, 30, 'ATTESTATION DE VIREMENT IRREVOCABLE', 0, 1, 'C')
                                     
                                     # Référence
-                                    pdf.set_font('Arial', 'B', 10)
+                                    pdf.set_font('Calibri', 'B', 10)
                                     pdf.cell(0, 0, f"DGF/EC-{selected_avi['reference']}", 0, 1, 'C')
                                     pdf.ln(10)
                                     
@@ -4348,7 +4349,7 @@ def show_admin_dashboard():
                                         pass
                                     
                                     # Corps du document
-                                    pdf.set_font('Arial', '', 12)
+                                    pdf.set_font('Calibri', '', 12)
                                     
                                     intro = [
                                         "Nous soussignés, Eco Capital (E.C), établissement de microfinance agréé pour exercer des",
@@ -4367,19 +4368,19 @@ def show_admin_dashboard():
                                         pdf.cell(0, 5, line, 0, 2)
                                     
                                     # Informations bancaires
-                                    pdf.set_font('Arial', 'B', 12)
+                                    pdf.set_font('Calibri', 'B', 12)
                                     pdf.cell(40, 5, "CODE BANQUE :", 0, 0)
-                                    pdf.set_font('Arial', '', 12)
+                                    pdf.set_font('Calibri', '', 12)
                                     pdf.cell(0, 5, selected_avi['code_banque'], 0, 1)
                                     
-                                    pdf.set_font('Arial', 'B', 12)
+                                    pdf.set_font('Calibri', 'B', 12)
                                     pdf.cell(45, 5, "NUMERO COMPTE : ", 0, 0)
-                                    pdf.set_font('Arial', '', 12)
+                                    pdf.set_font('Calibri', '', 12)
                                     pdf.cell(0, 5, selected_avi['numero_compte'], 0, 1)
                                     
-                                    pdf.set_font('Arial', 'B', 12)
+                                    pdf.set_font('Calibri', 'B', 12)
                                     pdf.cell(20, 5, "Devise :", 0, 0)
-                                    pdf.set_font('Arial', '', 12)
+                                    pdf.set_font('Calibri', '', 12)
                                     pdf.cell(0, 5, selected_avi.get('devise', 'XAF'), 0, 1)
                                     pdf.ln(5)
                                     
@@ -4389,14 +4390,14 @@ def show_admin_dashboard():
                                     pdf.ln(5)
                                     
                                     # IBAN et BIC
-                                    pdf.set_font('Arial', 'B', 12)
+                                    pdf.set_font('Calibri', 'B', 12)
                                     pdf.cell(16, 5, "IBAN :", 0, 0)
-                                    pdf.set_font('Arial', '', 12)
+                                    pdf.set_font('Calibri', '', 12)
                                     pdf.cell(0, 5, selected_avi['iban'], 0, 1)
                                     
-                                    pdf.set_font('Arial', 'B', 12)
+                                    pdf.set_font('Calibri', 'B', 12)
                                     pdf.cell(16, 5, "BIC :", 0, 0)
-                                    pdf.set_font('Arial', '', 12)
+                                    pdf.set_font('Calibri', '', 12)
                                     pdf.cell(0, 5, selected_avi['bic'], 0, 1)
                                     pdf.ln(10)
                                     
@@ -4405,7 +4406,7 @@ def show_admin_dashboard():
                                     pdf.ln(10)
                                     
                                     pdf.cell(0, 5, "Rubain MOUNGALA", 0, 1)
-                                    pdf.set_font('Arial', 'B', 12)
+                                    pdf.set_font('Calibri', 'B', 12)
                                     pdf.cell(0, 5, "Directeur de la Gestion Financière", 0, 1)
                                     
                                     # Pied de page
@@ -4416,7 +4417,7 @@ def show_admin_dashboard():
                                         "Contact: 00242 06 931 31 06 /04 001 79 40"
                                     ]
                                     
-                                    pdf.set_font('Arial', 'I', 10)
+                                    pdf.set_font('Calibri', 'I', 10)
                                     for line in footer:
                                         pdf.cell(1, 4.5, line, 0, 2, 'L')
                                     
