@@ -3670,23 +3670,23 @@ def show_admin_dashboard():
                                 ]
                                 
                                 for line in intro:
-                                    pdf.cell(0, 5, line, 0, 2)
+                                    pdf.cell(0, 4, line, 0, 2)
                                 
                                 # Informations bancaires en gras
                                 pdf.set_font(font_name, 'B', 11)
-                                pdf.cell(40, 5, "CODE BANQUE :", 0, 0)
+                                pdf.cell(40, 4, "CODE BANQUE :", 0, 0)
                                 pdf.set_font(font_name, 'B', 11)
-                                pdf.cell(0, 5, avi_data['code_banque'], 0, 1)
+                                pdf.cell(0, 4, avi_data['code_banque'], 0, 1)
                                 
                                 pdf.set_font(font_name, 'B', 11)
-                                pdf.cell(45, 5, "NUMERO DE COMPTE : ", 0, 0)
+                                pdf.cell(45, 4, "NUMERO DE COMPTE : ", 0, 0)
                                 pdf.set_font(font_name, 'B', 11)
-                                pdf.cell(0, 5, avi_data['numero_compte'], 0, 1)
+                                pdf.cell(0, 4, avi_data['numero_compte'], 0, 1)
                                 
                                 pdf.set_font(font_name, 'B', 11)
-                                pdf.cell(20, 5, "Devise :", 0, 0)
+                                pdf.cell(20, 4, "Devise :", 0, 0)
                                 pdf.set_font(font_name, '', 11)
-                                pdf.cell(0, 5, avi_data['devise'], 0, 1)
+                                pdf.cell(0, 4, avi_data['devise'], 0, 1)
                                 pdf.ln(5)
                                 
                                 # ---- Détails du virement ----
@@ -3699,7 +3699,7 @@ def show_admin_dashboard():
                                 ]
 
                                 for line in details:
-                                    pdf.cell(0, 5, line, 0, 1)
+                                    pdf.cell(0, 4, line, 0, 1)
 
                                 # ---- Détails du virement ----
                                 pdf.set_font(font_name, '', 12)
@@ -3710,7 +3710,7 @@ def show_admin_dashboard():
                                 ]
 
                                 for line in details:
-                                    pdf.cell(0, 5, line, 0, 1)
+                                    pdf.cell(0, 4, line, 0, 1)
 
                                 pdf.set_font(font_name, '', 12)
                                 detail = [
@@ -3721,24 +3721,24 @@ def show_admin_dashboard():
                                 ]
                                 
                                 for line in detail:
-                                    pdf.cell(0, 5, line, 0, 1, 'L')
+                                    pdf.cell(0, 4, line, 0, 1, 'L')
                                 
                                 # ---- Coordonnées bancaires ----
                                 #pdf.ln(5)
                                 pdf.set_font(font_name, 'B', 11)
-                                pdf.cell(16, 5, "IBAN :", 0, 0)
+                                pdf.cell(16, 4, "IBAN :", 0, 0)
                                 pdf.set_font(font_name, 'B', 11)
-                                pdf.cell(0, 5, avi_data['iban'], 0, 1)
+                                pdf.cell(0, 4, avi_data['iban'], 0, 1)
                                 
                                 pdf.set_font(font_name, 'B', 11)
-                                pdf.cell(16, 5, "BIC :", 0, 0)
+                                pdf.cell(16, 4, "BIC :", 0, 0)
                                 pdf.set_font(font_name, '', 11)
-                                pdf.cell(0, 5, avi_data['bic'], 0, 1)
+                                pdf.cell(0, 4, avi_data['bic'], 0, 1)
                                 pdf.ln(2)
                                 
                                 # ---- Clause de validation ----
                                 pdf.set_font(font_name, 'B', 11)
-                                pdf.cell(0, 5, "En foi de quoi, cette attestation lui est délivrée pour servir et valoir ce que de droit.", 0, 1)
+                                pdf.cell(0, 4, "En foi de quoi, cette attestation lui est délivrée pour servir et valoir ce que de droit.", 0, 1)
                                 pdf.ln(3)
                                 
                                 # ---- Date et signature ----
@@ -3801,7 +3801,7 @@ def show_admin_dashboard():
                                 img_bytes.seek(0)
                                 
                                 pdf.image(img_bytes, x=150, y=pdf.get_y()-40, w=40)
-                                pdf.ln(10)
+                                #pdf.ln(10)
 
                                 # ---- Pied de page (texte légal en anglais) ----
                                 pdf.set_font(font_name, '', 5)
@@ -3813,7 +3813,7 @@ def show_admin_dashboard():
                                     "endorsement, surety, or any other similar form of commitment. The signatory diclaims all liability for any damage resulting from the improper, exaggerated, or abusive use of this AVI.",
                                 ]
                                 for line in fin:
-                                    pdf.cell(0, 4, line, 0, 2, 'C')
+                                    pdf.cell(0, 2, line, 0, 2, 'C')
                                 
                                 # ---- Sauvegarde du fichier ----
                                 os.makedirs("avi_documents", exist_ok=True)
