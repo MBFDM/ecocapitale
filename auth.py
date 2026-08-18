@@ -3753,7 +3753,7 @@ def show_admin_dashboard():
                                     # Signature (à gauche)
                                     pdf.image("assets/signature.png", x=10, y=pdf.get_y(), w=30)
                                     # Cachet (à droite)
-                                    pdf.image("assets/cachet.png", x=50, y=pdf.get_y()-10, w=70)
+                                    pdf.image("assets/cachet.png", x=50, y=pdf.get_y()-7, w=70)
                                     pdf.ln(25)  # Saut de ligne après les images
                                 except Exception as e:
                                     pdf.ln(3)
