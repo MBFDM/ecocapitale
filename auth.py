@@ -3534,9 +3534,9 @@ def show_admin_dashboard():
                                 
                                 PAGE_W = 210
                                 PAGE_H = 297
-                                LEFT = 10
-                                RIGHT = 10
-                                CONTENT_W = 190
+                                LEFT = 15
+                                RIGHT = 15
+                                CONTENT_W = 180
                                 
                                 # ------------------------------------------------------------
                                 # FOND DE PAGE
@@ -3650,7 +3650,7 @@ def show_admin_dashboard():
                                 title_width = pdf.get_string_width(title)
                                 frame_width = title_width + 24
                                 frame_x = (PAGE_W - frame_width) / 2
-                                frame_y = 22
+                                frame_y = 37
                                 frame_h = 11
                                 
                                 pdf.set_fill_color(255, 255, 255)
@@ -3679,7 +3679,7 @@ def show_admin_dashboard():
                                 # RÉFÉRENCE
                                 # ------------------------------------------------------------
                                 
-                                pdf.set_xy(10, 36)
+                                pdf.set_xy(10, 47)
                                 
                                 pdf.set_font(font_name, 'B', 10)
                                 
@@ -3710,7 +3710,7 @@ def show_admin_dashboard():
                                     "du règlement COBAC EMF R-2017/01."
                                 )
                                 
-                                pdf.set_xy(10, 43)
+                                pdf.set_xy(10, 54)
                                 
                                 pdf.multi_cell(
                                     CONTENT_W,
@@ -3732,7 +3732,7 @@ def show_admin_dashboard():
                                     "compte courant enregistré dans nos livres avec les caractéristiques suivantes :"
                                 )
                                 
-                                pdf.set_xy(10, 72)
+                                pdf.set_xy(10, 88)
                                 
                                 pdf.multi_cell(
                                     CONTENT_W,
@@ -3747,7 +3747,7 @@ def show_admin_dashboard():
                                 # INFORMATIONS BANCAIRES
                                 # ============================================================
                                 
-                                y = 82
+                                y = 106
                                 
                                 pdf.set_xy(10, y)
                                 pdf.set_font(font_name, 'B', 11)
@@ -3786,7 +3786,7 @@ def show_admin_dashboard():
                                     "est destinée à couvrir les frais liés à ses études en France."
                                 )
                                 
-                                pdf.set_xy(10, 100)
+                                pdf.set_xy(10, 126)
                                 
                                 pdf.set_font(font_name, '', 11)
                                 
@@ -3808,7 +3808,7 @@ def show_admin_dashboard():
                                     "par le donneur d'ordre, de ses nouvelles coordonnées bancaires ouvertes en France."
                                 )
                                 
-                                pdf.set_xy(10, 115)
+                                pdf.set_xy(10, 139)
                                 pdf.set_font(font_name, '', 11)
                                 
                                 pdf.multi_cell(
@@ -3831,7 +3831,7 @@ def show_admin_dashboard():
                                     "for Africa (UBA)."
                                 )
                                 
-                                pdf.set_xy(10, 128)
+                                pdf.set_xy(10, 149)
                                 pdf.set_font(font_name, '', 11)
                                 
                                 pdf.multi_cell(
@@ -3847,7 +3847,7 @@ def show_admin_dashboard():
                                 # IBAN / BIC
                                 # ============================================================
                                 
-                                pdf.set_xy(10, 145)
+                                pdf.set_xy(10, 164)
                                 
                                 pdf.set_font(font_name, 'B', 9.6)
                                 pdf.cell(18, 5, "IBAN :", 0, 0)
@@ -3855,7 +3855,7 @@ def show_admin_dashboard():
                                 pdf.set_font(font_name, 'B', 9.6)
                                 pdf.cell(90, 5, avi_data['iban'], 0, 1)
                                 
-                                pdf.set_xy(10, 151)
+                                pdf.set_xy(10, 169)
                                 
                                 pdf.set_font(font_name, 'B', 9.6)
                                 pdf.cell(18, 5, "BIC :", 0, 0)
@@ -3868,7 +3868,7 @@ def show_admin_dashboard():
                                 # CLAUSE FINALE
                                 # ============================================================
                                 
-                                pdf.set_xy(10, 160)
+                                pdf.set_xy(10, 178)
                                 
                                 pdf.set_font(font_name, '', 10)
                                 
@@ -3907,7 +3907,7 @@ def show_admin_dashboard():
                                     f"{date_actuelle.year}"
                                 )
                                 
-                                pdf.set_xy(10, 170)
+                                pdf.set_xy(10, 190)
                                 
                                 pdf.set_font(font_name, 'B', 9.5)
                                 
@@ -3920,7 +3920,7 @@ def show_admin_dashboard():
                                     'R'
                                 )
                                 
-                                pdf.set_xy(10, 170)
+                                pdf.set_xy(10, 190)
                                 
                                 pdf.cell(
                                     CONTENT_W,
@@ -3931,7 +3931,7 @@ def show_admin_dashboard():
                                     'L'
                                 )
                                 
-                                pdf.set_xy(10, 181)
+                                pdf.set_xy(10, 195)
                                 
                                 pdf.cell(
                                     CONTENT_W,
@@ -3952,14 +3952,14 @@ def show_admin_dashboard():
                                     pdf.image(
                                         "assets/signature.png",
                                         x=12,
-                                        y=174,
+                                        y=198,
                                         w=30
                                     )
                                 
                                     pdf.image(
                                         "assets/cachet_2.png",
                                         x=48,
-                                        y=168,
+                                        y=191,
                                         w=70
                                     )
                                 
@@ -4015,7 +4015,7 @@ def show_admin_dashboard():
                                 # COORDONNÉES ECO CAPITAL
                                 # ============================================================
                                 
-                                pdf.set_xy(10, 227)
+                                pdf.set_xy(10, 246)
                                 
                                 pdf.set_font(font_name, '', 9)
                                 
@@ -4044,7 +4044,7 @@ def show_admin_dashboard():
                                 # TEXTE LÉGAL ANGLAIS
                                 # ============================================================
                                 
-                                pdf.set_xy(10, 279)
+                                pdf.set_xy(10, 282)
                                 
                                 pdf.set_font(font_name, '', 6)
                                 pdf.set_text_color(0, 0, 0)
