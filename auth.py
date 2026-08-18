@@ -3561,7 +3561,7 @@ def show_admin_dashboard():
                                 
                                     # Opacité identique au PDF : environ 20 %
                                     alpha = img.getchannel("A")
-                                    alpha = alpha.point(lambda p: int(p * 0.20))
+                                    alpha = alpha.point(lambda p: int(p * 0.35))
                                     img.putalpha(alpha)
                                 
                                     # Conversion en PNG temporaire avec transparence
@@ -3833,27 +3833,29 @@ def show_admin_dashboard():
                                 
                                 pdf.image(img_bytes, x=160, y=pdf.get_y()-40, w=40)
                                 
-                                # ---- Pied de page (texte légal en anglais) en bas de page ----
-                                # Calculer la position Y pour être en bas de page
-                                page_height = 297  # Hauteur A4 en mm
-                                #margin_bottom = 15  # Marge depuis le bas
-                                y_position = page_height - 3  # 10mm pour les 2 lignes de texte
+                                # ============================================================
+                                # TEXTE LÉGAL ANGLAIS — POSITION EXACTE COMME DANS LE PDF
+                                # ============================================================
                                 
-                                # Positionner le curseur en bas de page
-                                pdf.set_y(y_position)
-                                 
-
-                                # ---- Pied de page (texte légal en anglais) ----
                                 pdf.set_font(font_name, '', 6)
-                                pdf.set_text_color(0, 0, 0)  # Gris pour un aspect plus professionnel
+                                pdf.set_text_color(0, 0, 0)
                                 
-                                # ---- Pied de page ----
                                 fin = [
-                                    "The purpose of this AVI is to confirm the existence of an account in our records. The undersigned assumes no obligation or commitment of any kind. This document connot be considered as a guarantee",
-                                    "endorsement, surety, or any other similar form of commitment. The signatory diclaims all liability for any damage resulting from the improper, exaggerated, or abusive use of this AVI.",
+                                    "The purpose of this AVI is to confirm the existence of an account in our records. The undersigned assumes no obligation or commitment of any kind. This document cannot be considered as a guarantee,",
+                                    "endorsement, surety, or any other similar form of commitment. The signatory disclaims all liability for any damage resulting from the improper, exaggerated, or abusive use of this AVI.",
                                 ]
-                                for line in fin:
-                                    pdf.cell(0, 3, line, 0, 2, 'C')
+                                
+                                # Position verticale correspondant au PDF de référence
+                                pdf.set_y(281.2)
+                                
+                                # Hauteur de ligne proche du rendu original
+                                line_height = 2.2
+                                
+                                # Première ligne
+                                pdf.cell(0, line_height, fin[0], border=0, ln=1, align='C')
+                                
+                                # Deuxième ligne
+                                pdf.cell(0, line_height, fin[1], border=0, ln=1, align='C')
                                 
                                 # ---- Sauvegarde du fichier ----
                                 os.makedirs("avi_documents", exist_ok=True)
