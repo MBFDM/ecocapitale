@@ -3641,7 +3641,8 @@ def show_admin_dashboard():
                                 # ============================================================
                                 # EN-TÊTE
                                 # ============================================================
-                                
+
+                                pdf.ln(20)
                                 title = "ATTESTATION DE VIREMENT IRREVOCABLE"
                                 
                                 pdf.set_font(font_name, 'B', 13)
@@ -3696,7 +3697,7 @@ def show_admin_dashboard():
                                 # INTRODUCTION
                                 # ============================================================
                                 
-                                pdf.set_font(font_name, '', 10)
+                                pdf.set_font(font_name, '', 11)
                                 
                                 intro = (
                                     "Nous, soussignés, Eco Capital (E.C), Société à Responsabilité Limitée (SARL), "
@@ -3724,7 +3725,7 @@ def show_admin_dashboard():
                                 # CERTIFICATION
                                 # ------------------------------------------------------------
                                 
-                                pdf.set_font(font_name, '', 10)
+                                pdf.set_font(font_name, '', 11)
                                 
                                 certification = (
                                     f"Nous certifions par la présente que {avi_data['nom_complet']} détient un "
@@ -3749,28 +3750,28 @@ def show_admin_dashboard():
                                 y = 82
                                 
                                 pdf.set_xy(10, y)
-                                pdf.set_font(font_name, 'B', 9.6)
+                                pdf.set_font(font_name, 'B', 11)
                                 pdf.cell(38, 5, "CODE BANQUE :", 0, 0)
                                 
-                                pdf.set_font(font_name, 'B', 9.6)
+                                pdf.set_font(font_name, 'B', 11)
                                 pdf.cell(55, 5, avi_data['code_banque'], 0, 1)
                                 
                                 y += 5
                                 
                                 pdf.set_xy(10, y)
-                                pdf.set_font(font_name, 'B', 9.6)
+                                pdf.set_font(font_name, 'B', 11)
                                 pdf.cell(38, 5, "NUMERO DE COMPTE :", 0, 0)
                                 
-                                pdf.set_font(font_name, 'B', 9.6)
+                                pdf.set_font(font_name, 'B', 11)
                                 pdf.cell(70, 5, avi_data['numero_compte'], 0, 1)
                                 
                                 y += 5
                                 
                                 pdf.set_xy(10, y)
-                                pdf.set_font(font_name, 'B', 9.6)
+                                pdf.set_font(font_name, 'B', 11)
                                 pdf.cell(20, 4.8, "Devise :", 0, 0)
                                 
-                                pdf.set_font(font_name, '', 9.6)
+                                pdf.set_font(font_name, 'B', 11)
                                 pdf.cell(30, 4.8, avi_data['devise'], 0, 1)
                                 
                                 
@@ -3787,7 +3788,7 @@ def show_admin_dashboard():
                                 
                                 pdf.set_xy(10, 100)
                                 
-                                pdf.set_font(font_name, '', 10)
+                                pdf.set_font(font_name, '', 11)
                                 
                                 pdf.multi_cell(
                                     CONTENT_W,
@@ -3808,6 +3809,7 @@ def show_admin_dashboard():
                                 )
                                 
                                 pdf.set_xy(10, 115)
+                                pdf.set_font(font_name, '', 11)
                                 
                                 pdf.multi_cell(
                                     CONTENT_W,
@@ -3830,6 +3832,7 @@ def show_admin_dashboard():
                                 )
                                 
                                 pdf.set_xy(10, 128)
+                                pdf.set_font(font_name, '', 11)
                                 
                                 pdf.multi_cell(
                                     CONTENT_W,
@@ -3857,7 +3860,7 @@ def show_admin_dashboard():
                                 pdf.set_font(font_name, 'B', 9.6)
                                 pdf.cell(18, 5, "BIC :", 0, 0)
                                 
-                                pdf.set_font(font_name, '', 9.6)
+                                pdf.set_font(font_name, 'B', 9.6)
                                 pdf.cell(60, 5, avi_data['bic'], 0, 1)
                                 
                                 
@@ -3936,7 +3939,7 @@ def show_admin_dashboard():
                                     "Responsable des Opérations",
                                     0,
                                     1,
-                                    'R'
+                                    'L'
                                 )
                                 
                                 
@@ -4012,7 +4015,7 @@ def show_admin_dashboard():
                                 # COORDONNÉES ECO CAPITAL
                                 # ============================================================
                                 
-                                pdf.set_xy(10, 207)
+                                pdf.set_xy(10, 227)
                                 
                                 pdf.set_font(font_name, '', 9)
                                 
