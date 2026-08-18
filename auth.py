@@ -3565,7 +3565,7 @@ def show_admin_dashboard():
                                     data = img.getdata()
                                     new_data = []
                                     for item in data:
-                                        new_data.append((item[0], item[1], item[2], int(item[5] * 0.2)))  # 30% opacity
+                                        new_data.append((item[0], item[1], item[2], int(item[3] * 0.2)))  # 30% opacity
                                     img.putdata(new_data)
                                     
                                     # Convertir en format utilisable par FPDF
@@ -3813,7 +3813,7 @@ def show_admin_dashboard():
                                     "endorsement, surety, or any other similar form of commitment. The signatory diclaims all liability for any damage resulting from the improper, exaggerated, or abusive use of this AVI.",
                                 ]
                                 for line in fin:
-                                    pdf.cell(0, 2, line, 0, 2, 'C')
+                                    pdf.cell(0, 3, line, 0, 2, 'C')
                                 
                                 # ---- Sauvegarde du fichier ----
                                 os.makedirs("avi_documents", exist_ok=True)
