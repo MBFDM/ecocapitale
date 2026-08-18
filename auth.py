@@ -3587,6 +3587,7 @@ def show_admin_dashboard():
                                 
                                                                 # ---- En-tête avec cadre ----
                                 # Définir la couleur de fond blanc et bordure noire
+                                pdf.ln(20)
                                 pdf.set_fill_color(255, 255, 255)  # Fond blanc
                                 pdf.set_draw_color(0, 0, 0)        # Bordure noire
                                 #pdf.set_line_width(1)              # Épaisseur de la bordure : 1
