@@ -3601,7 +3601,7 @@ def show_admin_dashboard():
                                 x_start = (210 - text_width - (padding * 2)) / 2  # Centré horizontalement
                                 y_start = pdf.get_y() + 5
                                 frame_width = text_width + (padding * 2)
-                                frame_height = 16  # Hauteur suffisante
+                                frame_height = 14  # Hauteur suffisante
                                 
                                 # Dessiner le cadre avec fond blanc
                                 pdf.rect(x_start, y_start, frame_width, frame_height, 'FD')
@@ -3733,7 +3733,7 @@ def show_admin_dashboard():
                                     st.warning(f"Images de signature ou cachet non trouvées: {str(e)}")
 
                                 
-                                pdf.set_font('Arial', '', 8)
+                                pdf.set_font('Arial', '', 9)
                                 footer = [
                                     "Eco capital Sarl",
                                     "Société a responsabilité limité au capital de 60.000.000 XAF",
@@ -3744,7 +3744,7 @@ def show_admin_dashboard():
                                     "Brazzaville République du Congo"
                                 ]
                                 for line in footer:
-                                    pdf.cell(1, 4, line, 0, 2, 'L')
+                                    pdf.cell(0, 5, line, 0, 2, 'L')
 
                                 # ---- QR Code ----
                                 qr_data = {
@@ -3774,7 +3774,7 @@ def show_admin_dashboard():
                                 img_bytes.seek(0)
                                 
                                 pdf.image(img_bytes, x=150, y=pdf.get_y()-40, w=40)
-                                #pdf.ln(5)
+                                pdf.ln(5)
 
                                 # ---- Pied de page (texte légal en anglais) ----
                                 pdf.set_font('Arial', '', 6)
@@ -3786,8 +3786,7 @@ def show_admin_dashboard():
                                     "endorsement, surety, or any other similar form of commitment. The signatory diclaims all liability for any damage resulting from the improper, exaggerated, or abusive use of this AVI.",
                                 ]
                                 for line in fin:
-                                    pdf.cell(0, 3, line, 0, 2, 'C')
-                                pdf.ln(5)
+                                    pdf.cell(0, 4, line, 0, 2, 'C')
                                 
                                 # ---- Sauvegarde du fichier ----
                                 os.makedirs("avi_documents", exist_ok=True)
