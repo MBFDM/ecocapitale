@@ -3587,28 +3587,29 @@ def show_admin_dashboard():
                                 
                                                                 # ---- En-tête avec cadre ----
                                 # Définir la couleur de fond blanc et bordure noire
-                                pdf.ln(20)
                                 pdf.set_fill_color(255, 255, 255)  # Fond blanc
                                 pdf.set_draw_color(0, 0, 0)        # Bordure noire
                                 #pdf.set_line_width(1)              # Épaisseur de la bordure : 1
                                 
-                                # Dessiner le cadre
-                                margin_left = 20
-                                margin_right = 20
-                                x_start = margin_left
-                                # Utiliser la position Y actuelle au lieu d'une valeur fixe
-                                y_start = pdf.get_y() + 5
-                                frame_width = 150 - (margin_left + margin_right)
-                                frame_height = 12  # Hauteur suffisante pour le texte (taille 12 + marge)
+                                # Calculer la largeur du texte
+                                pdf.set_font('Arial', 'B', 12)
+                                text_width = pdf.get_string_width('ATTESTATION DE VIREMENT IRREVOCABLE')
+                                padding = 20  # Marge intérieure
                                 
-                                # Dessiner le cadre rectangulaire avec fond blanc
+                                # Position du cadre
+                                x_start = (210 - text_width - (padding * 2)) / 2  # Centré horizontalement
+                                y_start = pdf.get_y() + 5
+                                frame_width = text_width + (padding * 2)
+                                frame_height = 18  # Hauteur suffisante
+                                
+                                # Dessiner le cadre avec fond blanc
                                 pdf.rect(x_start, y_start, frame_width, frame_height, 'FD')
                                 
-                                # Ajouter le texte à l'intérieur du cadre
-                                pdf.set_xy(x_start, y_start + 4)  # Centrer verticalement dans le cadre
-                                pdf.set_font('Arial', 'B', 12)
-                                pdf.set_text_color(0, 0, 0)  # Noir
-                                pdf.cell(frame_width, 16, 'ATTESTATION DE VIREMENT IRREVOCABLE', 0, 1, 'C')
+                                # Ajouter le texte centré dans le cadre
+                                pdf.set_xy(x_start, y_start + 3)
+                                pdf.set_font('Arial', 'B', 16)
+                                pdf.set_text_color(0, 0, 0)
+                                pdf.cell(frame_width, 12, 'ATTESTATION DE VIREMENT IRREVOCABLE', 0, 1, 'C')
                                 
                                 # Positionner le curseur après le cadre
                                 pdf.set_y(y_start + frame_height + 5)
