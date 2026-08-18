@@ -3534,9 +3534,9 @@ def show_admin_dashboard():
                                 
                                 PAGE_W = 210
                                 PAGE_H = 297
-                                LEFT = 15
-                                RIGHT = 15
-                                CONTENT_W = 180
+                                LEFT = 10
+                                RIGHT = 10
+                                CONTENT_W = 190
                                 
                                 # ------------------------------------------------------------
                                 # FOND DE PAGE
@@ -3679,7 +3679,7 @@ def show_admin_dashboard():
                                 # RÉFÉRENCE
                                 # ------------------------------------------------------------
                                 
-                                pdf.set_xy(10, 47)
+                                pdf.set_xy(10, 52)
                                 
                                 pdf.set_font(font_name, 'B', 10)
                                 
@@ -3708,9 +3708,10 @@ def show_admin_dashboard():
                                     "NIUM24000000665934H, et agréée par les autorités monétaires sous le numéro "
                                     "n°078/MFBPP/ARTF/DR-SAR-BOTC, conformément aux dispositions légales en vigueur "
                                     "du règlement COBAC EMF R-2017/01."
+                                    ""
                                 )
                                 
-                                pdf.set_xy(10, 54)
+                                pdf.set_xy(10, 57)
                                 
                                 pdf.multi_cell(
                                     CONTENT_W,
@@ -3760,7 +3761,7 @@ def show_admin_dashboard():
                                 
                                 pdf.set_xy(10, y)
                                 pdf.set_font(font_name, 'B', 11)
-                                pdf.cell(38, 5, "NUMERO DE COMPTE :", 0, 0)
+                                pdf.cell(38, 5, "NUMERO DE COMPTE :", 0, 1)
                                 
                                 pdf.set_font(font_name, 'B', 11)
                                 pdf.cell(70, 5, avi_data['numero_compte'], 0, 1)
@@ -3784,6 +3785,7 @@ def show_admin_dashboard():
                                     f"de {avi_data['montant']} FCFA ({montant_en_lettres(avi_data['montant'])}), "
                                     f"équivalant actuellement à {avi_data['montant']/650:,.2f} euros, cette somme "
                                     "est destinée à couvrir les frais liés à ses études en France."
+                                    ""
                                 )
                                 
                                 pdf.set_xy(10, 126)
@@ -3806,6 +3808,7 @@ def show_admin_dashboard():
                                 blocked = (
                                     "Il est précisé que ce compte demeurera bloqué jusqu'à la présentation, "
                                     "par le donneur d'ordre, de ses nouvelles coordonnées bancaires ouvertes en France."
+                                    ""
                                 )
                                 
                                 pdf.set_xy(10, 139)
@@ -3829,6 +3832,7 @@ def show_admin_dashboard():
                                     "de son passeport attestant d'un refus de visa. Toutefois, nous autorisons le donneur "
                                     "d'ordre, à toutes fins utiles, à utiliser notre compte ouvert auprès de United Bank "
                                     "for Africa (UBA)."
+                                    ""
                                 )
                                 
                                 pdf.set_xy(10, 149)
@@ -3849,18 +3853,18 @@ def show_admin_dashboard():
                                 
                                 pdf.set_xy(10, 164)
                                 
-                                pdf.set_font(font_name, 'B', 9.6)
+                                pdf.set_font(font_name, 'B', 10)
                                 pdf.cell(18, 5, "IBAN :", 0, 0)
                                 
-                                pdf.set_font(font_name, 'B', 9.6)
+                                pdf.set_font(font_name, 'B', 10)
                                 pdf.cell(90, 5, avi_data['iban'], 0, 1)
                                 
                                 pdf.set_xy(10, 169)
                                 
-                                pdf.set_font(font_name, 'B', 9.6)
+                                pdf.set_font(font_name, 'B', 10)
                                 pdf.cell(18, 5, "BIC :", 0, 0)
                                 
-                                pdf.set_font(font_name, 'B', 9.6)
+                                pdf.set_font(font_name, 'B', 10)
                                 pdf.cell(60, 5, avi_data['bic'], 0, 1)
                                 
                                 
@@ -3909,7 +3913,7 @@ def show_admin_dashboard():
                                 
                                 pdf.set_xy(10, 190)
                                 
-                                pdf.set_font(font_name, 'B', 9.5)
+                                pdf.set_font(font_name, 'B', 10)
                                 
                                 pdf.cell(
                                     CONTENT_W,
@@ -3952,14 +3956,14 @@ def show_admin_dashboard():
                                     pdf.image(
                                         "assets/signature.png",
                                         x=12,
-                                        y=198,
+                                        y=205,
                                         w=30
                                     )
                                 
                                     pdf.image(
                                         "assets/cachet_2.png",
                                         x=48,
-                                        y=191,
+                                        y=198,
                                         w=70
                                     )
                                 
@@ -4046,7 +4050,7 @@ def show_admin_dashboard():
                                 
                                 pdf.set_xy(10, 282)
                                 
-                                pdf.set_font(font_name, '', 6)
+                                pdf.set_font(font_name, '', 5.5)
                                 pdf.set_text_color(0, 0, 0)
                                 
                                 legal_text = (
