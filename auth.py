@@ -3804,9 +3804,9 @@ def show_admin_dashboard():
                                 
                                 # ---- Pied de page (texte légal en anglais) en bas de page ----
                                 # Calculer la position Y pour être en bas de page
-                                page_height = 300  # Hauteur A4 en mm
+                                page_height = 297  # Hauteur A4 en mm
                                 #margin_bottom = 15  # Marge depuis le bas
-                                y_position = page_height - 10  # 10mm pour les 2 lignes de texte
+                                y_position = page_height - 3  # 10mm pour les 2 lignes de texte
                                 
                                 # Positionner le curseur en bas de page
                                 pdf.set_y(y_position)
