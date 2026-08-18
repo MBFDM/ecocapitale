@@ -3565,7 +3565,7 @@ def show_admin_dashboard():
                                     data = img.getdata()
                                     new_data = []
                                     for item in data:
-                                        new_data.append((item[0], item[1], item[2], int(item[3] * 0.2)))  # 30% opacity
+                                        new_data.append((item[0], item[1], item[2], int(item[5] * 0.2)))  # 30% opacity
                                     img.putdata(new_data)
                                     
                                     # Convertir en format utilisable par FPDF
@@ -3744,8 +3744,8 @@ def show_admin_dashboard():
                                 # ---- Date et signature ----
                                 pdf.set_font(font_name, 'B', 10)
                                 pdf.cell(0, 4, f"Fait à Brazzaville, le {datetime.now().strftime('%d %B %Y')}", 0, 1, 'R')
-                                pdf.cell(0, 4, "Rubain MOUNGALA", 0, 1)
-                                pdf.cell(0, 4, "Responsable des Opérations", 0, 1)
+                                pdf.cell(0, 5, "Rubain MOUNGALA", 0, 1)
+                                pdf.cell(0, 5, "Responsable des Opérations", 0, 1)
                                 pdf.ln(1)
 
                                 # ---- INSERTION DES IMAGES SIGNATURE ET CACHET ----
@@ -3771,7 +3771,7 @@ def show_admin_dashboard():
                                     "Brazzaville République du Congo"
                                 ]
                                 for line in footer:
-                                    pdf.cell(0, 5, line, 0, 2, 'L')
+                                    pdf.cell(0, 4, line, 0, 2, 'L')
 
                                 # ---- QR Code ----
                                 qr_data = {
@@ -3800,7 +3800,7 @@ def show_admin_dashboard():
                                 img.save(img_bytes, format='PNG')
                                 img_bytes.seek(0)
                                 
-                                pdf.image(img_bytes, x=150, y=pdf.get_y()-40, w=40)
+                                pdf.image(img_bytes, x=160, y=pdf.get_y()-40, w=40)
                                 pdf.ln(3)
 
                                 # ---- Pied de page (texte légal en anglais) ----
