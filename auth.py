@@ -3670,7 +3670,7 @@ def show_admin_dashboard():
                                 ]
                                 
                                 for line in intro:
-                                    pdf.cell(0, 4, line, 0, 2)
+                                    pdf.cell(0, 10, line, 0, 2)
                                 
                                 # Informations bancaires en gras
                                 pdf.set_font(font_name, 'B', 11)
