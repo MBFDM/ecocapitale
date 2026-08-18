@@ -3788,8 +3788,9 @@ def show_admin_dashboard():
                                     "est destinée à couvrir les frais liés à ses études en France."
                                     ""
                                 )
-                                
-                                pdf.set_xy(10, 126)
+
+                                #pdf.ln(10)
+                                pdf.set_xy(10, 131)
                                 
                                 pdf.set_font(font_name, '', 11)
                                 
@@ -3813,7 +3814,7 @@ def show_admin_dashboard():
                                     ""
                                 )
                                 
-                                pdf.set_xy(10, 139)
+                                pdf.set_xy(10, 144)
                                 pdf.set_font(font_name, '', 11)
                                 
                                 pdf.multi_cell(
@@ -3838,7 +3839,7 @@ def show_admin_dashboard():
                                     ""
                                 )
                                 
-                                pdf.set_xy(10, 149)
+                                pdf.set_xy(10, 154)
                                 pdf.set_font(font_name, '', 11)
                                 
                                 pdf.multi_cell(
@@ -3856,18 +3857,18 @@ def show_admin_dashboard():
                                 
                                 pdf.set_xy(10, 164)
                                 
-                                pdf.set_font(font_name, 'B', 10)
+                                pdf.set_font(font_name, 'B', 11)
                                 pdf.cell(18, 5, "IBAN :", 0, 0)
                                 
-                                pdf.set_font(font_name, 'B', 10)
+                                pdf.set_font(font_name, 'B', 11)
                                 pdf.cell(90, 5, avi_data['iban'], 0, 1)
                                 
                                 pdf.set_xy(10, 169)
                                 
-                                pdf.set_font(font_name, 'B', 10)
+                                pdf.set_font(font_name, 'B', 11)
                                 pdf.cell(18, 5, "BIC :", 0, 0)
                                 
-                                pdf.set_font(font_name, 'B', 10)
+                                pdf.set_font(font_name, 'B', 11)
                                 pdf.cell(60, 5, avi_data['bic'], 0, 1)
                                 
                                 
@@ -3875,9 +3876,9 @@ def show_admin_dashboard():
                                 # CLAUSE FINALE
                                 # ============================================================
                                 
-                                pdf.set_xy(10, 178)
+                                pdf.set_xy(10, 183)
                                 
-                                pdf.set_font(font_name, '', 10)
+                                pdf.set_font(font_name, '', 11)
                                 
                                 pdf.multi_cell(
                                     CONTENT_W,
@@ -3914,9 +3915,9 @@ def show_admin_dashboard():
                                     f"{date_actuelle.year}"
                                 )
                                 
-                                pdf.set_xy(10, 195)
+                                pdf.set_xy(10, 200)
                                 
-                                pdf.set_font(font_name, 'B', 10)
+                                pdf.set_font(font_name, 'B', 11)
                                 
                                 pdf.cell(
                                     CONTENT_W,
@@ -3927,7 +3928,7 @@ def show_admin_dashboard():
                                     'R'
                                 )
                                 
-                                pdf.set_xy(10, 195)
+                                pdf.set_xy(10, 200)
                                 
                                 pdf.cell(
                                     CONTENT_W,
@@ -3938,7 +3939,7 @@ def show_admin_dashboard():
                                     'L'
                                 )
                                 
-                                pdf.set_xy(10, 200)
+                                pdf.set_xy(10, 205)
                                 
                                 pdf.cell(
                                     CONTENT_W,
@@ -3959,15 +3960,15 @@ def show_admin_dashboard():
                                     pdf.image(
                                         "assets/signature.png",
                                         x=12,
-                                        y=215,
+                                        y=220,
                                         w=30
                                     )
                                 
                                     pdf.image(
                                         "assets/cachet_2.png",
                                         x=48,
-                                        y=210,
-                                        w=70
+                                        y=215,
+                                        w=75
                                     )
                                 
                                 except Exception as e:
@@ -4012,7 +4013,7 @@ def show_admin_dashboard():
                                 pdf.image(
                                     qr_bytes,
                                     x=160,
-                                    y=246,
+                                    y=240,
                                     w=40,
                                     h=40
                                 )
@@ -4039,7 +4040,7 @@ def show_admin_dashboard():
                                 for line in footer_lines:
                                     pdf.cell(
                                         135,
-                                        4,
+                                        5,
                                         line,
                                         0,
                                         1,
