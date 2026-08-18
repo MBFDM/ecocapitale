@@ -3553,32 +3553,63 @@ def show_admin_dashboard():
                                     
                                     return texte.capitalize()
                                 
-                                # ---- Ajout des logos floutés en arrière-plan ----
+                                # ---- Ajout des logos ECO CAPITAL en arrière-plan ----
                                 try:
                                     logo_path = "assets/logo.png"
-                                    img = Image.open(logo_path)
-                                    
-                                    # Créer une version avec opacité réduite
-                                    if img.mode != 'RGBA':
-                                        img = img.convert('RGBA')
-                                    
-                                    data = img.getdata()
-                                    new_data = []
-                                    for item in data:
-                                        new_data.append((item[0], item[1], item[2], int(item[3] * 0.2)))  # 30% opacity
-                                    img.putdata(new_data)
-                                    
-                                    # Convertir en format utilisable par FPDF
+                                
+                                    img = Image.open(logo_path).convert("RGBA")
+                                
+                                    # Opacité identique au PDF : environ 20 %
+                                    alpha = img.getchannel("A")
+                                    alpha = alpha.point(lambda p: int(p * 0.20))
+                                    img.putalpha(alpha)
+                                
+                                    # Conversion en PNG temporaire avec transparence
                                     temp_logo = BytesIO()
-                                    img.save(temp_logo, format='PNG')
+                                    img.save(temp_logo, format="PNG")
                                     temp_logo.seek(0)
-                                    
-                                    # Images en arrière-plan / filigranes
-                                    for position in [(30, 30), (200, 120), (300, 50), (100, 100)]: 
-                                        pdf.image(temp_logo, x=position[0], y=position[1], w=100)
-                                        
+                                
+                                    # Positions exactes des filigranes du PDF
+                                    background_logos = [
+                                        # Logo supérieur droit
+                                        {
+                                            "x": 95.9,
+                                            "y": 36.4,
+                                            "w": 116.1,
+                                            "h": 72.7
+                                        },
+                                
+                                        # Logo central / gauche
+                                        {
+                                            "x": 17.1,
+                                            "y": 97.7,
+                                            "w": 122.6,
+                                            "h": 77.0
+                                        },
+                                
+                                        # Logo inférieur droit
+                                        {
+                                            "x": 116.6,
+                                            "y": 176.1,
+                                            "w": 91.4,
+                                            "h": 57.6
+                                        }
+                                    ]
+                                
+                                    # Ajouter les filigranes
+                                    for logo in background_logos:
+                                        pdf.image(
+                                            temp_logo,
+                                            x=logo["x"],
+                                            y=logo["y"],
+                                            w=logo["w"],
+                                            h=logo["h"]
+                                        )
+                                
                                 except Exception as e:
-                                    st.warning(f"Logo non trouvé ou erreur de traitement: {str(e)}")
+                                    st.warning(
+                                        f"Logo non trouvé ou erreur de traitement : {str(e)}"
+                                    )
 
                                 # ---- Logo et entête ----
                                 try:
