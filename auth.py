@@ -3587,13 +3587,13 @@ def show_admin_dashboard():
                                 
                                                                 # ---- En-tête avec cadre ----
                                 # Définir la couleur de fond blanc et bordure noire
-                                pdf.ln(25)
+                                pdf.ln(20)
                                 pdf.set_fill_color(255, 255, 255)  # Fond blanc
                                 pdf.set_draw_color(0, 0, 0)        # Bordure noire
                                 #pdf.set_line_width(1)              # Épaisseur de la bordure : 1
                                 
                                 # Calculer la largeur du texte
-                                pdf.set_font('Arial', 'B', 10)
+                                pdf.set_font('Arial', 'B', 11)
                                 text_width = pdf.get_string_width('ATTESTATION DE VIREMENT IRREVOCABLE')
                                 padding = 20  # Marge intérieure
                                 
@@ -3608,7 +3608,7 @@ def show_admin_dashboard():
                                 
                                 # Ajouter le texte centré dans le cadre
                                 pdf.set_xy(x_start, y_start + 3)
-                                pdf.set_font('Arial', 'B', 14.5)
+                                pdf.set_font('Arial', 'B', 14)
                                 pdf.set_text_color(0, 0, 0)
                                 pdf.cell(frame_width, 10, 'ATTESTATION DE VIREMENT IRREVOCABLE', 0, 1, 'C')
                                 
@@ -3616,7 +3616,7 @@ def show_admin_dashboard():
                                 pdf.set_y(y_start + frame_height + 5)
                                 
                                 # Référence du document
-                                pdf.set_font('Arial', 'B', 11)
+                                pdf.set_font('Arial', 'B', 10.5)
                                 pdf.cell(0, 0, f"DGF-EC / {avi_data['reference']}", 0, 1, 'C')
                                 pdf.ln(5)
                                 
@@ -3786,7 +3786,7 @@ def show_admin_dashboard():
                                     "endorsement, surety, or any other similar form of commitment. The signatory diclaims all liability for any damage resulting from the improper, exaggerated, or abusive use of this AVI.",
                                 ]
                                 for line in fin:
-                                    pdf.cell(0, 4, line, 0, 2, 'C')
+                                    pdf.cell(0, 2, line, 0, 2, 'C')
                                 
                                 # ---- Sauvegarde du fichier ----
                                 os.makedirs("avi_documents", exist_ok=True)
