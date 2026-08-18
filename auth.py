@@ -3607,7 +3607,7 @@ def show_admin_dashboard():
                                 pdf.set_y(y_start + 8)  # Ajuster la position Y pour centrer le texte
                                 pdf.set_font('Arial', 'B', 12)
                                 pdf.set_text_color(0, 0, 0)  # Noir
-                                pdf.cell(frame_width, 10, 'ATTESTATION DE VIREMENT IRREVOCABLE', 0, 1, 'C')
+                                pdf.cell(frame_width, 14, 'ATTESTATION DE VIREMENT IRREVOCABLE', 0, 1, 'C')
                                 pdf.ln(3)
                                 
                                 # Référence du document
@@ -3721,7 +3721,7 @@ def show_admin_dashboard():
                                     # Signature (à gauche)
                                     pdf.image("assets/signature.png", x=10, y=pdf.get_y(), w=30)
                                     # Cachet (à droite)
-                                    pdf.image("assets/cachet.png", x=60, y=pdf.get_y(), w=80)
+                                    pdf.image("assets/cachet.png", x=40, y=pdf.get_y(), w=80)
                                     pdf.ln(20)  # Saut de ligne après les images
                                 except Exception as e:
                                     pdf.ln(5)
