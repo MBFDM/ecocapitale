@@ -3679,7 +3679,7 @@ def show_admin_dashboard():
                                 # RÉFÉRENCE
                                 # ------------------------------------------------------------
                                 
-                                pdf.set_xy(10, 52)
+                                pdf.set_xy(10, 49)
                                 
                                 pdf.set_font(font_name, 'B', 10)
                                 
@@ -3764,16 +3764,16 @@ def show_admin_dashboard():
                                 pdf.cell(38, 5, "NUMERO DE COMPTE :", 0, 1)
                                 
                                 pdf.set_font(font_name, 'B', 11)
-                                pdf.cell(70, 5, avi_data['numero_compte'], 0, 1)
+                                pdf.cell(80, 5, avi_data['numero_compte'], 0, 0)
                                 
                                 y += 5
                                 
                                 pdf.set_xy(10, y)
                                 pdf.set_font(font_name, 'B', 11)
-                                pdf.cell(20, 4.8, "Devise :", 0, 0)
+                                pdf.cell(20, 5, "Devise :", 0, 0)
                                 
                                 pdf.set_font(font_name, 'B', 11)
-                                pdf.cell(30, 4.8, avi_data['devise'], 0, 1)
+                                pdf.cell(30, 5, avi_data['devise'], 0, 1)
                                 
                                 
                                 # ============================================================
@@ -3781,6 +3781,7 @@ def show_admin_dashboard():
                                 # ============================================================
                                 
                                 details = (
+                                    ""
                                     f"Il est l'ordonnateur d'un virement irrévocable et permanent d'un montant total "
                                     f"de {avi_data['montant']} FCFA ({montant_en_lettres(avi_data['montant'])}), "
                                     f"équivalant actuellement à {avi_data['montant']/650:,.2f} euros, cette somme "
@@ -3806,6 +3807,7 @@ def show_admin_dashboard():
                                 # ============================================================
                                 
                                 blocked = (
+                                    ""
                                     "Il est précisé que ce compte demeurera bloqué jusqu'à la présentation, "
                                     "par le donneur d'ordre, de ses nouvelles coordonnées bancaires ouvertes en France."
                                     ""
@@ -3828,6 +3830,7 @@ def show_admin_dashboard():
                                 # ============================================================
                                 
                                 refusal = (
+                                    ""
                                     "À défaut, les fonds ne pourront être remis à sa disposition qu'après présentation "
                                     "de son passeport attestant d'un refus de visa. Toutefois, nous autorisons le donneur "
                                     "d'ordre, à toutes fins utiles, à utiliser notre compte ouvert auprès de United Bank "
@@ -3878,7 +3881,7 @@ def show_admin_dashboard():
                                 
                                 pdf.multi_cell(
                                     CONTENT_W,
-                                    4.5,
+                                    5,
                                     "En foi de quoi, cette attestation lui est délivrée pour servir et valoir ce que de droit.",
                                     0,
                                     'J'
@@ -3911,7 +3914,7 @@ def show_admin_dashboard():
                                     f"{date_actuelle.year}"
                                 )
                                 
-                                pdf.set_xy(10, 190)
+                                pdf.set_xy(10, 195)
                                 
                                 pdf.set_font(font_name, 'B', 10)
                                 
@@ -3924,7 +3927,7 @@ def show_admin_dashboard():
                                     'R'
                                 )
                                 
-                                pdf.set_xy(10, 190)
+                                pdf.set_xy(10, 195)
                                 
                                 pdf.cell(
                                     CONTENT_W,
@@ -3935,7 +3938,7 @@ def show_admin_dashboard():
                                     'L'
                                 )
                                 
-                                pdf.set_xy(10, 195)
+                                pdf.set_xy(10, 200)
                                 
                                 pdf.cell(
                                     CONTENT_W,
@@ -3956,14 +3959,14 @@ def show_admin_dashboard():
                                     pdf.image(
                                         "assets/signature.png",
                                         x=12,
-                                        y=205,
+                                        y=215,
                                         w=30
                                     )
                                 
                                     pdf.image(
                                         "assets/cachet_2.png",
                                         x=48,
-                                        y=198,
+                                        y=210,
                                         w=70
                                     )
                                 
@@ -4009,7 +4012,7 @@ def show_admin_dashboard():
                                 pdf.image(
                                     qr_bytes,
                                     x=160,
-                                    y=202,
+                                    y=246,
                                     w=40,
                                     h=40
                                 )
