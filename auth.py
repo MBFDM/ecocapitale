@@ -3801,7 +3801,7 @@ def show_admin_dashboard():
                                 img_bytes.seek(0)
                                 
                                 pdf.image(img_bytes, x=160, y=pdf.get_y()-40, w=40)
-                                pdf.ln(3)
+                                pdf.ln(25) 
 
                                 # ---- Pied de page (texte légal en anglais) ----
                                 pdf.set_font(font_name, '', 6)
