@@ -3592,23 +3592,26 @@ def show_admin_dashboard():
                                 pdf.set_draw_color(0, 0, 0)        # Bordure noire
                                 #pdf.set_line_width(1)              # Épaisseur de la bordure : 1
                                 
-                                # Dessiner le cadre sur toute la largeur avec un padding
-                                margin_left = 50
-                                margin_right = 35
+                                # Dessiner le cadre
+                                margin_left = 20
+                                margin_right = 20
                                 x_start = margin_left
-                                y_start = 30
-                                frame_width = 200 - (margin_left + margin_right)  # Largeur du cadre
-                                frame_height = 12  # Hauteur du cadre
+                                # Utiliser la position Y actuelle au lieu d'une valeur fixe
+                                y_start = pdf.get_y() + 5
+                                frame_width = 210 - (margin_left + margin_right)
+                                frame_height = 22  # Hauteur suffisante pour le texte (taille 12 + marge)
                                 
                                 # Dessiner le cadre rectangulaire avec fond blanc
                                 pdf.rect(x_start, y_start, frame_width, frame_height, 'FD')
                                 
                                 # Ajouter le texte à l'intérieur du cadre
-                                pdf.set_y(y_start + 8)  # Ajuster la position Y pour centrer le texte
+                                pdf.set_xy(x_start, y_start + 4)  # Centrer verticalement dans le cadre
                                 pdf.set_font('Arial', 'B', 12)
                                 pdf.set_text_color(0, 0, 0)  # Noir
                                 pdf.cell(frame_width, 14, 'ATTESTATION DE VIREMENT IRREVOCABLE', 0, 1, 'C')
-                                pdf.ln(3)
+                                
+                                # Positionner le curseur après le cadre
+                                pdf.set_y(y_start + frame_height + 5)
                                 
                                 # Référence du document
                                 pdf.set_font('Arial', 'B', 10)
