@@ -3593,7 +3593,7 @@ def show_admin_dashboard():
                                 #pdf.set_line_width(1)              # Épaisseur de la bordure : 1
                                 
                                 # Calculer la largeur du texte
-                                pdf.set_font('Arial', 'B', 12)
+                                pdf.set_font('Arial', 'B', 11)
                                 text_width = pdf.get_string_width('ATTESTATION DE VIREMENT IRREVOCABLE')
                                 padding = 20  # Marge intérieure
                                 
@@ -3610,13 +3610,13 @@ def show_admin_dashboard():
                                 pdf.set_xy(x_start, y_start + 3)
                                 pdf.set_font('Arial', 'B', 15)
                                 pdf.set_text_color(0, 0, 0)
-                                pdf.cell(frame_width, 12, 'ATTESTATION DE VIREMENT IRREVOCABLE', 0, 1, 'C')
+                                pdf.cell(frame_width, 10, 'ATTESTATION DE VIREMENT IRREVOCABLE', 0, 1, 'C')
                                 
                                 # Positionner le curseur après le cadre
                                 pdf.set_y(y_start + frame_height + 5)
                                 
                                 # Référence du document
-                                pdf.set_font('Arial', 'B', 10)
+                                pdf.set_font('Arial', 'B', 12)
                                 pdf.cell(0, 0, f"DGF-EC / {avi_data['reference']}", 0, 1, 'C')
                                 pdf.ln(5)
                                 
