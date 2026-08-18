@@ -3670,23 +3670,23 @@ def show_admin_dashboard():
                                 ]
                                 
                                 for line in intro:
-                                    pdf.cell(0, 5, line, 0, 2)
+                                    pdf.cell(0, 5.2, line, 0, 2)
                                 
                                 # Informations bancaires en gras
                                 pdf.set_font(font_name, 'B', 11)
-                                pdf.cell(40, 4.5, "CODE BANQUE :", 0, 0)
+                                pdf.cell(40, 5, "CODE BANQUE :", 0, 0)
                                 pdf.set_font(font_name, 'B', 11)
-                                pdf.cell(0, 4.5, avi_data['code_banque'], 0, 1)
+                                pdf.cell(0, 5, avi_data['code_banque'], 0, 1)
                                 
                                 pdf.set_font(font_name, 'B', 11)
-                                pdf.cell(45, 4.5, "NUMERO DE COMPTE : ", 0, 0)
+                                pdf.cell(45, 5, "NUMERO DE COMPTE : ", 0, 0)
                                 pdf.set_font(font_name, 'B', 11)
-                                pdf.cell(0, 4.5, avi_data['numero_compte'], 0, 1)
+                                pdf.cell(0, 5, avi_data['numero_compte'], 0, 1)
                                 
                                 pdf.set_font(font_name, 'B', 11)
-                                pdf.cell(20, 4.5, "Devise :", 0, 0)
+                                pdf.cell(20, 5, "Devise :", 0, 0)
                                 pdf.set_font(font_name, '', 11)
-                                pdf.cell(0, 4.5, avi_data['devise'], 0, 1)
+                                pdf.cell(0, 5, avi_data['devise'], 0, 1)
                                 pdf.ln(5)
                                 
                                 # ---- Détails du virement ----
