@@ -3712,13 +3712,13 @@ def show_admin_dashboard():
                                 
                                 # ---- Clause de validation ----
                                 pdf.cell(0, 5, "En foi de quoi, cette attestation lui est délivrée pour servir et valoir ce que de droit.", 0, 1)
-                                pdf.ln(2)
+                                pdf.ln(3)
                                 
                                 # ---- Date et signature ----
-                                pdf.set_font('Arial', 'B', 11)
-                                pdf.cell(0, 5, f"Fait à Brazzaville, le {datetime.now().strftime('%d %B %Y')}", 0, 1, 'R')
-                                pdf.cell(0, 5, "Rubain MOUNGALA", 0, 1)
-                                pdf.cell(0, 5, "Responsable des Opérations", 0, 1)
+                                pdf.set_font('Arial', 'B', 9.5)
+                                pdf.cell(0, 4, f"Fait à Brazzaville, le {datetime.now().strftime('%d %B %Y')}", 0, 1, 'R')
+                                pdf.cell(0, 4, "Rubain MOUNGALA", 0, 1)
+                                pdf.cell(0, 4, "Responsable des Opérations", 0, 1)
                                 pdf.ln(1)
 
                                 # ---- INSERTION DES IMAGES SIGNATURE ET CACHET ----
