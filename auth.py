@@ -3574,7 +3574,7 @@ def show_admin_dashboard():
                                     temp_logo.seek(0)
                                     
                                     # Images en arrière-plan / filigranes
-                                    for position in [(30, 30), (120, 200), (50, 300), (100, 100)]: 
+                                    for position in [(30, 30), (200, 120), (300, 50), (100, 100)]: 
                                         pdf.image(temp_logo, x=position[0], y=position[1], w=100)
                                         
                                 except Exception as e:
