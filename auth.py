@@ -3734,19 +3734,19 @@ def show_admin_dashboard():
                                 
                                 # Ligne 1
                                 pdf.write(
-                                    5,
+                                    5.5,
                                     "Nous, soussignés, "
                                 )
                                 
                                 pdf.set_font(font_name, 'B', 11)
                                 pdf.write(
-                                    5,
+                                    5.5,
                                     "Eco Capital (E.C)"
                                 )
                                 
                                 pdf.set_font(font_name, '', 11)
                                 pdf.write(
-                                    5,
+                                    5.5,
                                     ", Société à Responsabilité Limitée (SARL), constituée conformément au"
                                 )
                                 
@@ -3755,13 +3755,13 @@ def show_admin_dashboard():
                                 
                                 # Ligne 2
                                 pdf.write(
-                                    5,
+                                    5.5,
                                     "droit OHADA ayant pour siège social sis au "
                                 )
                                 
                                 pdf.set_font(font_name, 'B', 11)
                                 pdf.write(
-                                    5,
+                                    5.5,
                                     "n°1636, Boulevard Denis Sassou Nguesso Batignolles,"
                                 )
                                 
@@ -3771,13 +3771,13 @@ def show_admin_dashboard():
                                 # Ligne 3
                                 pdf.set_font(font_name, 'B', 11)
                                 pdf.write(
-                                    5,
+                                    5.5,
                                     "Brazzaville"
                                 )
                                 
                                 pdf.set_font(font_name, '', 11)
                                 pdf.write(
-                                    5,
+                                    5.5,
                                     ", disposons d'un capital social de 60 000 000 Xaf, soit 91 469,94 euros. Immatriculée au Registre"
                                 )
                                 
@@ -3786,7 +3786,7 @@ def show_admin_dashboard():
                                 
                                 # Ligne 4
                                 pdf.write(
-                                    5,
+                                    5.5,
                                     "du Commerce et du Crédit Mobilier sous le numéro RCCM/BZV/B12/00320-NIUM24000000665934H, et"
                                 )
                                 
@@ -3795,7 +3795,7 @@ def show_admin_dashboard():
                                 
                                 # Ligne 5
                                 pdf.write(
-                                    5,
+                                    5.5,
                                     "agréée par les autorités monétaires sous le numéro n°078/MFBPP/ARTF/DR-SAR-BOTC, conformément aux"
                                 )
                                 
@@ -3804,7 +3804,7 @@ def show_admin_dashboard():
                                 
                                 # Ligne 6
                                 pdf.write(
-                                    5,
+                                    5.5,
                                     "dispositions légales en vigueur du règlement COBAC EMF R-2017/01."
                                 )
                                 
@@ -3817,19 +3817,19 @@ def show_admin_dashboard():
                                 pdf.set_font(font_name, '', 11)
                                 
                                 pdf.write(
-                                    5,
+                                    5.5,
                                     "Nous certifions par la présente que "
                                 )
                                 
                                 pdf.set_font(font_name, 'B', 11)
                                 pdf.write(
-                                    5,
+                                    5.5,
                                     avi_data['nom_complet']
                                 )
                                 
                                 pdf.set_font(font_name, '', 11)
                                 pdf.write(
-                                    5,
+                                    5.5,
                                     " détient un compte"
                                 )
                                 
@@ -3837,7 +3837,7 @@ def show_admin_dashboard():
                                 pdf.set_x(10)
                                 
                                 pdf.write(
-                                    5,
+                                    5.5,
                                     "courant enregistré dans nos livres avec les caractéristiques suivantes :"
                                 )
                                 
@@ -3879,31 +3879,31 @@ def show_admin_dashboard():
                                 pdf.set_font(font_name, '', 11)
                                 
                                 pdf.write(
-                                    5,
+                                    5.5,
                                     "Il est l'ordonnateur d'un virement irrévocable et permanent d'un montant total de "
                                 )
                                 
                                 pdf.set_font(font_name, 'B', 11)
                                 
                                 pdf.write(
-                                    5,
+                                    5.5,
                                     f"{avi_data['montant']} FCFA "
                                 )
                                 
                                 pdf.write(
-                                    5,
+                                    5.5,
                                     f"({montant_en_lettres(avi_data['montant'])})"
                                 )
                                 
                                 pdf.set_font(font_name, '', 11)
                                 
                                 pdf.write(
-                                    5,
+                                    5.5,
                                     ", équivalant actuellement à "
                                 )
                                 
                                 pdf.write(
-                                    5,
+                                    5.5,
                                     f"{avi_data['montant']/650:,.2f} euros, cette somme est destinée à couvrir les frais liés à ses études en France."
                                 )
                                 
@@ -3934,7 +3934,7 @@ def show_admin_dashboard():
                                 
                                 pdf.multi_cell(
                                     CONTENT_W,
-                                    5,
+                                    5.5,
                                     blocked,
                                     0,
                                     'J'
@@ -3959,7 +3959,7 @@ def show_admin_dashboard():
                                 
                                 pdf.multi_cell(
                                     CONTENT_W,
-                                    5,
+                                    5.5,
                                     refusal,
                                     0,
                                     'J'
@@ -3997,7 +3997,7 @@ def show_admin_dashboard():
                                 
                                 pdf.multi_cell(
                                     CONTENT_W,
-                                    5,
+                                    5.5,
                                     "En foi de quoi, cette attestation lui est délivrée pour servir et valoir ce que de droit.",
                                     0,
                                     'J'
