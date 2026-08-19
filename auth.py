@@ -3636,6 +3636,34 @@ def show_admin_dashboard():
                                     font_name = 'Calibri'
                                 except:
                                     font_name = 'Helvetica'
+
+                                # ============================================================
+                                # FONCTION POUR ÉCRIRE DU TEXTE AVEC DES PARTIES EN GRAS
+                                # ============================================================
+                                
+                                def write_rich_line(segments, x, y, line_height=5):
+                                    """
+                                    segments = [
+                                        ("Texte normal", False),
+                                        ("Texte en gras", True),
+                                        ("Suite normale", False)
+                                    ]
+                                    """
+                                
+                                    pdf.set_xy(x, y)
+                                
+                                    for text, bold in segments:
+                                
+                                        pdf.set_font(
+                                            font_name,
+                                            'B' if bold else '',
+                                            11
+                                        )
+                                
+                                        pdf.write(
+                                            line_height,
+                                            text
+                                        )
                                 
                                 
                                 # ============================================================
@@ -3697,30 +3725,90 @@ def show_admin_dashboard():
                                 # INTRODUCTION
                                 # ============================================================
                                 
-                                pdf.set_font(font_name, '', 11)
-                                
-                                intro = (
-                                    "Nous, soussignés, Eco Capital (E.C), Société à Responsabilité Limitée (SARL), "
-                                    "constituée conformément au droit OHADA ayant pour siège social sis au n°1636, "
-                                    "Boulevard Denis Sassou Nguesso Batignolles, Brazzaville, disposons d'un capital "
-                                    "social de 60 000 000 Xaf, soit 91 469,94 euros. Immatriculée au Registre du "
-                                    "Commerce et du Crédit Mobilier sous le numéro RCCM/BZV/B12/00320-"
-                                    "NIUM24000000665934H, et agréée par les autorités monétaires sous le numéro "
-                                    "n°078/MFBPP/ARTF/DR-SAR-BOTC, conformément aux dispositions légales en vigueur "
-                                    "du règlement COBAC EMF R-2017/01."
-                                    ""
-                                )
+                                # ============================================================
+                                # INTRODUCTION AVEC GRAS
+                                # ============================================================
                                 
                                 pdf.set_xy(10, 57)
+                                pdf.set_font(font_name, '', 11)
                                 
-                                pdf.multi_cell(
-                                    CONTENT_W,
+                                # Ligne 1
+                                pdf.write(
                                     5,
-                                    intro,
-                                    0,
-                                    'J'
+                                    "Nous, soussignés, "
                                 )
                                 
+                                pdf.set_font(font_name, 'B', 11)
+                                pdf.write(
+                                    5,
+                                    "Eco Capital (E.C)"
+                                )
+                                
+                                pdf.set_font(font_name, '', 11)
+                                pdf.write(
+                                    5,
+                                    ", Société à Responsabilité Limitée (SARL), constituée conformément au"
+                                )
+                                
+                                pdf.ln(5)
+                                pdf.set_x(10)
+                                
+                                # Ligne 2
+                                pdf.write(
+                                    5,
+                                    "droit OHADA ayant pour siège social sis au "
+                                )
+                                
+                                pdf.set_font(font_name, 'B', 11)
+                                pdf.write(
+                                    5,
+                                    "n°1636, Boulevard Denis Sassou Nguesso Batignolles,"
+                                )
+                                
+                                pdf.ln(5)
+                                pdf.set_x(10)
+                                
+                                # Ligne 3
+                                pdf.set_font(font_name, 'B', 11)
+                                pdf.write(
+                                    5,
+                                    "Brazzaville"
+                                )
+                                
+                                pdf.set_font(font_name, '', 11)
+                                pdf.write(
+                                    5,
+                                    ", disposons d’un capital social de 60 000 000 Xaf, soit 91 469,94 euros. Immatriculée au Registre"
+                                )
+                                
+                                pdf.ln(5)
+                                pdf.set_x(10)
+                                
+                                # Ligne 4
+                                pdf.write(
+                                    5,
+                                    "du Commerce et du Crédit Mobilier sous le numéro RCCM/BZV/B12/00320-NIUM24000000665934H, et"
+                                )
+                                
+                                pdf.ln(5)
+                                pdf.set_x(10)
+                                
+                                # Ligne 5
+                                pdf.write(
+                                    5,
+                                    "agréée par les autorités monétaires sous le numéro n°078/MFBPP/ARTF/DR-SAR-BOTC, conformément aux"
+                                )
+                                
+                                pdf.ln(5)
+                                pdf.set_x(10)
+                                
+                                # Ligne 6
+                                pdf.write(
+                                    5,
+                                    "dispositions légales en vigueur du règlement COBAC EMF R-2017/01."
+                                )
+                                
+                                pdf.ln(7)
                                 
                                 # ------------------------------------------------------------
                                 # CERTIFICATION
@@ -3728,20 +3816,32 @@ def show_admin_dashboard():
                                 
                                 pdf.set_font(font_name, '', 11)
                                 
-                                certification = (
-                                    f"Nous certifions par la présente que {avi_data['nom_complet']} détient un "
-                                    "compte courant enregistré dans nos livres avec les caractéristiques suivantes :"
-                                )
-                                
-                                pdf.set_xy(10, 88)
-                                
-                                pdf.multi_cell(
-                                    CONTENT_W,
+                                pdf.write(
                                     5,
-                                    certification,
-                                    0,
-                                    'J'
+                                    "Nous certifions par la présente que "
                                 )
+                                
+                                pdf.set_font(font_name, 'B', 11)
+                                pdf.write(
+                                    5,
+                                    avi_data['nom_complet']
+                                )
+                                
+                                pdf.set_font(font_name, '', 11)
+                                pdf.write(
+                                    5,
+                                    " détient un compte"
+                                )
+                                
+                                pdf.ln(5)
+                                pdf.set_x(10)
+                                
+                                pdf.write(
+                                    5,
+                                    "courant enregistré dans nos livres avec les caractéristiques suivantes :"
+                                )
+                                
+                                pdf.ln(5)
                                 
                                 
                                 # ============================================================
@@ -3774,27 +3874,48 @@ def show_admin_dashboard():
                                 # DÉTAILS DU VIREMENT
                                 # ============================================================
                                 
-                                details = (
-                                    ""
-                                    f"Il est l'ordonnateur d'un virement irrévocable et permanent d'un montant total "
-                                    f"de {avi_data['montant']} FCFA ({montant_en_lettres(avi_data['montant'])}), "
-                                    f"équivalant actuellement à {avi_data['montant']/650:,.2f} euros, cette somme "
-                                    "est destinée à couvrir les frais liés à ses études en France."
-                                    ""
-                                )
-
-                                #pdf.ln(10)
                                 pdf.set_xy(10, 125)
                                 
                                 pdf.set_font(font_name, '', 11)
                                 
-                                pdf.multi_cell(
-                                    CONTENT_W,
+                                pdf.write(
                                     5,
-                                    details,
-                                    0,
-                                    'J'
+                                    "Il est l'ordonnateur d'un virement irrévocable et permanent d'un montant total de "
                                 )
+                                
+                                pdf.set_font(font_name, 'B', 11)
+                                
+                                pdf.write(
+                                    5,
+                                    f"{avi_data['montant']} FCFA "
+                                )
+                                
+                                pdf.write(
+                                    5,
+                                    f"({montant_en_lettres(avi_data['montant'])})"
+                                )
+                                
+                                pdf.set_font(font_name, '', 11)
+                                
+                                pdf.write(
+                                    5,
+                                    ", équivalant actuellement à "
+                                )
+                                
+                                pdf.write(
+                                    5,
+                                    f"{avi_data['montant']/650:,.2f} euros, cette somme est destinée à couvrir les frais liés"
+                                )
+                                
+                                pdf.ln(5)
+                                pdf.set_x(10)
+                                
+                                pdf.write(
+                                    5,
+                                    "à ses études en France."
+                                )
+                                
+                                pdf.ln(7)
                                 
                                 
                                 # ============================================================
@@ -4012,34 +4133,108 @@ def show_admin_dashboard():
                                     h=40
                                 )
                                 
-                                
                                 # ============================================================
                                 # COORDONNÉES ECO CAPITAL
                                 # ============================================================
                                 
                                 pdf.set_xy(10, 246)
                                 
+                                # Ligne 1 - GRAS
+                                pdf.set_font(font_name, 'B', 9)
+                                
+                                pdf.cell(
+                                    135,
+                                    5,
+                                    "Eco capital Sarl",
+                                    0,
+                                    1,
+                                    'L'
+                                )
+                                
+                                # Ligne 2 - NORMAL
                                 pdf.set_font(font_name, '', 9)
                                 
-                                footer_lines = [
-                                    "Eco Capital Sarl",
+                                pdf.cell(
+                                    135,
+                                    5,
                                     "Société à responsabilité limitée au capital de 60.000.000 XAF",
-                                    "Siège social : 1636 Bd Denis Sassou Nguesso Batignolles Brazzaville",
-                                    "RCCM N°CG/BZV/B12-00320 - NIU N°M24000000665934H",
-                                    "Contacts : 00242 06 113 56 12 / 06 113 56 05",
-                                    "Web : www.ecocapitale.com - mail : contacts@ecocapitale.com",
-                                    "Brazzaville République du Congo"
-                                ]
+                                    0,
+                                    1,
+                                    'L'
+                                )
                                 
-                                for line in footer_lines:
-                                    pdf.cell(
-                                        135,
-                                        5,
-                                        line,
-                                        0,
-                                        1,
-                                        'L'
-                                    )
+                                # Ligne 3 - NORMAL
+                                pdf.cell(
+                                    135,
+                                    5,
+                                    "Siège social : 1636 Bd Denis Sassou Nguesso Batignolles Brazzaville",
+                                    0,
+                                    1,
+                                    'L'
+                                )
+                                
+                                # Ligne 4 - NORMAL
+                                pdf.cell(
+                                    135,
+                                    5,
+                                    "RCCM N°CG/BZV/B12-00320 - NIU N°M24000000665934H",
+                                    0,
+                                    1,
+                                    'L'
+                                )
+                                
+                                # Ligne 5 - NORMAL
+                                pdf.cell(
+                                    135,
+                                    5,
+                                    "Contacts : 00242 06 113 56 12 / 06 113 56 05",
+                                    0,
+                                    1,
+                                    'L'
+                                )
+                                
+                                # Ligne 6 - MIXTE
+                                pdf.set_font(font_name, '', 9)
+                                
+                                pdf.write(
+                                    5,
+                                    "Web : "
+                                )
+                                
+                                pdf.set_font(font_name, 'B', 9)
+                                
+                                pdf.write(
+                                    5,
+                                    "www.ecocapitale.com"
+                                )
+                                
+                                pdf.set_font(font_name, '', 9)
+                                
+                                pdf.write(
+                                    5,
+                                    "  mail : "
+                                )
+                                
+                                pdf.set_font(font_name, 'B', 9)
+                                
+                                pdf.write(
+                                    5,
+                                    "contacts@ecocapitale.com"
+                                )
+                                
+                                pdf.ln(5)
+                                
+                                # Ligne 7 - NORMAL
+                                pdf.set_font(font_name, '', 9)
+                                
+                                pdf.cell(
+                                    135,
+                                    5,
+                                    "Brazzaville République du Congo",
+                                    0,
+                                    1,
+                                    'L'
+                                )
                                 
                                 
                                 # ============================================================
