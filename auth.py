@@ -3576,7 +3576,7 @@ def show_admin_dashboard():
                                     img = Image.open(logo_path).convert("RGBA")
                                 
                                     alpha = img.getchannel("A")
-                                    alpha = alpha.point(lambda p: int(p * 0.40))
+                                    alpha = alpha.point(lambda p: int(p * 0.15))
                                     img.putalpha(alpha)
                                 
                                     temp_logo = BytesIO()
