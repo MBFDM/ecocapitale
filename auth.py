@@ -3833,7 +3833,7 @@ def show_admin_dashboard():
                                     ""
                                 )
                                 
-                                pdf.set_xy(10, 170)
+                                pdf.set_xy(10, 160)
                                 pdf.set_font(font_name, '', 11)
                                 
                                 pdf.multi_cell(
