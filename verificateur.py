@@ -9,6 +9,7 @@ import pandas as pd
 from datetime import datetime
 import logging
 import re
+import time
 
 # Configuration de la page
 st.set_page_config(
@@ -121,6 +122,11 @@ st.markdown("""
         display: inline-block;
         font-size: 0.9rem;
     }
+
+    .stTextInput > div > div > input {
+        font-size: 1.1rem;
+        padding: 0.75rem 1rem;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -133,6 +139,87 @@ def get_db_connection():
         logger.error(f"Erreur de connexion à MySQL: {err}")
         st.error(f"❌ Erreur de connexion à la base de données: {err}")
         return None
+
+def init_database():
+    """Vérifie et crée les tables nécessaires si elles n'existent pas"""
+    conn = get_db_connection()
+    if not conn:
+        return False
+    
+    try:
+        cursor = conn.cursor()
+        
+        # Vérifier si la table avis existe
+        cursor.execute("""
+            SELECT COUNT(*) FROM information_schema.tables 
+            WHERE table_schema = %s AND table_name = 'avis'
+        """, (MYSQL_CONFIG['database'],))
+        
+        table_exists = cursor.fetchone()[0] > 0
+        
+        if not table_exists:
+            # Créer la table avis si elle n'existe pas
+            cursor.execute('''
+            CREATE TABLE IF NOT EXISTS avis (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                reference VARCHAR(50) UNIQUE NOT NULL,
+                nom_complet VARCHAR(255) NOT NULL,
+                code_banque VARCHAR(50) NOT NULL,
+                numero_compte VARCHAR(50) NOT NULL,
+                devise VARCHAR(10) NOT NULL,
+                iban VARCHAR(50) NOT NULL,
+                bic VARCHAR(20) NOT NULL,
+                montant DECIMAL(15,2) NOT NULL,
+                date_creation DATE NOT NULL,
+                date_expiration DATE,
+                statut VARCHAR(50) NOT NULL,
+                commentaires TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+            ''')
+            conn.commit()
+            st.success("✅ Table 'avis' créée avec succès")
+        
+        # Vérifier si la table info_avi existe
+        cursor.execute("""
+            SELECT COUNT(*) FROM information_schema.tables 
+            WHERE table_schema = %s AND table_name = 'info_avi'
+        """, (MYSQL_CONFIG['database'],))
+        
+        info_table_exists = cursor.fetchone()[0] > 0
+        
+        if not info_table_exists:
+            # Créer la table info_avi si elle n'existe pas
+            cursor.execute('''
+            CREATE TABLE IF NOT EXISTS info_avi (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                reference VARCHAR(50) UNIQUE NOT NULL,
+                nom_complet VARCHAR(255) NOT NULL,
+                code_banque VARCHAR(50) NOT NULL,
+                numero_compte VARCHAR(50) NOT NULL,
+                devise VARCHAR(10) NOT NULL,
+                iban VARCHAR(50) NOT NULL,
+                bic VARCHAR(20) NOT NULL,
+                montant DECIMAL(15,2) NOT NULL,
+                date_creation DATE,
+                date_expiration DATE,
+                statut VARCHAR(50),
+                commentaires TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+            )
+            ''')
+            conn.commit()
+            st.success("✅ Table 'info_avi' créée avec succès")
+        
+        cursor.close()
+        conn.close()
+        return True
+        
+    except mysql.connector.Error as e:
+        logger.error(f"Erreur lors de l'initialisation de la base de données: {str(e)}")
+        st.error(f"❌ Erreur lors de l'initialisation de la base de données: {str(e)}")
+        return False
 
 def verify_avi(reference: str):
     """
@@ -147,6 +234,7 @@ def verify_avi(reference: str):
         cursor = conn.cursor(dictionary=True)
         
         # Requête pour récupérer les informations de l'AVI
+        # On cherche d'abord dans la table avis, puis dans info_avi
         query = """
         SELECT 
             reference,
@@ -168,6 +256,28 @@ def verify_avi(reference: str):
         cursor.execute(query, (reference.strip(),))
         result = cursor.fetchone()
         
+        # Si pas trouvé dans avis, chercher dans info_avi
+        if not result:
+            query = """
+            SELECT 
+                reference,
+                nom_complet,
+                code_banque,
+                numero_compte,
+                devise,
+                iban,
+                bic,
+                montant,
+                date_creation,
+                date_expiration,
+                statut,
+                commentaires
+            FROM info_avi 
+            WHERE reference = %s
+            """
+            cursor.execute(query, (reference.strip(),))
+            result = cursor.fetchone()
+        
         cursor.close()
         conn.close()
         
@@ -182,7 +292,9 @@ def format_iban(iban):
     """Formate un IBAN pour l'affichage (espaces tous les 4 caractères)"""
     if not iban:
         return iban
-    return ' '.join([iban[i:i+4] for i in range(0, len(iban), 4)])
+    # Supprimer les espaces existants avant de reformater
+    iban_clean = iban.replace(' ', '')
+    return ' '.join([iban_clean[i:i+4] for i in range(0, len(iban_clean), 4)])
 
 def format_montant(montant, devise="XAF"):
     """Formate le montant avec la devise"""
@@ -193,8 +305,120 @@ def format_montant(montant, devise="XAF"):
     except:
         return f"{montant} {devise}"
 
+def display_avi_result(result):
+    """Affiche les résultats de la vérification"""
+    if not result:
+        return
+    
+    # Badge de vérification
+    st.markdown("""
+    <div style="text-align: center; margin: 1rem 0;">
+        <span class="verification-badge">✅ AVI VALIDE</span>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Carte des résultats
+    st.markdown('<div class="result-card">', unsafe_allow_html=True)
+    
+    st.markdown("### 📄 Informations de l'AVI")
+    
+    # Informations principales
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown(f"""
+        <div class="info-item">
+            <span class="info-label">📌 Référence</span>
+            <span class="info-value">{result.get('reference', 'N/A')}</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">👤 Nom complet</span>
+            <span class="info-value">{result.get('nom_complet', 'N/A')}</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">🏦 Code Banque</span>
+            <span class="info-value">{result.get('code_banque', 'N/A')}</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">🔢 Numéro de Compte</span>
+            <span class="info-value">{result.get('numero_compte', 'N/A')}</span>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col2:
+        st.markdown(f"""
+        <div class="info-item">
+            <span class="info-label">💱 Devise</span>
+            <span class="info-value">{result.get('devise', 'XAF')}</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">🔑 IBAN</span>
+            <span class="info-value" style="font-family: monospace;">{format_iban(result.get('iban', 'N/A'))}</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">🌐 BIC</span>
+            <span class="info-value" style="font-family: monospace;">{result.get('bic', 'N/A')}</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">💰 Montant</span>
+            <span class="info-value" style="font-weight: 700; color: #28a745;">{format_montant(result.get('montant'), result.get('devise', 'XAF'))}</span>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    st.markdown("---")
+    
+    # Informations supplémentaires
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.metric(
+            "📅 Date de création",
+            result.get('date_creation', 'N/A')
+        )
+    
+    with col2:
+        st.metric(
+            "📅 Date d'expiration",
+            result.get('date_expiration', 'N/A') or 'Non définie'
+        )
+    
+    with col3:
+        statut = result.get('statut', 'N/A')
+        statut_class = "status-valid" if statut in ["Etudiant", "Fonctionnaire"] else "status-invalid"
+        st.markdown(f"""
+        <div style="text-align: center;">
+            <span style="font-size: 0.9rem; color: #666;">📋 Statut</span>
+            <br>
+            <span class="{statut_class}">{statut}</span>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    st.markdown('</div>', unsafe_allow_html=True)
+    
+    # Commentaires si présents
+    if result.get('commentaires'):
+        st.markdown(f"""
+        <div style="background: #f8f9fa; padding: 1rem; border-radius: 8px; margin-top: 1rem;">
+            <strong>📝 Commentaires:</strong>
+            <p style="margin: 0.5rem 0 0 0;">{result.get('commentaires')}</p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    # Pied de page du résultat
+    st.markdown(f"""
+    <div style="text-align: center; margin-top: 1.5rem; color: #888; font-size: 0.85rem;">
+        Vérifié le {datetime.now().strftime('%d/%m/%Y à %H:%M')} · Document certifié par Eco Capital
+    </div>
+    """, unsafe_allow_html=True)
+
 def main():
     """Point d'entrée principal"""
+    
+    # Initialisation de la base de données
+    with st.spinner("🔄 Vérification de la base de données..."):
+        init_success = init_database()
+        if not init_success:
+            st.warning("⚠️ Problème avec la base de données. Certaines fonctionnalités peuvent être limitées.")
     
     # En-tête
     st.markdown("""
@@ -225,112 +449,9 @@ def main():
                     result = verify_avi(reference)
                     
                     if result:
-                        # Affichage des résultats
                         st.markdown("---")
-                        
-                        # Badge de vérification
-                        st.markdown("""
-                        <div style="text-align: center; margin: 1rem 0;">
-                            <span class="verification-badge">✅ AVI VALIDE</span>
-                        </div>
-                        """, unsafe_allow_html=True)
-                        
-                        # Carte des résultats
-                        st.markdown('<div class="result-card">', unsafe_allow_html=True)
-                        
-                        st.markdown("### 📄 Informations de l'AVI")
-                        
-                        # Informations principales
-                        col1, col2 = st.columns(2)
-                        
-                        with col1:
-                            st.markdown(f"""
-                            <div class="info-item">
-                                <span class="info-label">📌 Référence</span>
-                                <span class="info-value">{result.get('reference', 'N/A')}</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">👤 Nom complet</span>
-                                <span class="info-value">{result.get('nom_complet', 'N/A')}</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">🏦 Code Banque</span>
-                                <span class="info-value">{result.get('code_banque', 'N/A')}</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">🔢 Numéro de Compte</span>
-                                <span class="info-value">{result.get('numero_compte', 'N/A')}</span>
-                            </div>
-                            """, unsafe_allow_html=True)
-                        
-                        with col2:
-                            st.markdown(f"""
-                            <div class="info-item">
-                                <span class="info-label">💱 Devise</span>
-                                <span class="info-value">{result.get('devise', 'XAF')}</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">🔑 IBAN</span>
-                                <span class="info-value" style="font-family: monospace;">{format_iban(result.get('iban', 'N/A'))}</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">🌐 BIC</span>
-                                <span class="info-value" style="font-family: monospace;">{result.get('bic', 'N/A')}</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">💰 Montant</span>
-                                <span class="info-value" style="font-weight: 700; color: #28a745;">{format_montant(result.get('montant'), result.get('devise', 'XAF'))}</span>
-                            </div>
-                            """, unsafe_allow_html=True)
-                        
-                        st.markdown("---")
-                        
-                        # Informations supplémentaires
-                        col1, col2, col3 = st.columns(3)
-                        
-                        with col1:
-                            st.metric(
-                                "📅 Date de création",
-                                result.get('date_creation', 'N/A')
-                            )
-                        
-                        with col2:
-                            st.metric(
-                                "📅 Date d'expiration",
-                                result.get('date_expiration', 'N/A') or 'Non définie'
-                            )
-                        
-                        with col3:
-                            statut = result.get('statut', 'N/A')
-                            statut_class = "status-valid" if statut in ["Etudiant", "Fonctionnaire"] else "status-invalid"
-                            st.markdown(f"""
-                            <div style="text-align: center;">
-                                <span style="font-size: 0.9rem; color: #666;">📋 Statut</span>
-                                <br>
-                                <span class="{statut_class}">{statut}</span>
-                            </div>
-                            """, unsafe_allow_html=True)
-                        
-                        st.markdown('</div>', unsafe_allow_html=True)
-                        
-                        # Commentaires si présents
-                        if result.get('commentaires'):
-                            st.markdown(f"""
-                            <div style="background: #f8f9fa; padding: 1rem; border-radius: 8px; margin-top: 1rem;">
-                                <strong>📝 Commentaires:</strong>
-                                <p style="margin: 0.5rem 0 0 0;">{result.get('commentaires')}</p>
-                            </div>
-                            """, unsafe_allow_html=True)
-                        
-                        # Pied de page du résultat
-                        st.markdown(f"""
-                        <div style="text-align: center; margin-top: 1.5rem; color: #888; font-size: 0.85rem;">
-                            Vérifié le {datetime.now().strftime('%d/%m/%Y à %H:%M')} · Document certifié par Eco Capital
-                        </div>
-                        """, unsafe_allow_html=True)
-                        
+                        display_avi_result(result)
                     else:
-                        # Aucun résultat trouvé
                         st.markdown("---")
                         st.markdown("""
                         <div style="text-align: center; padding: 2rem; background: #fff3cd; border-radius: 10px; border: 1px solid #ffc107;">
@@ -339,7 +460,7 @@ def main():
                             <p style="color: #856404; font-size: 0.9rem;">Vérifiez que la référence est correcte (format: AVI-YYYYMMDD-XXXX)</p>
                         </div>
                         """.format(reference.strip()), unsafe_allow_html=True)
-            
+    
     # Section d'information
     with st.expander("ℹ️ Comment utiliser le vérificateur", expanded=False):
         st.markdown("""
@@ -364,6 +485,14 @@ def main():
             <p style="color: #666;">✅ Toutes les vérifications sont enregistrées pour des raisons de sécurité.</p>
         </div>
         """, unsafe_allow_html=True)
+    
+    # Footer
+    st.markdown("---")
+    st.markdown("""
+    <div style="text-align: center; color: #999; font-size: 0.8rem; padding: 1rem 0;">
+        © 2026 Eco Capital - Vérificateur d'AVI v1.0
+    </div>
+    """, unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
