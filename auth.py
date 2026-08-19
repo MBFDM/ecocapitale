@@ -3760,7 +3760,7 @@ def show_admin_dashboard():
                                 pdf.cell(47, 5, "NUMERO DE COMPTE :", 0, 1)
                                 
                                 pdf.set_font(font_name, 'B', 11)
-                                pdf.cell(120, 5, avi_data['numero_compte'], 0, 0)
+                                pdf.cell(90, 5, avi_data['numero_compte'], 0, 0)
                                 
                                 pdf.set_xy(10, 115)
                                 pdf.set_font(font_name, 'B', 11)
@@ -3784,7 +3784,7 @@ def show_admin_dashboard():
                                 )
 
                                 #pdf.ln(10)
-                                pdf.set_xy(10, 130)
+                                pdf.set_xy(10, 125)
                                 
                                 pdf.set_font(font_name, '', 11)
                                 
@@ -3808,7 +3808,7 @@ def show_admin_dashboard():
                                     ""
                                 )
                                 
-                                pdf.set_xy(10, 145)
+                                pdf.set_xy(10, 150)
                                 pdf.set_font(font_name, '', 11)
                                 
                                 pdf.multi_cell(
@@ -3833,7 +3833,7 @@ def show_admin_dashboard():
                                     ""
                                 )
                                 
-                                pdf.set_xy(10, 155)
+                                pdf.set_xy(10, 170)
                                 pdf.set_font(font_name, '', 11)
                                 
                                 pdf.multi_cell(
@@ -3870,7 +3870,7 @@ def show_admin_dashboard():
                                 # CLAUSE FINALE
                                 # ============================================================
                                 
-                                pdf.set_xy(10, 190)
+                                pdf.set_xy(10, 195)
                                 
                                 pdf.set_font(font_name, '', 11)
                                 
@@ -3909,7 +3909,7 @@ def show_admin_dashboard():
                                     f"{date_actuelle.year}"
                                 )
                                 
-                                pdf.set_xy(10, 200)
+                                pdf.set_xy(10, 205)
                                 
                                 pdf.set_font(font_name, 'B', 11)
                                 
@@ -3922,7 +3922,7 @@ def show_admin_dashboard():
                                     'R'
                                 )
                                 
-                                pdf.set_xy(10, 200)
+                                pdf.set_xy(10, 205)
                                 
                                 pdf.cell(
                                     CONTENT_W,
@@ -3933,7 +3933,7 @@ def show_admin_dashboard():
                                     'L'
                                 )
                                 
-                                pdf.set_xy(10, 205)
+                                pdf.set_xy(10, 210)
                                 
                                 pdf.cell(
                                     CONTENT_W,
