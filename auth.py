@@ -3576,7 +3576,7 @@ def show_admin_dashboard():
                                     img = Image.open(logo_path).convert("RGBA")
                                 
                                     alpha = img.getchannel("A")
-                                    alpha = alpha.point(lambda p: int(p * 0.15))
+                                    alpha = alpha.point(lambda p: int(p * 0.10))
                                     img.putalpha(alpha)
                                 
                                     temp_logo = BytesIO()
@@ -3853,7 +3853,7 @@ def show_admin_dashboard():
                                 pdf.cell(40, 5, "CODE BANQUE :", 0, 0)
                                 
                                 pdf.set_font(font_name, 'B', 11)
-                                pdf.cell(60, 5, avi_data['code_banque'], 0, 1)
+                                pdf.cell(50, 5, avi_data['code_banque'], 0, 1)
                                 
                                 pdf.set_xy(10, 110)
                                 pdf.set_font(font_name, 'B', 11)
@@ -3867,7 +3867,7 @@ def show_admin_dashboard():
                                 pdf.cell(22, 5, "Devise :", 0, 0)
                                 
                                 pdf.set_font(font_name, 'B', 11)
-                                pdf.cell(30, 5, avi_data['devise'], 0, 1)
+                                pdf.cell(20, 5, avi_data['devise'], 0, 1)
                                 
                                 
                                 # ============================================================
@@ -3976,7 +3976,7 @@ def show_admin_dashboard():
                                 pdf.cell(18, 5, "IBAN :", 0, 0)
                                 
                                 pdf.set_font(font_name, 'B', 11)
-                                pdf.cell(100, 5, avi_data['iban'], 0, 1)
+                                pdf.cell(90, 5, avi_data['iban'], 0, 1)
                                 
                                 pdf.set_xy(10, 185)
                                 
@@ -3984,7 +3984,7 @@ def show_admin_dashboard():
                                 pdf.cell(18, 5, "BIC :", 0, 0)
                                 
                                 pdf.set_font(font_name, 'B', 11)
-                                pdf.cell(60, 5, avi_data['bic'], 0, 1)
+                                pdf.cell(50, 5, avi_data['bic'], 0, 1)
                                 
                                 
                                 # ============================================================
