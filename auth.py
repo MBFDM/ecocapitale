@@ -4529,7 +4529,7 @@ def show_admin_dashboard():
                     st.error(f"Erreur lors de la conversion Word en PDF: {str(e)}")
                     return None
 
-            # Maintenant le code de l'onglet
+            # Dans l'onglet "Importer PDF", remplacez tout le code par ceci :
             with tab5:
                 st.subheader("📤 Importer Word/PDF et Ajouter QR Code")
                 
@@ -4537,6 +4537,179 @@ def show_admin_dashboard():
                 
                 if uploaded_file is not None:
                     try:
+                        # ============================================================
+                        # FONCTIONS UTILITAIRES (définies localement)
+                        # ============================================================
+                        
+                        def extract_between(text, start, end):
+                            """Extrait le texte entre deux chaînes"""
+                            start_idx = text.find(start)
+                            if start_idx == -1: return None
+                            start_idx += len(start)
+                            end_idx = text.find(end, start_idx)
+                            return text[start_idx:end_idx].strip() if end_idx != -1 else None
+            
+                        def extract_regex(text, pattern):
+                            """Extrait avec une expression régulière"""
+                            match = re.search(pattern, text, re.IGNORECASE)
+                            return match.group(1).strip() if match else None
+            
+                        def convert_word_to_pdf(word_file):
+                            """Convertit un fichier Word en PDF"""
+                            try:
+                                from docx import Document
+                                from fpdf import FPDF
+                                import tempfile
+                                import os
+                                
+                                # Lire le document Word
+                                doc = Document(word_file)
+                                
+                                # Créer un PDF
+                                pdf = FPDF()
+                                pdf.set_auto_page_break(auto=True, margin=15)
+                                pdf.add_page()
+                                pdf.set_font("Arial", size=12)
+                                
+                                # Extraire le texte du document
+                                for paragraph in doc.paragraphs:
+                                    if paragraph.text.strip():
+                                        pdf.multi_cell(0, 6, paragraph.text.strip())
+                                        pdf.ln(2)
+                                
+                                # Sauvegarder dans un fichier temporaire
+                                temp_pdf = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf")
+                                temp_pdf_path = temp_pdf.name
+                                temp_pdf.close()
+                                
+                                pdf.output(temp_pdf_path)
+                                
+                                # Lire le fichier PDF
+                                with open(temp_pdf_path, "rb") as f:
+                                    pdf_bytes = f.read()
+                                
+                                # Nettoyer
+                                os.unlink(temp_pdf_path)
+                                
+                                # Retourner un BytesIO
+                                from io import BytesIO
+                                return BytesIO(pdf_bytes)
+                                
+                            except Exception as e:
+                                st.error(f"Erreur lors de la conversion Word en PDF: {str(e)}")
+                                return None
+            
+                        def add_qr_to_pdf(pdf_file, qr_img, position="Bas droite"):
+                            """Ajoute un QR code au PDF original"""
+                            try:
+                                from PyPDF2 import PdfReader, PdfWriter
+                                from reportlab.pdfgen import canvas
+                                from reportlab.lib.pagesizes import letter
+                                from reportlab.lib.utils import ImageReader
+                                from io import BytesIO
+                                
+                                # Sauvegarder le QR code en mémoire
+                                temp_qr = BytesIO()
+                                qr_img.save(temp_qr, format="PNG")
+                                temp_qr.seek(0)
+                                
+                                # Lire le PDF original
+                                if hasattr(pdf_file, 'read'):
+                                    pdf_file.seek(0)
+                                    pdf_bytes = pdf_file.read()
+                                else:
+                                    pdf_bytes = pdf_file
+                                
+                                pdf_reader = PdfReader(BytesIO(pdf_bytes))
+                                pdf_writer = PdfWriter()
+                                
+                                # Créer un calque avec le QR code
+                                packet = BytesIO()
+                                can = canvas.Canvas(packet, pagesize=letter)
+                                
+                                # Positions ajustées
+                                pos_map = {
+                                    "Bas droite": (450, 60),
+                                    "Bas gauche": (30, 30),
+                                    "Haut droite": (450, 720),
+                                    "Haut gauche": (30, 720),
+                                    "Centre": ((letter[0] - 100)/2, (letter[1] - 100)/2)
+                                }
+                                
+                                x, y = pos_map.get(position, pos_map["Bas droite"])
+                                
+                                # Dessiner le QR code
+                                img_reader = ImageReader(temp_qr)
+                                can.drawImage(img_reader, x, y, width=100, height=100, mask='auto')
+                                can.save()
+                                
+                                # Fusionner
+                                packet.seek(0)
+                                qr_pdf = PdfReader(packet)
+                                
+                                for page in pdf_reader.pages:
+                                    page.merge_page(qr_pdf.pages[0])
+                                    pdf_writer.add_page(page)
+                                
+                                # Sauvegarder
+                                output = BytesIO()
+                                pdf_writer.write(output)
+                                output.seek(0)
+                                return output
+                                
+                            except Exception as e:
+                                st.error(f"Erreur lors de l'ajout du QR code: {str(e)}")
+                                return None
+            
+                        def show_pdf(file):
+                            """Affiche un PDF dans l'interface"""
+                            try:
+                                import base64
+                                
+                                if hasattr(file, 'read'):
+                                    file.seek(0)
+                                    pdf_bytes = file.read()
+                                else:
+                                    with open(file, "rb") as f:
+                                        pdf_bytes = f.read()
+                                
+                                base64_pdf = base64.b64encode(pdf_bytes).decode('utf-8')
+                                
+                                # Utiliser un iframe avec un design responsive
+                                pdf_display = f"""
+                                <div style="height: 700px; overflow: auto; margin: 1rem 0; border: 1px solid #ddd; border-radius: 8px; background: #f8f9fa;">
+                                    <iframe
+                                        src="data:application/pdf;base64,{base64_pdf}"
+                                        type="application/pdf"
+                                        width="100%"
+                                        height="100%"
+                                        style="border: none;"
+                                    >
+                                        <div style="text-align: center; padding: 50px 20px; background: #f8f9fa; height: 100%;">
+                                            <p style="font-size: 18px; margin-bottom: 20px;">📄 Votre navigateur ne supporte pas l'affichage des PDF</p>
+                                            <p style="color: #666;">Veuillez télécharger le document ci-dessous</p>
+                                        </div>
+                                    </iframe>
+                                </div>
+                                """
+                                st.markdown(pdf_display, unsafe_allow_html=True)
+                                
+                            except Exception as e:
+                                st.error(f"Erreur lors de l'affichage du PDF: {str(e)}")
+                                # Afficher un bouton de téléchargement en fallback
+                                if hasattr(file, 'read'):
+                                    file.seek(0)
+                                    st.download_button(
+                                        "📥 Télécharger le PDF",
+                                        data=file.read(),
+                                        file_name="document.pdf",
+                                        mime="application/pdf"
+                                    )
+            
+                        # ============================================================
+                        # TRAITEMENT DU FICHIER
+                        # ============================================================
+                        
                         # Convertir en PDF si c'est un fichier Word
                         if uploaded_file.name.endswith('.docx'):
                             with st.spinner("Conversion du Word en PDF..."):
@@ -4549,25 +4722,44 @@ def show_admin_dashboard():
                         
                         # Extraire le texte du PDF
                         with st.spinner("Analyse du PDF en cours..."):
+                            import pdfplumber
+                            
                             pdf_text = ""
-                            with pdfplumber.open(pdf_file) as pdf:
-                                for page in pdf.pages:
-                                    text = page.extract_text()
-                                    if text:
-                                        pdf_text += text + "\n"
+                            try:
+                                # Si c'est un BytesIO, le lire directement
+                                if hasattr(pdf_file, 'seek'):
+                                    pdf_file.seek(0)
+                                    with pdfplumber.open(pdf_file) as pdf:
+                                        for page in pdf.pages:
+                                            text = page.extract_text()
+                                            if text:
+                                                pdf_text += text + "\n"
+                                else:
+                                    # Si c'est un chemin de fichier
+                                    with pdfplumber.open(pdf_file) as pdf:
+                                        for page in pdf.pages:
+                                            text = page.extract_text()
+                                            if text:
+                                                pdf_text += text + "\n"
+                            except Exception as e:
+                                st.warning(f"⚠️ Erreur lors de l'extraction du texte: {str(e)}")
+                                pdf_text = ""
                             
                             # Debug: Afficher une partie du texte extrait
-                            with st.expander("🔍 Texte extrait du PDF (pour débogage)", expanded=False):
-                                st.text(pdf_text[:1000] + "..." if len(pdf_text) > 1000 else pdf_text)
+                            if pdf_text:
+                                with st.expander("🔍 Texte extrait du PDF (pour débogage)", expanded=False):
+                                    st.text(pdf_text[:1000] + "..." if len(pdf_text) > 1000 else pdf_text)
+                            else:
+                                st.warning("⚠️ Aucun texte n'a pu être extrait du PDF")
                             
-                            # Extraction des données avec des expressions régulières plus robustes
+                            # Extraction des données
                             extracted_data = {}
                             
                             # Référence
                             ref_match = re.search(r'(?:DGF-EC\s*/?\s*|Référence\s*[:\-]?\s*)([A-Za-z0-9\-/]+)', pdf_text, re.IGNORECASE)
                             extracted_data['reference'] = ref_match.group(1).strip() if ref_match else None
                             
-                            # Nom - chercher différentes variantes
+                            # Nom
                             nom_match = re.search(r'(?:Nous certifions par la présente que|Monsieur/Madame|Bénéficiaire\s*[:\-]?\s*)([^\n]+?)(?:\s+détient|\s+est|\s+pour)', pdf_text, re.IGNORECASE)
                             extracted_data['nom'] = nom_match.group(1).strip() if nom_match else None
                             
@@ -4597,7 +4789,6 @@ def show_admin_dashboard():
                                 montant_str = montant_match.group(1).replace(' ', '').replace(',', '')
                                 extracted_data['montant'] = montant_str
                             else:
-                                # Chercher un montant simple
                                 montant_match2 = re.search(r'(\d{1,3}(?:\s?\d{3})*)\s*FCFA', pdf_text)
                                 extracted_data['montant'] = montant_match2.group(1).replace(' ', '') if montant_match2 else '0'
                             
@@ -4606,7 +4797,6 @@ def show_admin_dashboard():
                             if date_match:
                                 date_str = date_match.group(1).strip()
                                 try:
-                                    # Convertir la date en format YYYY-MM-DD
                                     from dateutil import parser
                                     date_obj = parser.parse(date_str, fuzzy=True)
                                     extracted_data['date_creation'] = date_obj.strftime('%Y-%m-%d')
@@ -4621,137 +4811,134 @@ def show_admin_dashboard():
                             
                             # Affichage des données extraites
                             with st.expander("🔍 Données extraites", expanded=True):
-                                # Afficher les données extraites
-                                for key, value in extracted_data.items():
-                                    st.write(f"**{key}:** {value if value else 'Non trouvé'}")
+                                cols = st.columns(2)
+                                for i, (key, value) in enumerate(extracted_data.items()):
+                                    col_idx = i % 2
+                                    with cols[col_idx]:
+                                        st.write(f"**{key}:** {value if value else 'Non trouvé'}")
                             
-                            # Vérifier si des données ont été extraites
-                            if not extracted_data.get('reference'):
-                                st.warning("⚠️ Aucune référence extraite. Vérifiez le format du document.")
-                            else:
-                                # Ajout des données dans la base
-                                with st.spinner("Enregistrement des données dans la base..."):
-                                    try:
-                                        # Créer une instance de la base de données
-                                        db = BankDatabase()
-                                        success = db.add_info_avi(extracted_data)
-                                        
-                                        if success:
-                                            st.success("✅ Informations AVI enregistrées dans la base de données pour vérification")
-                                        else:
-                                            st.warning("⚠️ Les informations n'ont pas pu être enregistrées dans la base de données")
-                                    except Exception as e:
-                                        st.error(f"❌ Erreur lors de l'enregistrement: {str(e)}")
-                            
-                            # Pour le QR code, utiliser le lien de vérification
+                            # URL de vérification pour le QR code
                             ref = extracted_data.get('reference', '')
                             verification_url = f"https://verificateur-avi.streamlit.app?ref={ref}" if ref else "https://verificateur-avi.streamlit.app"
                             qr_content = verification_url
-
-                            #extracted_data = {
-                            #    'nom': extract_between(pdf_text, "Nous certifions par la présente que", "détient un compte"),
-                            #    'code_banque': extract_regex(pdf_text, r"CODE BANQUE : (\d+)"),
-                            #    'numero_compte': extract_regex(pdf_text, r"NUMERO DE COMPTE : ([^\n]+)"),
-                            #    'devise': extract_regex(pdf_text, r"Devise : ([^\n]+)"),
-                            #    'iban': extract_regex(pdf_text, r"IBAN: ([^\n]+)"),
-                            #    'bic': extract_regex(pdf_text, r"BIC: ([^\n]+)"),
-                            #    'montant': extract_regex(pdf_text, r"montant total de ([^\n]+ FCFA)")
-                            #}
-
-                        #with st.expander("🔍 Données extraites", expanded=True):
-                        #    st.json({k: v for k, v in extracted_data.items() if v})
-
-                        #qr_content = "\n".join([f"{k}: {v}" for k, v in extracted_data.items() if v])
+                            
+                            # Enregistrement dans la base de données
+                            if extracted_data.get('reference'):
+                                with st.spinner("Enregistrement des données dans la base..."):
+                                    try:
+                                        from database import BankDatabase
+                                        db = BankDatabase()
+                                        success = db.add_info_avi(extracted_data)
+                                        if success:
+                                            st.success("✅ Informations AVI enregistrées dans la base de données")
+                                        else:
+                                            st.warning("⚠️ Les informations n'ont pas pu être enregistrées")
+                                    except Exception as e:
+                                        st.error(f"❌ Erreur lors de l'enregistrement: {str(e)}")
                         
-                        # Variables pour stocker le résultat
+                        # ============================================================
+                        # GÉNÉRATION DU QR CODE
+                        # ============================================================
+                        
+                        # Initialiser session state
                         if 'modified_pdf' not in st.session_state:
                             st.session_state.modified_pdf = None
                         
-                        with st.form("qr_settings"):
+                        # Aperçu du document original
+                        st.subheader("📄 Aperçu du document original")
+                        show_pdf(pdf_file)
+                        
+                        # Formulaire pour le QR code
+                        with st.form("qr_settings_form"):
                             st.subheader("⚙️ Paramètres du QR Code")
                             
                             col1, col2 = st.columns(2)
                             with col1:
-                                qr_position = st.selectbox("Position", ["Bas droite", "Bas gauche", "Haut droite", "Haut gauche"], index=0)
+                                qr_position = st.selectbox("Position", ["Bas droite", "Bas gauche", "Haut droite", "Haut gauche", "Centre"], index=0)
                                 qr_size = st.slider("Taille (px)", 50, 150, 80)
                             
                             with col2:
-                                qr_color = st.color_picker("Couleur", "#000000")
-                                bg_color = st.color_picker("Fond", "#FFFFFF")
+                                qr_color = st.color_picker("Couleur du QR Code", "#000000")
+                                bg_color = st.color_picker("Couleur de fond", "#FFFFFF")
                             
-                            # Modifiez la partie génération du QR code dans votre onglet tab5 comme suit :
-                            if st.form_submit_button("🔄 Générer le PDF avec QR Code"):
+                            # Afficher l'URL du QR code
+                            st.info(f"🔗 Le QR code pointera vers: {qr_content}")
+                            
+                            if st.form_submit_button("🔄 Générer le PDF avec QR Code", type="primary"):
                                 with st.spinner("Création du nouveau PDF..."):
                                     try:
-                                        # Vérification et préparation des données pour le QR code
-                                        if not qr_content:
-                                            st.warning("Aucune donnée extraite - Utilisation des informations basiques")
-                                            qr_content = f"Document: {uploaded_file.name}\nDate: {datetime.now().strftime('%Y-%m-%d')}"
-                                        else:
-                                            # Formatage avancé des données
-                                            qr_content = "=== INFORMATIONS DOCUMENT ===\n" + qr_content
+                                        import qrcode
+                                        from io import BytesIO
                                         
-                                        # Debug: afficher le contenu qui sera encodé
-                                        st.session_state.qr_debug_content = qr_content
-                                        st.write(f"Données à encoder dans le QR code ({(len(qr_content))} caractères):")
-                                        st.code(qr_content[:200] + ("..." if len(qr_content) > 200 else ""))
-                                        
-                                        # Génération robuste du QR code
+                                        # Génération du QR code
                                         qr = qrcode.QRCode(
-                                            version=None,  # Auto-détection de la version
+                                            version=None,
                                             error_correction=qrcode.constants.ERROR_CORRECT_H,
-                                            box_size=8,  # Meilleure résolution
+                                            box_size=8,
                                             border=2,
                                         )
                                         
-                                        # Encodage des données
                                         qr.add_data(qr_content)
                                         qr.make(fit=True)
                                         
-                                        # Création de l'image avec vérification
                                         qr_img = qr.make_image(fill_color=qr_color, back_color=bg_color).convert('RGB')
                                         
-                                        # Vérification visuelle immédiate
+                                        # Aperçu du QR code
                                         with st.expander("Aperçu du QR Code", expanded=True):
                                             st.image(qr_img, caption="QR Code généré", width=200)
                                         
                                         # Insertion dans le PDF
                                         output_pdf = add_qr_to_pdf(pdf_file, qr_img, position=qr_position)
-                                        st.session_state.modified_pdf = output_pdf
-                                        st.success("✅ PDF généré avec succès!")
+                                        
+                                        if output_pdf:
+                                            st.session_state.modified_pdf = output_pdf
+                                            st.success("✅ PDF généré avec succès!")
+                                        else:
+                                            st.error("❌ Erreur lors de la génération du PDF")
                                         
                                     except Exception as e:
                                         st.error(f"❌ Erreur lors de la génération: {str(e)}")
-                                        # Création d'un QR code d'erreur comme fallback
-                                        error_qr = qrcode.make(f"ERREUR: {str(e)}")
-                                        st.session_state.modified_pdf = add_qr_to_pdf(pdf_file, error_qr, position=qr_position)
                         
-                        # Section de téléchargement et prévisualisation (HORS DU FORMULAIRE)
+                        # ============================================================
+                        # AFFICHAGE DU PDF MODIFIÉ
+                        # ============================================================
+                        
                         if st.session_state.modified_pdf:
-                            col1, col2 = st.columns(2)
+                            st.markdown("---")
+                            st.subheader("📄 Document avec QR Code")
+                            
+                            # Boutons d'action
+                            col1, col2, col3 = st.columns([1, 1, 1])
+                            
                             with col1:
-                                # Bouton de téléchargement
+                                # Téléchargement
                                 st.download_button(
-                                    "💾 Télécharger",
+                                    "💾 Télécharger le PDF",
                                     data=st.session_state.modified_pdf,
-                                    file_name="document_avec_qr.pdf",
-                                    mime="application/pdf"
+                                    file_name="document_avec_qr_code.pdf",
+                                    mime="application/pdf",
+                                    use_container_width=True
                                 )
                             
                             with col2:
-                                if st.button("👁️ Aperçu"):
-                                    show_pdf(st.session_state.modified_pdf)
+                                if st.button("👁️ Afficher l'aperçu", use_container_width=True):
+                                    st.session_state.show_preview = True
                             
-                            # Affichage automatique
-                            st.subheader("📄 Aperçu du document final")
-                            show_pdf(st.session_state.modified_pdf)
+                            with col3:
+                                if st.button("🔄 Réinitialiser", use_container_width=True):
+                                    st.session_state.modified_pdf = None
+                                    st.session_state.show_preview = False
+                                    st.rerun()
+                            
+                            # Afficher l'aperçu
+                            if st.session_state.get('show_preview', True):
+                                show_pdf(st.session_state.modified_pdf)
                         
-                        # Aperçu du document original
-                        st.subheader("📄 Aperçu du document original")
-                        show_pdf(pdf_file)
-
                     except Exception as e:
-                        st.error(f"Erreur lors du traitement: {str(e)}")
+                        st.error(f"❌ Erreur lors du traitement: {str(e)}")
+                        import traceback
+                        st.code(traceback.format_exc())
+            
             # NOUVEAU TAB 6 : Demandes des clients (Code 1)
             with tab6:
                 st.subheader("📋 Demandes d'AVI des Clients")
