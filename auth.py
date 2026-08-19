@@ -3752,28 +3752,28 @@ def show_admin_dashboard():
                                 
                                 pdf.set_xy(10, y)
                                 pdf.set_font(font_name, 'B', 11)
-                                pdf.cell(38, 5, "CODE BANQUE :", 0, 0)
+                                pdf.cell(CONTENT_W, 5, "CODE BANQUE :", 0, 0)
                                 
                                 pdf.set_font(font_name, 'B', 11)
-                                pdf.cell(55, 5, avi_data['code_banque'], 0, 1)
+                                pdf.cell(CONTENT_W, 5, avi_data['code_banque'], 0, 1)
                                 
                                 y += 5
                                 
                                 pdf.set_xy(10, y)
                                 pdf.set_font(font_name, 'B', 11)
-                                pdf.cell(38, 5, "NUMERO DE COMPTE :", 0, 1)
+                                pdf.cell(CONTENT_W, 5, "NUMERO DE COMPTE :", 0, 1)
                                 
                                 pdf.set_font(font_name, 'B', 11)
-                                pdf.cell(80, 5, avi_data['numero_compte'], 0, 0)
+                                pdf.cell(CONTENT_W, 5, avi_data['numero_compte'], 0, 0)
                                 
                                 y += 5
                                 
                                 pdf.set_xy(10, y)
                                 pdf.set_font(font_name, 'B', 11)
-                                pdf.cell(20, 5, "Devise :", 0, 0)
+                                pdf.cell(CONTENT_W, 5, "Devise :", 0, 0)
                                 
                                 pdf.set_font(font_name, 'B', 11)
-                                pdf.cell(30, 5, avi_data['devise'], 0, 1)
+                                pdf.cell(CONTENT_W, 5, avi_data['devise'], 0, 1)
                                 
                                 
                                 # ============================================================
@@ -3858,18 +3858,18 @@ def show_admin_dashboard():
                                 pdf.set_xy(10, 164)
                                 
                                 pdf.set_font(font_name, 'B', 11)
-                                pdf.cell(18, 5, "IBAN :", 0, 0)
+                                pdf.cell(CONTENT_W, 5, "IBAN :", 0, 0)
                                 
                                 pdf.set_font(font_name, 'B', 11)
-                                pdf.cell(90, 5, avi_data['iban'], 0, 1)
+                                pdf.cell(CONTENT_W, 5, avi_data['iban'], 0, 1)
                                 
                                 pdf.set_xy(10, 169)
                                 
                                 pdf.set_font(font_name, 'B', 11)
-                                pdf.cell(18, 5, "BIC :", 0, 0)
+                                pdf.cell(CONTENT_W, 5, "BIC :", 0, 0)
                                 
                                 pdf.set_font(font_name, 'B', 11)
-                                pdf.cell(60, 5, avi_data['bic'], 0, 1)
+                                pdf.cell(CONTENT_W, 5, avi_data['bic'], 0, 1)
                                 
                                 
                                 # ============================================================
@@ -4052,7 +4052,7 @@ def show_admin_dashboard():
                                 # TEXTE LÉGAL ANGLAIS
                                 # ============================================================
                                 
-                                pdf.set_xy(10, 282)
+                                pdf.set_xy(10, 287)
                                 
                                 pdf.set_font(font_name, '', 5.5)
                                 pdf.set_text_color(0, 0, 0)
