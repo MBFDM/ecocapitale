@@ -4557,10 +4557,6 @@ def show_admin_dashboard():
                         def convert_word_to_pdf(word_file):
                             """Convertit un fichier Word en PDF"""
                             try:
-                                from docx import Document
-                                from fpdf import FPDF
-                                import tempfile
-                                import os
                                 
                                 # Lire le document Word
                                 doc = Document(word_file)
@@ -4602,11 +4598,6 @@ def show_admin_dashboard():
                         def add_qr_to_pdf(pdf_file, qr_img, position="Bas droite"):
                             """Ajoute un QR code au PDF original"""
                             try:
-                                from PyPDF2 import PdfReader, PdfWriter
-                                from reportlab.pdfgen import canvas
-                                from reportlab.lib.pagesizes import letter
-                                from reportlab.lib.utils import ImageReader
-                                from io import BytesIO
                                 
                                 # Sauvegarder le QR code en mémoire
                                 temp_qr = BytesIO()
