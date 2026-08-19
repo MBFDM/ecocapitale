@@ -4557,44 +4557,44 @@ def show_admin_dashboard():
                             # Dans le code du tab5 (Importer PDF), modifiez la section de traitement du fichier
 
                             # Extraction des données
-                            extracted_data = {
-                                'reference': (extract_regex(pdf_text, r"DGF-EC\s*/\s*([A-Za-z0-9\-\/]+)") or 
-                                              extract_regex(pdf_text, r"Référence\s*[:\-]?\s*([A-Za-z0-9\-\/]+)")),
-                                'nom': extract_between(pdf_text, "Nous certifions par la présente que", "détient un compte"),
-                                'code_banque': extract_regex(pdf_text, r"CODE BANQUE : (\d+)"),
-                                'numero_compte': extract_regex(pdf_text, r"NUMERO DE COMPTE : ([^\n]+)"),
-                                'devise': extract_regex(pdf_text, r"Devise : ([^\n]+)"),
-                                'iban': extract_regex(pdf_text, r"IBAN : ([^\n]+)"),
-                                'bic': extract_regex(pdf_text, r"BIC : ([^\n]+)"),
-                                'montant': extract_regex(pdf_text, r"montant total de ([^\n]+ FCFA)")
-                            }
-                            
-                            # Ajout des données dans la base
-                            if extracted_data.get('reference'):
-                                success = db.add_info_avi(extracted_data)
-                                if success:
-                                    st.success("✅ Informations AVI enregistrées dans la base de données pour vérification")
-                                else:
-                                    st.warning("⚠️ Les informations n'ont pas pu être enregistrées dans la base de données")
-                            
-                            # Pour le QR code, utiliser le lien de vérification
-                            verification_url = f"https://verificateur-avi.streamlit.io?ref={extracted_data.get('reference', '')}"
-                            qr_content = verification_url
-
                             #extracted_data = {
+                            #    'reference': (extract_regex(pdf_text, r"DGF-EC\s*/\s*([A-Za-z0-9\-\/]+)") or 
+                            #                  extract_regex(pdf_text, r"Référence\s*[:\-]?\s*([A-Za-z0-9\-\/]+)")),
                             #    'nom': extract_between(pdf_text, "Nous certifions par la présente que", "détient un compte"),
                             #    'code_banque': extract_regex(pdf_text, r"CODE BANQUE : (\d+)"),
                             #    'numero_compte': extract_regex(pdf_text, r"NUMERO DE COMPTE : ([^\n]+)"),
                             #    'devise': extract_regex(pdf_text, r"Devise : ([^\n]+)"),
-                            #    'iban': extract_regex(pdf_text, r"IBAN: ([^\n]+)"),
-                            #    'bic': extract_regex(pdf_text, r"BIC: ([^\n]+)"),
+                            #    'iban': extract_regex(pdf_text, r"IBAN : ([^\n]+)"),
+                            #    'bic': extract_regex(pdf_text, r"BIC : ([^\n]+)"),
                             #    'montant': extract_regex(pdf_text, r"montant total de ([^\n]+ FCFA)")
                             #}
+                            
+                            # Ajout des données dans la base
+                            #if extracted_data.get('reference'):
+                            #    success = db.add_info_avi(extracted_data)
+                            #    if success:
+                            #        st.success("✅ Informations AVI enregistrées dans la base de données pour vérification")
+                            #    else:
+                            #       st.warning("⚠️ Les informations n'ont pas pu être enregistrées dans la base de données")
+                            
+                            # Pour le QR code, utiliser le lien de vérification
+                            #verification_url = f"https://verificateur-avi.streamlit.io?ref={extracted_data.get('reference', '')}"
+                            #qr_content = verification_url
 
-                        #with st.expander("🔍 Données extraites", expanded=True):
-                        #    st.json({k: v for k, v in extracted_data.items() if v})
+                            extracted_data = {
+                                'nom': extract_between(pdf_text, "Nous certifions par la présente que", "détient un compte"),
+                                'code_banque': extract_regex(pdf_text, r"CODE BANQUE : (\d+)"),
+                                'numero_compte': extract_regex(pdf_text, r"NUMERO DE COMPTE : ([^\n]+)"),
+                                'devise': extract_regex(pdf_text, r"Devise : ([^\n]+)"),
+                                'iban': extract_regex(pdf_text, r"IBAN: ([^\n]+)"),
+                                'bic': extract_regex(pdf_text, r"BIC: ([^\n]+)"),
+                                'montant': extract_regex(pdf_text, r"montant total de ([^\n]+ FCFA)")
+                            }
 
-                        #qr_content = "\n".join([f"{k}: {v}" for k, v in extracted_data.items() if v])
+                        with st.expander("🔍 Données extraites", expanded=True):
+                            st.json({k: v for k, v in extracted_data.items() if v})
+
+                        qr_content = "\n".join([f"{k}: {v}" for k, v in extracted_data.items() if v])
                         
                         # Variables pour stocker le résultat
                         if 'modified_pdf' not in st.session_state:
