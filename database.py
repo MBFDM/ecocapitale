@@ -976,6 +976,75 @@ class BankDatabase:
             logger.error(f"Erreur lors de la suppression de l'AVI: {str(e)}")
             return False
 
+    def add_info_avi(self, avi_data: Dict) -> bool:
+        """
+        Ajoute les informations d'une AVI dans la table info_avi
+        pour permettre la vérification par référence
+        """
+        try:
+            # Créer la table info_avi si elle n'existe pas
+            cursor = self.conn.cursor()
+            cursor.execute('''
+            CREATE TABLE IF NOT EXISTS info_avi (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                reference VARCHAR(50) UNIQUE NOT NULL,
+                nom_complet VARCHAR(255) NOT NULL,
+                code_banque VARCHAR(50) NOT NULL,
+                numero_compte VARCHAR(50) NOT NULL,
+                devise VARCHAR(10) NOT NULL,
+                iban VARCHAR(50) NOT NULL,
+                bic VARCHAR(20) NOT NULL,
+                montant DECIMAL(15,2) NOT NULL,
+                date_creation DATE,
+                date_expiration DATE,
+                statut VARCHAR(50),
+                commentaires TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+            )
+            ''')
+            self.conn.commit()
+            
+            # Insérer ou mettre à jour les données
+            cursor.execute('''
+            INSERT INTO info_avi 
+            (reference, nom_complet, code_banque, numero_compte, devise, iban, bic, 
+             montant, date_creation, date_expiration, statut, commentaires)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            ON DUPLICATE KEY UPDATE
+                nom_complet = VALUES(nom_complet),
+                code_banque = VALUES(code_banque),
+                numero_compte = VALUES(numero_compte),
+                devise = VALUES(devise),
+                iban = VALUES(iban),
+                bic = VALUES(bic),
+                montant = VALUES(montant),
+                date_creation = VALUES(date_creation),
+                date_expiration = VALUES(date_expiration),
+                statut = VALUES(statut),
+                commentaires = VALUES(commentaires),
+                updated_at = CURRENT_TIMESTAMP
+            ''', (
+                avi_data.get('reference'),
+                avi_data.get('nom'),
+                avi_data.get('code_banque'),
+                avi_data.get('numero_compte'),
+                avi_data.get('devise', 'XAF'),
+                avi_data.get('iban'),
+                avi_data.get('bic'),
+                avi_data.get('montant', 0),
+                avi_data.get('date_creation'),
+                avi_data.get('date_expiration'),
+                avi_data.get('statut', 'Etudiant'),
+                avi_data.get('commentaires', '')
+            ))
+            self.conn.commit()
+            return True
+            
+        except mysql.connector.Error as e:
+            logger.error(f"Erreur lors de l'ajout des informations AVI: {str(e)}")
+            return False
+
     def get_transactions_by_iban(self, iban_id):
         """Récupère toutes les transactions d'un compte"""
         try:
