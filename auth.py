@@ -3748,21 +3748,21 @@ def show_admin_dashboard():
                                 # INFORMATIONS BANCAIRES
                                 # ============================================================
                                 
-                                pdf.set_xy(10, 100)
+                                pdf.set_xy(10, 105)
                                 pdf.set_font(font_name, 'B', 11)
                                 pdf.cell(40, 5, "CODE BANQUE :", 0, 0)
                                 
                                 pdf.set_font(font_name, 'B', 11)
                                 pdf.cell(60, 5, avi_data['code_banque'], 0, 1)
                                 
-                                pdf.set_xy(10, 105)
+                                pdf.set_xy(10, 110)
                                 pdf.set_font(font_name, 'B', 11)
                                 pdf.cell(47, 5, "NUMERO DE COMPTE :", 0, 1)
                                 
                                 pdf.set_font(font_name, 'B', 11)
-                                pdf.cell(80, 5, avi_data['numero_compte'], 0, 0)
+                                pdf.cell(120, 5, avi_data['numero_compte'], 0, 0)
                                 
-                                pdf.set_xy(10, 110)
+                                pdf.set_xy(10, 115)
                                 pdf.set_font(font_name, 'B', 11)
                                 pdf.cell(22, 5, "Devise :", 0, 0)
                                 
@@ -3784,7 +3784,7 @@ def show_admin_dashboard():
                                 )
 
                                 #pdf.ln(10)
-                                pdf.set_xy(10, 120)
+                                pdf.set_xy(10, 130)
                                 
                                 pdf.set_font(font_name, '', 11)
                                 
@@ -3808,7 +3808,7 @@ def show_admin_dashboard():
                                     ""
                                 )
                                 
-                                pdf.set_xy(10, 140)
+                                pdf.set_xy(10, 145)
                                 pdf.set_font(font_name, '', 11)
                                 
                                 pdf.multi_cell(
@@ -3833,7 +3833,7 @@ def show_admin_dashboard():
                                     ""
                                 )
                                 
-                                pdf.set_xy(10, 160)
+                                pdf.set_xy(10, 155)
                                 pdf.set_font(font_name, '', 11)
                                 
                                 pdf.multi_cell(
@@ -3849,7 +3849,7 @@ def show_admin_dashboard():
                                 # IBAN / BIC
                                 # ============================================================
                                 
-                                pdf.set_xy(10, 165)
+                                pdf.set_xy(10, 180)
                                 
                                 pdf.set_font(font_name, 'B', 11)
                                 pdf.cell(18, 5, "IBAN :", 0, 0)
@@ -3857,7 +3857,7 @@ def show_admin_dashboard():
                                 pdf.set_font(font_name, 'B', 11)
                                 pdf.cell(100, 5, avi_data['iban'], 0, 1)
                                 
-                                pdf.set_xy(10, 170)
+                                pdf.set_xy(10, 185)
                                 
                                 pdf.set_font(font_name, 'B', 11)
                                 pdf.cell(18, 5, "BIC :", 0, 0)
@@ -3870,7 +3870,7 @@ def show_admin_dashboard():
                                 # CLAUSE FINALE
                                 # ============================================================
                                 
-                                pdf.set_xy(10, 180)
+                                pdf.set_xy(10, 190)
                                 
                                 pdf.set_font(font_name, '', 11)
                                 
