@@ -3576,7 +3576,7 @@ def show_admin_dashboard():
                                     img = Image.open(logo_path).convert("RGBA")
                                 
                                     alpha = img.getchannel("A")
-                                    alpha = alpha.point(lambda p: int(p * 0.20))
+                                    alpha = alpha.point(lambda p: int(p * 0.40))
                                     img.putalpha(alpha)
                                 
                                     temp_logo = BytesIO()
@@ -3904,16 +3904,16 @@ def show_admin_dashboard():
                                 
                                 pdf.write(
                                     5,
-                                    f"{avi_data['montant']/650:,.2f} euros, cette somme est destinée à couvrir les frais liés"
+                                    f"{avi_data['montant']/650:,.2f} euros, cette somme est destinée à couvrir les frais liés à ses études en France."
                                 )
                                 
-                                pdf.ln(5)
-                                pdf.set_x(10)
+                                #pdf.ln(5)
+                                #pdf.set_x(10)
                                 
-                                pdf.write(
-                                    5,
-                                    "à ses études en France."
-                                )
+                                #pdf.write(
+                                #    5,
+                                #    "à ses études en France."
+                                #)
                                 
                                 pdf.ln(7)
                                 
