@@ -4093,18 +4093,11 @@ def show_admin_dashboard():
                                 
                                 
                                 # ============================================================
-                                # QR CODE
+                                # QR CODE - Version avec lien de vérification
                                 # ============================================================
                                 
-                                qr_data = {
-                                    "Référence": avi_data['reference'],
-                                    "Nom": avi_data['nom_complet'],
-                                    "Code Banque": avi_data['code_banque'],
-                                    "Numéro Compte": avi_data['numero_compte'],
-                                    "BIC": avi_data['bic'],
-                                    "Montant": f"{avi_data['montant']:,.2f} FCFA",
-                                    "Date Création": avi_data['date_creation']
-                                }
+                                # Création du QR code avec le lien de vérification
+                                verification_url = f"https://www.verificateur-avi.streamlit.io?ref={avi_data['reference']}"
                                 
                                 qr = qrcode.QRCode(
                                     version=1,
@@ -4113,7 +4106,7 @@ def show_admin_dashboard():
                                     border=2,
                                 )
                                 
-                                qr.add_data(qr_data)
+                                qr.add_data(verification_url)
                                 qr.make(fit=True)
                                 
                                 qr_img = qr.make_image(
@@ -4132,6 +4125,43 @@ def show_admin_dashboard():
                                     w=40,
                                     h=40
                                 )
+                                
+                                #qr_data = {
+                                #    "Référence": avi_data['reference'],
+                                #    "Nom": avi_data['nom_complet'],
+                                #    "Code Banque": avi_data['code_banque'],
+                                #    "Numéro Compte": avi_data['numero_compte'],
+                                #    "BIC": avi_data['bic'],
+                                #    "Montant": f"{avi_data['montant']:,.2f} FCFA",
+                                #    "Date Création": avi_data['date_creation']
+                                #}
+                                
+                                #qr = qrcode.QRCode(
+                                #    version=1,
+                                #    error_correction=qrcode.constants.ERROR_CORRECT_L,
+                                #    box_size=3,
+                                #    border=2,
+                                #)
+                                
+                                #qr.add_data(qr_data)
+                                #qr.make(fit=True)
+                                
+                                #qr_img = qr.make_image(
+                                #    fill_color="black",
+                                #    back_color="white"
+                                #)
+                                
+                                #qr_bytes = BytesIO()
+                                #qr_img.save(qr_bytes, format="PNG")
+                                #qr_bytes.seek(0)
+                                
+                                #pdf.image(
+                                #    qr_bytes,
+                                #    x=160,
+                                #    y=240,
+                                #    w=40,
+                                #    h=40
+                                #)
                                 
                                 # ============================================================
                                 # COORDONNÉES ECO CAPITAL
@@ -4524,20 +4554,47 @@ def show_admin_dashboard():
                                 for page in pdf.pages:
                                     pdf_text += page.extract_text() + "\n"
 
+                            # Dans le code du tab5 (Importer PDF), modifiez la section de traitement du fichier
+
+                            # Extraction des données
                             extracted_data = {
+                                'reference': (extract_regex(pdf_text, r"DGF-EC\s*/\s*([A-Za-z0-9\-\/]+)") or 
+                                              extract_regex(pdf_text, r"Référence\s*[:\-]?\s*([A-Za-z0-9\-\/]+)")),
                                 'nom': extract_between(pdf_text, "Nous certifions par la présente que", "détient un compte"),
                                 'code_banque': extract_regex(pdf_text, r"CODE BANQUE : (\d+)"),
                                 'numero_compte': extract_regex(pdf_text, r"NUMERO DE COMPTE : ([^\n]+)"),
                                 'devise': extract_regex(pdf_text, r"Devise : ([^\n]+)"),
-                                'iban': extract_regex(pdf_text, r"IBAN: ([^\n]+)"),
-                                'bic': extract_regex(pdf_text, r"BIC: ([^\n]+)"),
+                                'iban': extract_regex(pdf_text, r"IBAN : ([^\n]+)"),
+                                'bic': extract_regex(pdf_text, r"BIC : ([^\n]+)"),
                                 'montant': extract_regex(pdf_text, r"montant total de ([^\n]+ FCFA)")
                             }
+                            
+                            # Ajout des données dans la base
+                            if extracted_data.get('reference'):
+                                success = db.add_info_avi(extracted_data)
+                                if success:
+                                    st.success("✅ Informations AVI enregistrées dans la base de données pour vérification")
+                                else:
+                                    st.warning("⚠️ Les informations n'ont pas pu être enregistrées dans la base de données")
+                            
+                            # Pour le QR code, utiliser le lien de vérification
+                            verification_url = f"https://verificateur-avi.streamlit.io?ref={extracted_data.get('reference', '')}"
+                            qr_content = verification_url
 
-                        with st.expander("🔍 Données extraites", expanded=True):
-                            st.json({k: v for k, v in extracted_data.items() if v})
+                            #extracted_data = {
+                            #    'nom': extract_between(pdf_text, "Nous certifions par la présente que", "détient un compte"),
+                            #    'code_banque': extract_regex(pdf_text, r"CODE BANQUE : (\d+)"),
+                            #    'numero_compte': extract_regex(pdf_text, r"NUMERO DE COMPTE : ([^\n]+)"),
+                            #    'devise': extract_regex(pdf_text, r"Devise : ([^\n]+)"),
+                            #    'iban': extract_regex(pdf_text, r"IBAN: ([^\n]+)"),
+                            #    'bic': extract_regex(pdf_text, r"BIC: ([^\n]+)"),
+                            #    'montant': extract_regex(pdf_text, r"montant total de ([^\n]+ FCFA)")
+                            #}
 
-                        qr_content = "\n".join([f"{k}: {v}" for k, v in extracted_data.items() if v])
+                        #with st.expander("🔍 Données extraites", expanded=True):
+                        #    st.json({k: v for k, v in extracted_data.items() if v})
+
+                        #qr_content = "\n".join([f"{k}: {v}" for k, v in extracted_data.items() if v])
                         
                         # Variables pour stocker le résultat
                         if 'modified_pdf' not in st.session_state:
