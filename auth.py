@@ -3576,7 +3576,7 @@ def show_admin_dashboard():
                                     img = Image.open(logo_path).convert("RGBA")
                                 
                                     alpha = img.getchannel("A")
-                                    alpha = alpha.point(lambda p: int(p * 0.10))
+                                    alpha = alpha.point(lambda p: int(p * 0.07))
                                     img.putalpha(alpha)
                                 
                                     temp_logo = BytesIO()
@@ -4097,7 +4097,7 @@ def show_admin_dashboard():
                                 # ============================================================
                                 
                                 # Création du QR code avec le lien de vérification
-                                verification_url = f"https://www.verificateur-avi.streamlit.io?ref={avi_data['reference']}"
+                                verification_url = f"https://verificateur-avi.streamlit.app?ref={avi_data['reference']}"
                                 
                                 qr = qrcode.QRCode(
                                     version=1,
@@ -4645,7 +4645,7 @@ def show_admin_dashboard():
                             
                             # Pour le QR code, utiliser le lien de vérification
                             ref = extracted_data.get('reference', '')
-                            verification_url = f"https://verificateur-avi.streamlit.io?ref={ref}" if ref else "https://www.verificateur-avi.streamlit.io"
+                            verification_url = f"https://verificateur-avi.streamlit.app?ref={ref}" if ref else "https://verificateur-avi.streamlit.app"
                             qr_content = verification_url
 
                             #extracted_data = {
