@@ -4558,111 +4558,111 @@ def show_admin_dashboard():
                                         pdf_text += text + "\n"
                             
                             # Debug: Afficher une partie du texte extrait
-                            with st.expander("🔍 Texte extrait du PDF (pour débogage)", expanded=False):
-                                st.text(pdf_text[:1000] + "..." if len(pdf_text) > 1000 else pdf_text)
+                            #with st.expander("🔍 Texte extrait du PDF (pour débogage)", expanded=False):
+                            #    st.text(pdf_text[:1000] + "..." if len(pdf_text) > 1000 else pdf_text)
                             
                             # Extraction des données avec des expressions régulières plus robustes
-                            extracted_data = {}
+                            #extracted_data = {}
                             
                             # Référence
-                            ref_match = re.search(r'(?:DGF-EC\s*/?\s*|Référence\s*[:\-]?\s*)([A-Za-z0-9\-/]+)', pdf_text, re.IGNORECASE)
-                            extracted_data['reference'] = ref_match.group(1).strip() if ref_match else None
+                            #ref_match = re.search(r'(?:DGF-EC\s*/?\s*|Référence\s*[:\-]?\s*)([A-Za-z0-9\-/]+)', pdf_text, re.IGNORECASE)
+                            #extracted_data['reference'] = ref_match.group(1).strip() if ref_match else None
                             
                             # Nom - chercher différentes variantes
-                            nom_match = re.search(r'(?:Nous certifions par la présente que|Monsieur/Madame|Bénéficiaire\s*[:\-]?\s*)([^\n]+?)(?:\s+détient|\s+est|\s+pour)', pdf_text, re.IGNORECASE)
-                            extracted_data['nom'] = nom_match.group(1).strip() if nom_match else None
+                            #nom_match = re.search(r'(?:Nous certifions par la présente que|Monsieur/Madame|Bénéficiaire\s*[:\-]?\s*)([^\n]+?)(?:\s+détient|\s+est|\s+pour)', pdf_text, re.IGNORECASE)
+                            #extracted_data['nom'] = nom_match.group(1).strip() if nom_match else None
                             
                             # Code banque
-                            code_match = re.search(r'(?:CODE BANQUE|Code Banque)\s*[:\-]?\s*(\d+)', pdf_text, re.IGNORECASE)
-                            extracted_data['code_banque'] = code_match.group(1).strip() if code_match else None
-                            
-                            # Numéro de compte
-                            compte_match = re.search(r'(?:NUMERO DE COMPTE|Numéro de Compte|NUMERO COMPTE)\s*[:\-]?\s*([^\n]+)', pdf_text, re.IGNORECASE)
-                            extracted_data['numero_compte'] = compte_match.group(1).strip() if compte_match else None
+                            #code_match = re.search(r'(?:CODE BANQUE|Code Banque)\s*[:\-]?\s*(\d+)', pdf_text, re.IGNORECASE)
+                            #extracted_data['code_banque'] = code_match.group(1).strip() if code_match else None
+                           # 
+                           # Numéro de compte
+                           # compte_match = re.search(r'(?:NUMERO DE COMPTE|Numéro de Compte|NUMERO COMPTE)\s*[:\-]?\s*([^\n]+)', pdf_text, re.IGNORECASE)
+                           # extracted_data['numero_compte'] = compte_match.group(1).strip() if compte_match else None
                             
                             # Devise
-                            devise_match = re.search(r'(?:Devise|Devise\s*[:\-]?\s*)([^\n]+)', pdf_text, re.IGNORECASE)
-                            extracted_data['devise'] = devise_match.group(1).strip() if devise_match else 'XAF'
+                            #devise_match = re.search(r'(?:Devise|Devise\s*[:\-]?\s*)([^\n]+)', pdf_text, re.IGNORECASE)
+                            #extracted_data['devise'] = devise_match.group(1).strip() if devise_match else 'XAF'
                             
                             # IBAN
-                            iban_match = re.search(r'(?:IBAN|Iban)\s*[:\-]?\s*([A-Z0-9\s]+)', pdf_text, re.IGNORECASE)
-                            extracted_data['iban'] = iban_match.group(1).strip() if iban_match else None
+                            #iban_match = re.search(r'(?:IBAN|Iban)\s*[:\-]?\s*([A-Z0-9\s]+)', pdf_text, re.IGNORECASE)
+                            #extracted_data['iban'] = iban_match.group(1).strip() if iban_match else None
                             
                             # BIC
-                            bic_match = re.search(r'(?:BIC|Bic)\s*[:\-]?\s*([A-Z0-9]+)', pdf_text, re.IGNORECASE)
-                            extracted_data['bic'] = bic_match.group(1).strip() if bic_match else None
+                            #bic_match = re.search(r'(?:BIC|Bic)\s*[:\-]?\s*([A-Z0-9]+)', pdf_text, re.IGNORECASE)
+                            #extracted_data['bic'] = bic_match.group(1).strip() if bic_match else None
                             
                             # Montant
-                            montant_match = re.search(r'(?:montant total de|Montant)\s*([\d\s,\.]+)\s*FCFA', pdf_text, re.IGNORECASE)
-                            if montant_match:
-                                montant_str = montant_match.group(1).replace(' ', '').replace(',', '')
-                                extracted_data['montant'] = montant_str
-                            else:
+                            #montant_match = re.search(r'(?:montant total de|Montant)\s*([\d\s,\.]+)\s*FCFA', pdf_text, re.IGNORECASE)
+                            #if montant_match:
+                            #    montant_str = montant_match.group(1).replace(' ', '').replace(',', '')
+                            #    extracted_data['montant'] = montant_str
+                            #else:
                                 # Chercher un montant simple
-                                montant_match2 = re.search(r'(\d{1,3}(?:\s?\d{3})*)\s*FCFA', pdf_text)
-                                extracted_data['montant'] = montant_match2.group(1).replace(' ', '') if montant_match2 else '0'
+                            #    montant_match2 = re.search(r'(\d{1,3}(?:\s?\d{3})*)\s*FCFA', pdf_text)
+                            #    extracted_data['montant'] = montant_match2.group(1).replace(' ', '') if montant_match2 else '0'
                             
                             # Date de création
-                            date_match = re.search(r'(?:date de création|Date création|Fait à Brazzaville, le)\s*([\d]{1,2}\s+[A-Za-z]+\s+[\d]{4})', pdf_text, re.IGNORECASE)
-                            if date_match:
-                                date_str = date_match.group(1).strip()
-                                try:
+                            #date_match = re.search(r'(?:date de création|Date création|Fait à Brazzaville, le)\s*([\d]{1,2}\s+[A-Za-z]+\s+[\d]{4})', pdf_text, re.IGNORECASE)
+                            #if date_match:
+                            #    date_str = date_match.group(1).strip()
+                            #    try:
                                     # Convertir la date en format YYYY-MM-DD
-                                    from dateutil import parser
-                                    date_obj = parser.parse(date_str, fuzzy=True)
-                                    extracted_data['date_creation'] = date_obj.strftime('%Y-%m-%d')
-                                except:
-                                    extracted_data['date_creation'] = None
-                            else:
-                                extracted_data['date_creation'] = None
+                            #        from dateutil import parser
+                            #        date_obj = parser.parse(date_str, fuzzy=True)
+                            #        extracted_data['date_creation'] = date_obj.strftime('%Y-%m-%d')
+                            #    except:
+                            #        extracted_data['date_creation'] = None
+                            #else:
+                            #    extracted_data['date_creation'] = None
                             
                             # Statut
-                            statut_match = re.search(r'(?:Statut|statut)\s*[:\-]?\s*([^\n]+)', pdf_text, re.IGNORECASE)
-                            extracted_data['statut'] = statut_match.group(1).strip() if statut_match else 'Etudiant'
+                            #statut_match = re.search(r'(?:Statut|statut)\s*[:\-]?\s*([^\n]+)', pdf_text, re.IGNORECASE)
+                            #extracted_data['statut'] = statut_match.group(1).strip() if statut_match else 'Etudiant'
                             
                             # Affichage des données extraites
-                            with st.expander("🔍 Données extraites", expanded=True):
+                            #with st.expander("🔍 Données extraites", expanded=True):
                                 # Afficher les données extraites
-                                for key, value in extracted_data.items():
-                                    st.write(f"**{key}:** {value if value else 'Non trouvé'}")
+                            #    for key, value in extracted_data.items():
+                            #        st.write(f"**{key}:** {value if value else 'Non trouvé'}")
                             
                             # Vérifier si des données ont été extraites
-                            if not extracted_data.get('reference'):
-                                st.warning("⚠️ Aucune référence extraite. Vérifiez le format du document.")
-                            else:
+                            #if not extracted_data.get('reference'):
+                            #    st.warning("⚠️ Aucune référence extraite. Vérifiez le format du document.")
+                            #else:
                                 # Ajout des données dans la base
-                                with st.spinner("Enregistrement des données dans la base..."):
-                                    try:
+                            #    with st.spinner("Enregistrement des données dans la base..."):
+                            #        try:
                                         # Créer une instance de la base de données
-                                        db = BankDatabase()
-                                        success = db.add_info_avi(extracted_data)
+                            #            db = BankDatabase()
+                            #            success = db.add_info_avi(extracted_data)
                                         
-                                        if success:
-                                            st.success("✅ Informations AVI enregistrées dans la base de données pour vérification")
-                                        else:
-                                            st.warning("⚠️ Les informations n'ont pas pu être enregistrées dans la base de données")
-                                    except Exception as e:
-                                        st.error(f"❌ Erreur lors de l'enregistrement: {str(e)}")
+                            #            if success:
+                            #                st.success("✅ Informations AVI enregistrées dans la base de données pour vérification")
+                            #            else:
+                            #                st.warning("⚠️ Les informations n'ont pas pu être enregistrées dans la base de données")
+                            #        except Exception as e:
+                            #            st.error(f"❌ Erreur lors de l'enregistrement: {str(e)}")
                             
                             # Pour le QR code, utiliser le lien de vérification
-                            ref = extracted_data.get('reference', '')
-                            verification_url = f"https://verificateur-avi.streamlit.app?ref={ref}" if ref else "https://verificateur-avi.streamlit.app"
-                            qr_content = verification_url
+                            #ref = extracted_data.get('reference', '')
+                            #verification_url = f"https://verificateur-avi.streamlit.app?ref={ref}" if ref else "https://verificateur-avi.streamlit.app"
+                            #qr_content = verification_url
 
-                            #extracted_data = {
-                            #    'nom': extract_between(pdf_text, "Nous certifions par la présente que", "détient un compte"),
-                            #    'code_banque': extract_regex(pdf_text, r"CODE BANQUE : (\d+)"),
-                            #    'numero_compte': extract_regex(pdf_text, r"NUMERO DE COMPTE : ([^\n]+)"),
-                            #    'devise': extract_regex(pdf_text, r"Devise : ([^\n]+)"),
-                            #    'iban': extract_regex(pdf_text, r"IBAN: ([^\n]+)"),
-                            #    'bic': extract_regex(pdf_text, r"BIC: ([^\n]+)"),
-                            #    'montant': extract_regex(pdf_text, r"montant total de ([^\n]+ FCFA)")
-                            #}
+                            extracted_data = {
+                                'nom': extract_between(pdf_text, "Nous certifions par la présente que", "détient un compte"),
+                                'code_banque': extract_regex(pdf_text, r"CODE BANQUE : (\d+)"),
+                                'numero_compte': extract_regex(pdf_text, r"NUMERO DE COMPTE : ([^\n]+)"),
+                                'devise': extract_regex(pdf_text, r"Devise : ([^\n]+)"),
+                                'iban': extract_regex(pdf_text, r"IBAN: ([^\n]+)"),
+                                'bic': extract_regex(pdf_text, r"BIC: ([^\n]+)"),
+                                'montant': extract_regex(pdf_text, r"montant total de ([^\n]+ FCFA)")
+                            }
 
-                        #with st.expander("🔍 Données extraites", expanded=True):
-                        #    st.json({k: v for k, v in extracted_data.items() if v})
+                        with st.expander("🔍 Données extraites", expanded=True):
+                            st.json({k: v for k, v in extracted_data.items() if v})
 
-                        #qr_content = "\n".join([f"{k}: {v}" for k, v in extracted_data.items() if v])
+                        qr_content = "\n".join([f"{k}: {v}" for k, v in extracted_data.items() if v])
                         
                         # Variables pour stocker le résultat
                         if 'modified_pdf' not in st.session_state:
