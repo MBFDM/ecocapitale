@@ -3808,7 +3808,7 @@ def show_admin_dashboard():
                                     ""
                                 )
                                 
-                                pdf.set_xy(10, 140)
+                                pdf.set_xy(10, 145)
                                 pdf.set_font(font_name, '', 11)
                                 
                                 pdf.multi_cell(
