@@ -3778,7 +3778,7 @@ def show_admin_dashboard():
                                 pdf.set_font(font_name, '', 11)
                                 pdf.write(
                                     5,
-                                    ", disposons d’un capital social de 60 000 000 Xaf, soit 91 469,94 euros. Immatriculée au Registre"
+                                    ", disposons d'un capital social de 60 000 000 Xaf, soit 91 469,94 euros. Immatriculée au Registre"
                                 )
                                 
                                 pdf.ln(5)
